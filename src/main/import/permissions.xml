@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions xmlns:jcr="http://www.jcp.org/jcr/1.0">
+    <admin jcr:primaryType="jnt:permission" >
+        <adminTemplates jcr:primaryType="jnt:permission" />
+    </admin>
+</permissions>

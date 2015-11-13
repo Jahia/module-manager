@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<content xmlns:j="http://www.jahia.org/jahia/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0">
+    <modules jcr:primaryType="jnt:modules">
+        <module-manager j:dependencies="default serverSettings"
+                      j:installedModules="module-manager"
+                      j:modulePriority="0"
+                      j:moduleType="module"
+                      j:title="DX Module Manager"
+                      jcr:mixinTypes="jmix:hasExternalProviderExtension"
+                      jcr:primaryType="jnt:module">
+                
+                <portlets jcr:primaryType="jnt:portletFolder"/>
+                <files jcr:primaryType="jnt:folder"/>
+                <contents jcr:primaryType="jnt:contentFolder"/>
+            <templates j:rootTemplatePath="/" jcr:primaryType="jnt:templatesFolder">
+                    <files jcr:primaryType="jnt:folder">
+                        <serveradmin jcr:primaryType="jnt:folder">
+                            <system_x0020_components jcr:primaryType="jnt:folder">
+                                <module-manager jcr:primaryType="jnt:folder">
+                                    <module-manager.png j:height="16"
+                                     j:width="16"
+                                     jcr:mixinTypes="jmix:image"
+                                     jcr:primaryType="jnt:file">
+                                        <jcr:content jcr:mimeType="image/png" jcr:primaryType="jnt:resource"/>
+                                        <thumbnail jcr:mimeType="image/png" jcr:primaryType="jnt:resource"/>
+                                        <thumbnail2 jcr:mimeType="image/png" jcr:primaryType="jnt:resource"/>
+                                    </module-manager.png>
+                                    <crop-100x100module-manager.png jcr:primaryType="jnt:file">
+                                        <jcr:content jcr:mimeType="image/png" jcr:primaryType="jnt:resource"/>
+                                    </crop-100x100module-manager.png>
+                                </module-manager>
+                            </system_x0020_components>
+                        </serveradmin>
+                    </files>
+                <contents jcr:primaryType="jnt:contentFolder"/>
+                    <server-settings-base j:view="serverSettings"
+                                jcr:mixinTypes="jmix:useUILocale"
+                                jcr:primaryType="jnt:template">
+                        <system-components j:hiddenTemplate="false"
+                                j:titleKey="serverSettings.systemComponents"
+                                jcr:mixinTypes="jmix:rbTitle"
+                                jcr:primaryType="jnt:template">
+                            <module-manager j:applyOn="jnt:globalSettings"
+                                 j:defaultTemplate="false"
+                                 j:hiddenTemplate="false"
+                                 j:icon="/modules/module-manager/templates/files/serveradmin/system_x0020_components/module-manager/module-manager.png"
+                                 j:requiredPermissionNames="adminTemplates"
+                                 j:titleKey="serverSettings.moduleManager"
+                                 jcr:mixinTypes="jmix:rbTitle"
+                                 jcr:primaryType="jnt:contentTemplate">
+                                <pagecontent jcr:primaryType="jnt:contentList">
+                                    <module-manager jcr:primaryType="jnt:serverSettingsModuleManager"/>
+                                </pagecontent>
+                            </module-manager>
+                        </system-components>
+                </server-settings-base>
+            </templates>
+                
+        </module-manager>
+    </modules>
+</content>
