@@ -69,12 +69,10 @@
  */
 package org.jahia.modules.modulemanager.model;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.TreeMap;
 
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Collection;
-import org.apache.jackrabbit.ocm.mapper.impl.annotation.Field;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
 
 /**
@@ -83,16 +81,18 @@ import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
  * @author Sergiy Shyrkov
  */
 @Node(jcrType = "jmm:moduleManagement", discriminator = false)
-public class ModuleManagement {
+public class ModuleManagement extends BasePersistentObject {
+
+    private static final long serialVersionUID = 3721980381995804955L;
 
     @Collection(jcrName = "bundles")
-    private List<Bundle> bundles = new LinkedList<>();
+    private TreeMap<String, Bundle> bundles = new TreeMap<>();
+
+    @Collection(jcrName = "nodes")
+    private LinkedHashMap<String, ClusterNode> nodes = new LinkedHashMap<>();
 
     @Collection(jcrName = "operations")
-    private List<Operation> operations = new LinkedList<>();
-
-    @Field(path = true)
-    private String path;
+    private LinkedHashMap<String, Operation> operations = new LinkedHashMap<>();
 
     // @Collection(proxy=true)
     // private List<Operation> operationLog;
@@ -104,32 +104,38 @@ public class ModuleManagement {
         super();
     }
 
-    public List<Bundle> getBundles() {
+    /**
+     * Initializes an instance of this class.
+     * 
+     * @param path
+     *            the persistent path
+     */
+    public ModuleManagement(String path) {
+        this();
+        setPath(path);
+    }
+
+    public TreeMap<String, Bundle> getBundles() {
         return bundles;
     }
 
-    public List<Operation> getOperations() {
+    public LinkedHashMap<String, ClusterNode> getNodes() {
+        return nodes;
+    }
+
+    public LinkedHashMap<String, Operation> getOperations() {
         return operations;
     }
 
-    public String getPath() {
-        return path;
-    }
-
-    public void setBundles(List<Bundle> bundles) {
+    public void setBundles(TreeMap<String, Bundle> bundles) {
         this.bundles = bundles;
     }
 
-    public void setOperations(List<Operation> operations) {
+    public void setNodes(LinkedHashMap<String, ClusterNode> nodes) {
+        this.nodes = nodes;
+    }
+
+    public void setOperations(LinkedHashMap<String, Operation> operations) {
         this.operations = operations;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    @Override
-    public String toString() {
-        return ReflectionToStringBuilder.toString(this);
     }
 }

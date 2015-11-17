@@ -69,8 +69,6 @@
  */
 package org.jahia.modules.modulemanager.model;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Bean;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Field;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
@@ -81,7 +79,9 @@ import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
  * @author Sergiy Shyrkov
  */
 @Node(jcrType = "jmm:bundle", discriminator = false)
-public class Bundle {
+public class Bundle extends BasePersistentObject {
+
+    private static final long serialVersionUID = 7399867537701726556L;
 
     @Field(jcrName = "j:checksum")
     private String checksum;
@@ -94,15 +94,6 @@ public class Bundle {
 
     @Field(jcrName = "j:fileName")
     private String fileName;
-
-    @Field(uuid = true, jcrProtected = true)
-    private String identifier;
-
-    @Field(id = true, jcrProtected = true)
-    private String name;
-
-    @Field(path = true, jcrProtected = true)
-    private String path;
 
     @Field(jcrName = "j:symbolicName")
     private String symbolicName;
@@ -123,8 +114,7 @@ public class Bundle {
      * @param name
      */
     public Bundle(String name) {
-        this();
-        this.name = name;
+        super(name);
     }
 
     public String getChecksum() {
@@ -141,24 +131,6 @@ public class Bundle {
 
     public String getFileName() {
         return fileName;
-    }
-
-    public String getIdentifier() {
-        return identifier;
-    }
-
-    public String getName() {
-        if (name != null) {
-            return name;
-        } else if (path != null) {
-            return StringUtils.substringAfterLast(path, "/");
-        } else {
-            return null;
-        }
-    }
-
-    public String getPath() {
-        return path;
     }
 
     public String getSymbolicName() {
@@ -185,29 +157,12 @@ public class Bundle {
         this.fileName = fileName;
     }
 
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
-    }
-
-    public void setName(String id) {
-        this.name = id;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
     public void setSymbolicName(String symbolicName) {
         this.symbolicName = symbolicName;
     }
 
     public void setVersion(String version) {
         this.version = version;
-    }
-
-    @Override
-    public String toString() {
-        return ReflectionToStringBuilder.toString(this);
     }
 
 }

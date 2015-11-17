@@ -7,6 +7,14 @@
 
     <bean id="messageSource" class="org.jahia.utils.i18n.ModuleMessageSource"/>
     
-    <bean id="ModuleInfoPersister" class="org.jahia.modules.modulemanager.persistence.ModuleInfoPersister" init-method="start"/>
+    <bean id="ModuleInfoPersister" class="org.jahia.modules.modulemanager.persistence.ModuleInfoPersister" init-method="start">
+        <property name="clusterNode">
+            <bean class="org.jahia.modules.modulemanager.model.ClusterNodeInfo">
+                <property name="id" value="${cluster.node.serverId}"/>
+                <property name="processingServer" value="${processingServer:true}"/>
+                <property name="clusterActivated" value="${cluster.activated}"/>
+            </bean>
+        </property>
+    </bean>
 
 </beans>

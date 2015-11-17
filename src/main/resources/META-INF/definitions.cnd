@@ -19,11 +19,11 @@
   + * (jmm:bundle) = jmm:bundle
 
 [jmm:bundle] > nt:file, mix:created, mix:lastModified, jmix:nolive
-  - j:version (string) 
-  - j:symbolicName (string)
-  - j:displayName (string)
-  - j:fileName (String)
-  - j:checksum (string)
+  - j:version (string) nofulltext
+  - j:symbolicName (string) nofulltext
+  - j:displayName (string) nofulltext
+  - j:fileName (String) nofulltext
+  - j:checksum (string) nofulltext
 
 [jmm:operations] > nt:base, jmix:observable, mix:created, mix:lastModified, jmix:nolive
   + * (jmm:operation)
@@ -41,6 +41,7 @@
 [jmm:node] > nt:base, jmix:observable, mix:created, mix:lastModified, jmix:nolive
   - j:state (string) nofulltext < 'online', 'offline', 'starting', 'stopping', 'na'
   - j:processingServer (boolean) = false
+  - j:type (string) nofulltext
   + bundles (jmm:bundleReferences) = jmm:bundleReferences
 
 [jmm:bundleReferences] > nt:base, jmix:observable

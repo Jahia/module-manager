@@ -80,11 +80,13 @@ import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
 @Node(jcrType = "nt:resource", discriminator = false)
 public class BinaryFile {
 
+    // TODO we need to have a URL here and a special AtomicTypeConverter implementation for binary to not load content of all JARs into
+    // memory
     @Field(jcrName = "jcr:data")
     private byte[] data;
 
     @Field(jcrName = "jcr:mimeType")
-    private String mimeType;
+    private String mimeType = "application/java-archive";
 
     /**
      * Initializes an instance of this class.
@@ -99,10 +101,20 @@ public class BinaryFile {
      * @param mimeType
      * @param data
      */
-    public BinaryFile(String mimeType, byte[] data) {
+    public BinaryFile(byte[] data) {
         this();
-        this.mimeType = mimeType;
         this.data = data;
+    }
+
+    /**
+     * Initializes an instance of this class.
+     * 
+     * @param mimeType
+     * @param data
+     */
+    public BinaryFile(String mimeType, byte[] data) {
+        this(data);
+        this.mimeType = mimeType;
     }
 
     public byte[] getData() {

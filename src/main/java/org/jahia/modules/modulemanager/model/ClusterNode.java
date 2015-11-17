@@ -67,98 +67,83 @@
  *     If you are unsure which license is appropriate for your use,
  *     please contact the sales department at sales@jahia.com.
  */
-package org.jahia.modules.modulemanager.persistence;
+package org.jahia.modules.modulemanager.model;
 
-import javax.jcr.RepositoryException;
+import java.util.TreeMap;
 
-import org.apache.jackrabbit.ocm.manager.ObjectContentManager;
-import org.jahia.modules.modulemanager.model.BinaryFile;
-import org.jahia.modules.modulemanager.model.Bundle;
-import org.jahia.modules.modulemanager.model.ClusterNodeInfo;
-import org.jahia.modules.modulemanager.model.ModuleManagement;
-import org.jahia.modules.modulemanager.model.Operation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.jackrabbit.ocm.mapper.impl.annotation.Collection;
+import org.apache.jackrabbit.ocm.mapper.impl.annotation.Field;
+import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
 
 /**
- * Responsible for initializing the JCR structure and information about deployment of modules if it is not present.
+ * TODO comment me
  * 
  * @author Sergiy Shyrkov
  */
-final class ModuleInfoInitializer {
+@Node(jcrType = "jmm:node", discriminator = false)
+public class ClusterNode extends BasePersistentObject {
 
-    private static final Logger logger = LoggerFactory.getLogger(ModuleInfoInitializer.class);
+    private static final long serialVersionUID = 4606202580861227782L;
 
-    public static void createTestStructure(ObjectContentManager ocm) throws RepositoryException {
-        if (ocm.getSession().nodeExists("/module-management")) {
-            test2(ocm);
-            return;
-        }
+    @Collection(jcrName = "bundles")
+    private TreeMap<String, BundleReference> bundles = new TreeMap<>();
 
-        test(ocm);
+    @Field(jcrName = "j:processingServer")
+    private boolean processingServer;
 
-        // ModuleManagement mgt = new ModuleManagement();
-        // mgt.setPath("/module-management");
-        //
-        // ocm.insert(mgt);
-        // ocm.save();
-    }
+    @Field(jcrName = "j:state")
+    private String state;
 
-    public static void populateBundles(ModuleManagement moduleManagement) {
-        // TODO Auto-generated method stub
-    }
+    @Field(jcrName = "j:type")
+    private String type;
 
-    public static void populateNodeBundles(ClusterNodeInfo clusterNode, ModuleManagement moduleManagement) {
-        // TODO Auto-generated method stub
-    }
-
-    private static void test(ObjectContentManager ocm) {
-        ModuleManagement mgt = new ModuleManagement();
-        mgt.setPath("/module-management");
-        Bundle b1 = new Bundle("bundleA-1.0.0-SNAPSHOT");
-        b1.setSymbolicName("bundleA");
-        b1.setVersion("1.0.0-SNAPSHOT");
-        b1.setFile(new BinaryFile("text/plain", "Some binray value".getBytes()));
-        mgt.getBundles().put(b1.getName(), b1);
-        Bundle b2 = new Bundle("bundleB-2.0.0-SNAPSHOT");
-        b2.setSymbolicName("bundleB");
-        b2.setVersion("2.0.0-SNAPSHOT");
-        b2.setFile(new BinaryFile("text/plain", "Another binray value".getBytes()));
-        mgt.getBundles().put(b2.getName(), b2);
-
-        ocm.insert(mgt);
-
-        mgt = (ModuleManagement) ocm.getObject("/module-management");
-
-        logger.info("After insert: {}", mgt);
-
-        Operation op = new Operation("install-" + mgt.getBundles().get("bundleB-2.0.0-SNAPSHOT").getName(), "install",
-                "open", mgt.getBundles().get("bundleB-2.0.0-SNAPSHOT"));
-        mgt.getOperations().put(op.getName(), op);
-        op = new Operation("install-" + mgt.getBundles().get("bundleA-1.0.0-SNAPSHOT").getName(), "install", "open",
-                mgt.getBundles().get("bundleA-1.0.0-SNAPSHOT"));
-        mgt.getOperations().put(op.getName(), op);
-
-        ocm.update(mgt);
-        ocm.save();
-
-        mgt = (ModuleManagement) ocm.getObject("/module-management");
-
-        logger.info("After update: {}", mgt);
-    }
-    private static void test2(ObjectContentManager ocm) {
-        ModuleManagement mgt = (ModuleManagement) ocm.getObject(ModuleManagement.class, "/module-management");
-        Bundle b1 = new Bundle("AAA-29.0.0");
-        b1.setSymbolicName("AAA");
-        b1.setVersion("29.0.0");
-        b1.setFile(new BinaryFile("text/plain", "Some binray value".getBytes()));
-        mgt.getBundles().put(b1.getName(), b1);
-
-        ocm.update(mgt);
-        ocm.save();
-    }
-
-    private ModuleInfoInitializer() {
+    /**
+     * Initializes an instance of this class.
+     */
+    public ClusterNode() {
         super();
+    }
+
+    /**
+     * Initializes an instance of this class.
+     * 
+     * @param name
+     * @param processingServer
+     */
+    public ClusterNode(String name, boolean processingServer) {
+        super(name);
+        this.processingServer = processingServer;
+    }
+
+    public TreeMap<String, BundleReference> getBundles() {
+        return bundles;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public boolean isProcessingServer() {
+        return processingServer;
+    }
+
+    public void setBundles(TreeMap<String, BundleReference> bundles) {
+        this.bundles = bundles;
+    }
+
+    public void setProcessingServer(boolean processingServer) {
+        this.processingServer = processingServer;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

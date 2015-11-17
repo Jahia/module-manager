@@ -69,8 +69,6 @@
  */
 package org.jahia.modules.modulemanager.model;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.jackrabbit.ocm.manager.beanconverter.impl.ReferenceBeanConverterImpl;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Bean;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Field;
@@ -82,19 +80,13 @@ import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
  * @author Sergiy Shyrkov
  */
 @Node(jcrType = "jmm:operation", discriminator = false)
-public class Operation {
+public class Operation extends BasePersistentObject {
 
     @Field(jcrName = "j:action")
     private String action;
 
     @Bean(jcrName = "j:bundle", converter = ReferenceBeanConverterImpl.class)
     private Bundle bundle;
-
-    @Field(id = true, jcrProtected = true)
-    private String name;
-
-    @Field(path = true)
-    private String path;
 
     @Field(jcrName = "j:state")
     private String state;
@@ -115,8 +107,7 @@ public class Operation {
      * @param bundle
      */
     public Operation(String name, String action, String state, Bundle bundle) {
-        super();
-        this.name = name;
+        super(name);
         this.action = action;
         this.state = state;
         this.bundle = bundle;
@@ -128,20 +119,6 @@ public class Operation {
 
     public Bundle getBundle() {
         return bundle;
-    }
-
-    public String getName() {
-        if (name != null) {
-            return name;
-        } else if (path != null) {
-            return StringUtils.substringAfterLast(path, "/");
-        } else {
-            return null;
-        }
-    }
-
-    public String getPath() {
-        return path;
     }
 
     public String getState() {
@@ -156,21 +133,8 @@ public class Operation {
         this.bundle = bundle;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
     public void setState(String state) {
         this.state = state;
-    }
-
-    @Override
-    public String toString() {
-        return ReflectionToStringBuilder.toString(this);
     }
 
 }

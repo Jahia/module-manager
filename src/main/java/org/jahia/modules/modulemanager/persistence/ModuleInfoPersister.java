@@ -74,12 +74,16 @@ import java.util.List;
 
 import javax.jcr.RepositoryException;
 
+import org.apache.jackrabbit.ocm.exception.ObjectContentManagerException;
 import org.apache.jackrabbit.ocm.manager.ObjectContentManager;
 import org.apache.jackrabbit.ocm.manager.impl.ObjectContentManagerImpl;
 import org.apache.jackrabbit.ocm.mapper.Mapper;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.AnnotationMapperImpl;
 import org.jahia.modules.modulemanager.model.BinaryFile;
 import org.jahia.modules.modulemanager.model.Bundle;
+import org.jahia.modules.modulemanager.model.BundleReference;
+import org.jahia.modules.modulemanager.model.ClusterNode;
+import org.jahia.modules.modulemanager.model.ClusterNodeInfo;
 import org.jahia.modules.modulemanager.model.ModuleManagement;
 import org.jahia.modules.modulemanager.model.Operation;
 import org.jahia.services.content.JCRCallback;
@@ -95,15 +99,43 @@ import org.slf4j.LoggerFactory;
  */
 public class ModuleInfoPersister {
 
+    /**
+     * Callback interface for operations, that are executed in OCM.
+     * 
+     * @author Sergiy Shyrkov
+     *
+     * @param <T>
+     *            the result return type of the operation
+     */
+    interface OCMCallback<T> {
+        T doInOCM(ObjectContentManager ocm) throws RepositoryException;
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(ModuleInfoPersister.class);
+
+    private static final String ROOT_NODE_PATH = "/module-management";
+
+    private ClusterNodeInfo clusterNode;
 
     private AnnotationMapperImpl mapper;
 
-    private ObjectContentManager createOcm(JCRSessionWrapper session) {
-        return new ObjectContentManagerImpl(session, getMapper());
+    private <T> T doExecute(final OCMCallback<T> callback) throws RepositoryException {
+        return JCRTemplate.getInstance().doExecuteWithSystemSession(new JCRCallback<T>() {
+            @Override
+            public T doInJCR(JCRSessionWrapper session) throws RepositoryException {
+                ObjectContentManager ocm = new ObjectContentManagerImpl(session, getMapper());
+
+                try {
+                    return callback.doInOCM(ocm);
+                } catch (RuntimeException e) {
+                    throw new RepositoryException(e);
+                }
+            }
+        });
     }
 
     private Mapper getMapper() {
+        // TODO replace annotations with XML descriptor to eliminate dependency of object model to jackrabbit-ocm?
         if (mapper == null) {
             @SuppressWarnings("rawtypes")
             List<Class> classes = new LinkedList<Class>();
@@ -111,31 +143,95 @@ public class ModuleInfoPersister {
             classes.add(Bundle.class);
             classes.add(BinaryFile.class);
             classes.add(Operation.class);
+            classes.add(ClusterNode.class);
+            classes.add(BundleReference.class);
 
             mapper = new AnnotationMapperImpl(classes);
         }
         return mapper;
     }
 
-    public void start() {
-        try {
-            JCRTemplate.getInstance().doExecuteWithSystemSession(new JCRCallback<Object>() {
-                @Override
-                public Object doInJCR(JCRSessionWrapper session) throws RepositoryException {
+    public ModuleManagement getModuleManagement() throws RepositoryException {
+        return doExecute(new OCMCallback<ModuleManagement>() {
+            @Override
+            public ModuleManagement doInOCM(ObjectContentManager ocm) throws RepositoryException {
 
-                    validateJcrTreeStructure(session);
+                ModuleManagement mgt = (ModuleManagement) ocm.getObject(ModuleManagement.class, ROOT_NODE_PATH);
+
+                return mgt;
+            }
+        });
+    }
+
+    private ModuleManagement getModuleManagement(ObjectContentManager ocm) {
+        ModuleManagement mgt = (ModuleManagement) ocm.getObject(ModuleManagement.class, ROOT_NODE_PATH);
+        if (mgt == null) {
+            logger.info("Creating initial JCR structure skeletong for " + ROOT_NODE_PATH);
+            try {
+                ocm.insert(new ModuleManagement(ROOT_NODE_PATH));
+                ocm.save();
+
+                logger.info("Done creating initial JCR structure skeletong for " + ROOT_NODE_PATH);
+            } catch (ObjectContentManagerException e) {
+                // is already created
+            }
+            mgt = (ModuleManagement) ocm.getObject(ModuleManagement.class, ROOT_NODE_PATH);
+        }
+
+        return mgt;
+    }
+
+    public void setClusterNode(ClusterNodeInfo clusterNode) {
+        this.clusterNode = clusterNode;
+    }
+
+    public void start() {
+        validateJcrTreeStructure();
+    }
+
+    private void validateJcrTreeStructure() {
+        try {
+            doExecute(new OCMCallback<Object>() {
+                @Override
+                public Object doInOCM(ObjectContentManager ocm) throws RepositoryException {
+
+                    // ensure module-management skeleton is created in JCR
+                    ModuleManagement mgt = getModuleManagement(ocm);
+
+                    if (mgt.getBundles().isEmpty()) {
+                        logger.info("Start populating information about module bundles...");
+                        long startTime = System.currentTimeMillis();
+
+                        ModuleInfoInitializer.populateBundles(mgt);
+                        ocm.save();
+
+                        logger.info("Done populating information about module bundles in {} ms",
+                                System.currentTimeMillis() - startTime);
+                        mgt = getModuleManagement(ocm);
+                    }
+
+                    if (!mgt.getNodes().containsKey(clusterNode.getId())) {
+                        ClusterNode cn = new ClusterNode(clusterNode.getId(), clusterNode.isProcessingServer());
+                        cn.setState("online");
+                        mgt.getNodes().put(cn.getName(), cn);
+                        ocm.update(mgt);
+
+                        logger.info("Start populating information about module bundles for node {}...",
+                                clusterNode.getId());
+                        long startTime = System.currentTimeMillis();
+
+                        ModuleInfoInitializer.populateNodeBundles(clusterNode, getModuleManagement(ocm));
+                        ocm.save();
+
+                        logger.info("Done populating information about module bundles for node {} in {} ms",
+                                clusterNode.getId(), System.currentTimeMillis() - startTime);
+                    }
 
                     return null;
                 }
             });
         } catch (RepositoryException e) {
-            logger.error("Error initializing and verifying JCR structure for module management", e);
-        }
-    }
-
-    private void validateJcrTreeStructure(JCRSessionWrapper session) throws RepositoryException {
-        if (!session.nodeExists("/module-management")) {
-            ModuleInfoInitializer.createStructure(createOcm(session));
+            logger.error("Unable to validate module management JCR tree structure. Cause: " + e.getMessage(), e);
         }
     }
 }
