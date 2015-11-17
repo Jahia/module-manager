@@ -4,5 +4,49 @@
 <jmix = 'http://www.jahia.org/jahia/mix/1.0'>
 <j = 'http://www.jahia.org/jahia/1.0'>
 <mix = 'http://www.jcp.org/jcr/mix/1.0'>
+<jmm = 'http://www.jahia.org/jahia/module-manager/1.0'>
 
 [jnt:serverSettingsModuleManager] > jnt:content, jmix:siteComponent, mix:title, jmix:studioOnly
+
+
+[jmm:moduleManagement] > nt:base, jmix:observable, mix:created, mix:lastModified, jmix:nolive
+  + bundles (jmm:bundles) = jmm:bundles
+  + operations (jmm:operations) = jmm:operations
+  + operationLog (jmm:operations) = jmm:operations
+  + nodes (jmm:nodes) = jmm:nodes
+
+[jmm:bundles] > nt:base, jmix:observable, mix:created, mix:lastModified, jmix:nolive
+  + * (jmm:bundle) = jmm:bundle
+
+[jmm:bundle] > nt:file, mix:created, mix:lastModified, jmix:nolive
+  - j:version (string) 
+  - j:symbolicName (string)
+  - j:displayName (string)
+  - j:fileName (String)
+  - j:checksum (string)
+
+[jmm:operations] > nt:base, jmix:observable, mix:created, mix:lastModified, jmix:nolive
+  + * (jmm:operation)
+  + * (jmm:operations)
+
+[jmm:operation] > nt:base, jmix:observable, mix:created, mix:lastModified, jmix:nolive
+  - j:bundle (weakreference) < jmm:bundle
+  - j:action (string) nofulltext < 'install', 'uninstall', 'start', 'stop'
+  - j:sourceNode (weakreference) < jmm:node
+  - j:state (string) nofulltext < 'open', 'processing', 'failed', 'na'
+
+[jmm:nodes] > nt:base, jmix:observable, mix:created, mix:lastModified, jmix:nolive
+  + * (jmm:node) = jmm:node
+
+[jmm:node] > nt:base, jmix:observable, mix:created, mix:lastModified, jmix:nolive
+  - j:state (string) nofulltext < 'online', 'offline', 'starting', 'stopping', 'na'
+  - j:processingServer (boolean) = false
+  + bundles (jmm:bundleReferences) = jmm:bundleReferences
+
+[jmm:bundleReferences] > nt:base, jmix:observable
+  + * (jmm:bundleReference) = jmm:bundleReference
+
+[jmm:bundleReference] > nt:base, jmix:observable, mix:created, mix:lastModified, jmix:nolive
+ - j:bundle (weakreference) < jmm:bundle
+ - j:state (string) nofulltext < 'installed', 'uninstalled', 'resolved', 'starting', 'stopping', 'active'
+
