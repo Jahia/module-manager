@@ -74,6 +74,7 @@ import javax.jcr.RepositoryException;
 import org.apache.jackrabbit.ocm.manager.ObjectContentManager;
 import org.jahia.modules.modulemanager.model.BinaryFile;
 import org.jahia.modules.modulemanager.model.Bundle;
+import org.jahia.modules.modulemanager.model.ClusterNode;
 import org.jahia.modules.modulemanager.model.ClusterNodeInfo;
 import org.jahia.modules.modulemanager.model.ModuleManagement;
 import org.jahia.modules.modulemanager.model.Operation;
@@ -108,7 +109,7 @@ final class ModuleInfoInitializer {
         // TODO Auto-generated method stub
     }
 
-    public static void populateNodeBundles(ClusterNodeInfo clusterNode, ModuleManagement moduleManagement) {
+    public static void populateNodeBundles(ClusterNode clusterNode, ModuleManagement moduleManagement) {
         // TODO Auto-generated method stub
     }
 

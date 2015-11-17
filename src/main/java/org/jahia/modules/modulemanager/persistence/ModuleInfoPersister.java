@@ -212,15 +212,16 @@ public class ModuleInfoPersister {
 
                     if (!mgt.getNodes().containsKey(clusterNode.getId())) {
                         ClusterNode cn = new ClusterNode(clusterNode.getId(), clusterNode.isProcessingServer());
+                        cn.setPath(ROOT_NODE_PATH + "/nodes/" + clusterNode.getId());
                         cn.setState("online");
-                        mgt.getNodes().put(cn.getName(), cn);
-                        ocm.update(mgt);
+                        ocm.insert(cn);
 
                         logger.info("Start populating information about module bundles for node {}...",
                                 clusterNode.getId());
                         long startTime = System.currentTimeMillis();
 
-                        ModuleInfoInitializer.populateNodeBundles(clusterNode, getModuleManagement(ocm));
+                        ModuleInfoInitializer.populateNodeBundles(
+                                (ClusterNode) ocm.getObject(ClusterNode.class, cn.getPath()), getModuleManagement(ocm));
                         ocm.save();
 
                         logger.info("Done populating information about module bundles for node {} in {} ms",
