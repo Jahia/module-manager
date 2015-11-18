@@ -69,6 +69,10 @@
  */
 package org.jahia.modules.modulemanager;
 
+import java.io.IOException;
+
+import javax.jcr.RepositoryException;
+
 import org.springframework.core.io.Resource;
 
 /**
@@ -79,7 +83,7 @@ import org.springframework.core.io.Resource;
  */
 public interface ModuleManager {
 
-    OperationResult install(Resource bundle, OperationScope operationScope);
+    OperationResult install(Resource bundleResource, OperationScope operationScope) throws IOException, RepositoryException;
 
     OperationResult start(String bundleKey, OperationScope operationScope);
 
