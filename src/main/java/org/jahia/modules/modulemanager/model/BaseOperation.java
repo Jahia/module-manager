@@ -69,31 +69,25 @@
  */
 package org.jahia.modules.modulemanager.model;
 
-import org.apache.jackrabbit.ocm.manager.beanconverter.impl.ReferenceBeanConverterImpl;
-import org.apache.jackrabbit.ocm.mapper.impl.annotation.Bean;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Field;
-import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
 
 /**
  * TODO comment me
  * 
  * @author Sergiy Shyrkov
  */
-@Node(jcrType = "jmm:operation", discriminator = false)
-public class Operation extends BaseOperation {
+public abstract class BaseOperation extends BasePersistentObject {
 
-    private static final long serialVersionUID = 4571381338168962323L;
+    private static final long serialVersionUID = -4651648193497928439L;
 
-    @Field(jcrName = "j:action")
-    private String action;
+    private String info;
 
-    @Bean(jcrName = "j:bundle", converter = ReferenceBeanConverterImpl.class)
-    private Bundle bundle;
+    private String state = "open";
 
     /**
      * Initializes an instance of this class.
      */
-    public Operation() {
+    public BaseOperation() {
         super();
     }
 
@@ -101,31 +95,36 @@ public class Operation extends BaseOperation {
      * Initializes an instance of this class.
      * 
      * @param name
-     * @param action
-     * @param state
-     * @param bundle
      */
-    public Operation(String name, String action, String state, Bundle bundle) {
+    public BaseOperation(String name) {
         super(name);
-        this.action = action;
-        setState(state);
-        this.bundle = bundle;
     }
 
-    public String getAction() {
-        return action;
+    @Field(jcrName = "j:info")
+    public String getInfo() {
+        return info;
     }
 
-    public Bundle getBundle() {
-        return bundle;
+    @Field(jcrName = "j:state")
+    public String getState() {
+        return state;
     }
 
-    public void setAction(String action) {
-        this.action = action;
+    /**
+     * Returns <code>true</code> if the operation is completed; either successfully or failed, but there is no more processing possible.
+     * 
+     * @return <code>true</code> if the operation is completed; either successfully or failed, but there is no more processing possible
+     */
+    public boolean isCompleted() {
+        return state != null && ("successful".equals(state) || "failed".equals(state));
     }
 
-    public void setBundle(Bundle bundle) {
-        this.bundle = bundle;
+    public void setInfo(String info) {
+        this.info = info;
+    }
+
+    public void setState(String state) {
+        this.state = state;
     }
 
 }

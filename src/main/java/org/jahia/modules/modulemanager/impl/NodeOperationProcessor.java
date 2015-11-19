@@ -78,6 +78,7 @@ import org.apache.jackrabbit.ocm.manager.ObjectContentManager;
 import org.jahia.modules.modulemanager.ModuleManagementException;
 import org.jahia.modules.modulemanager.model.ClusterNodeInfo;
 import org.jahia.modules.modulemanager.model.NodeOperation;
+import org.jahia.modules.modulemanager.model.Operation;
 import org.jahia.modules.modulemanager.persistence.ModuleInfoPersister;
 import org.jahia.modules.modulemanager.persistence.ModuleInfoPersister.OCMCallback;
 import org.slf4j.Logger;
@@ -97,37 +98,6 @@ public class NodeOperationProcessor {
     private String operationLogPath;
 
     private ModuleInfoPersister persister;
-
-    /**
-     * Checks for the next open operation and processes it.
-     * 
-     * @throws ModuleManagementException
-     *             in case of an error
-     */
-    public void process() throws ModuleManagementException {
-        logger.debug("Checking for available node-level module operations");
-        try {
-            NodeOperation op = persister.getNextNodeOperation(clusterNodeInfo.getId());
-            if (op == null) {
-                // no operations to be processed found -> return
-                logger.debug("No node-levelmodule operations to be processed found");
-                return;
-            }
-            if ("open".equals(op.getState())) {
-                // we can start the operation now
-                logger.info("Found open node-level module operation to be started: {}",
-                        logger.isDebugEnabled() ? op : op.getPath());
-                long startTime = System.currentTimeMillis();
-                if (canStart(op)) {
-                    processOperation(op);
-                    logger.info("Node-level module operation {} processed in {} ms", op.getPath(),
-                            System.currentTimeMillis() - startTime);
-                }
-            }
-        } catch (RepositoryException e) {
-            throw new ModuleManagementException(e);
-        }
-    }
 
     /**
      * Performs the check if the operation can be started or not, which is based on the dependencies of it.
@@ -167,14 +137,57 @@ public class NodeOperationProcessor {
         });
     }
 
+    protected void completeGlobalOperationFor(NodeOperation op, ObjectContentManager ocm) {
+        // update the state of the global operation
+        Operation globalOp = op.getOperation();
+        globalOp.setState(op.getState());
+        globalOp.setInfo(op.getInfo());
+        ocm.update(globalOp);
+
+        // archive the global operation
+        ocm.move(globalOp.getPath(), "/module-management/operationLog/" + globalOp.getName());
+    }
+
+    protected boolean performAction(NodeOperation op) {
+        boolean success = true;
+        long startTime = System.currentTimeMillis();
+        logger.info("Start performing node operation {}", logger.isDebugEnabled() ? op : op.getPath());
+
+        logger.info("Done performing node operation {} with status {} in {} ms",
+                new Object[] { logger.isDebugEnabled() ? op : op.getPath(), success ? "success" : "failure",
+                        System.currentTimeMillis() - startTime });
+        return success;
+    }
+
     /**
-     * Injects an instance of the persistence service.
+     * Checks for the next open operation and processes it.
      * 
-     * @param persister
-     *            an instance of the persistence service
+     * @throws ModuleManagementException
+     *             in case of an error
      */
-    public void setPersister(ModuleInfoPersister persister) {
-        this.persister = persister;
+    public void process() throws ModuleManagementException {
+        logger.debug("Checking for available node-level module operations");
+        try {
+            NodeOperation op = persister.getNextNodeOperation(clusterNodeInfo.getId());
+            if (op == null) {
+                // no operations to be processed found -> return
+                logger.debug("No node-levelmodule operations to be processed found");
+                return;
+            }
+            if ("open".equals(op.getState())) {
+                // we can start the operation now
+                logger.info("Found open node-level module operation to be started: {}",
+                        logger.isDebugEnabled() ? op : op.getPath());
+                long startTime = System.currentTimeMillis();
+                if (canStart(op)) {
+                    processOperation(op);
+                    logger.info("Node-level module operation {} processed in {} ms", op.getPath(),
+                            System.currentTimeMillis() - startTime);
+                }
+            }
+        } catch (RepositoryException e) {
+            throw new ModuleManagementException(e);
+        }
     }
 
     /**
@@ -213,9 +226,14 @@ public class NodeOperationProcessor {
                     }
                 } finally {
                     ocm.update(op);
+
+                    if (clusterNodeInfo.isProcessingServer() && !op.getOperation().isCompleted()) {
+                        // we have to complete the global operation as this node is the last one in processing chain
+                        completeGlobalOperationFor(op, ocm);
+                    }
                     ocm.save();
 
-                    // archive the operation
+                    // archive this node operation
                     ocm.move(op.getPath(), new StringBuilder(operationLogPath.length() + op.getName().length())
                             .append(operationLogPath).append(op.getName()).toString());
                     ocm.save();
@@ -227,20 +245,19 @@ public class NodeOperationProcessor {
         });
     }
 
-    protected boolean performAction(NodeOperation op) {
-        boolean success = true;
-        long startTime = System.currentTimeMillis();
-        logger.info("Start performing node operation {}", logger.isDebugEnabled() ? op : op.getPath());
-
-        logger.info("Done performing node operation {} with status {} in {} ms",
-                new Object[] { logger.isDebugEnabled() ? op : op.getPath(), success ? "success" : "failure",
-                        System.currentTimeMillis() - startTime });
-        return success;
-    }
-
     public void setClusterNodeInfo(ClusterNodeInfo clusterNodeInfo) {
         this.clusterNodeInfo = clusterNodeInfo;
         operationLogPath = clusterNodeInfo != null
                 ? "/module-management/nodes/" + clusterNodeInfo.getId() + "/operationLog/" : null;
+    }
+
+    /**
+     * Injects an instance of the persistence service.
+     * 
+     * @param persister
+     *            an instance of the persistence service
+     */
+    public void setPersister(ModuleInfoPersister persister) {
+        this.persister = persister;
     }
 }

@@ -210,6 +210,7 @@ public class ModuleManagerImpl implements ModuleManager {
             if (existingBundle != null && existingBundle.getChecksum() != null
                     && existingBundle.getChecksum().equals(bundle.getChecksum())) {
                 // we have exactly same bundle installed already -> refuse
+                logger.debug("Bundle {} already installed. Skipping it", existingBundle.getName());
                 return OperationResult.ALREADY_INSTALLED;
             }
 

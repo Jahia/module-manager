@@ -75,7 +75,6 @@ import org.apache.jackrabbit.ocm.manager.beanconverter.impl.ReferenceBeanConvert
 import org.apache.jackrabbit.ocm.manager.collectionconverter.impl.ReferenceCollectionConverterImpl;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Bean;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Collection;
-import org.apache.jackrabbit.ocm.mapper.impl.annotation.Field;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
 
 /**
@@ -84,21 +83,15 @@ import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
  * @author Sergiy Shyrkov
  */
 @Node(jcrType = "jmm:nodeOperation", discriminator = false)
-public class NodeOperation extends BasePersistentObject {
+public class NodeOperation extends BaseOperation {
 
     private static final long serialVersionUID = 1285786369976605215L;
 
     @Collection(jcrName = "j:dependsOn", collectionConverter = ReferenceCollectionConverterImpl.class)
     private List<String> dependsOn;
 
-    @Field(jcrName = "j:info")
-    private String info;
-
     @Bean(jcrName = "j:operation", converter = ReferenceBeanConverterImpl.class)
     private Operation operation;
-
-    @Field(jcrName = "j:state")
-    private String state = "open";
 
     /**
      * Initializes an instance of this class.
@@ -117,7 +110,7 @@ public class NodeOperation extends BasePersistentObject {
      */
     public NodeOperation(String name, String state, Operation operation) {
         super(name);
-        this.state = state;
+        setState(state);
         this.operation = operation;
     }
 
@@ -125,41 +118,16 @@ public class NodeOperation extends BasePersistentObject {
         return dependsOn;
     }
 
-    public String getInfo() {
-        return info;
-    }
-
     public Operation getOperation() {
         return operation;
-    }
-
-    public String getState() {
-        return state;
-    }
-
-    /**
-     * Returns <code>true</code> if the operation is completed; either successfully or failed, but there is no more processing possible.
-     * 
-     * @return <code>true</code> if the operation is completed; either successfully or failed, but there is no more processing possible
-     */
-    public boolean isCompleted() {
-        return state != null && ("successful".equals(state) || "failed".equals(state));
     }
 
     public void setDependsOn(List<String> dependsOn) {
         this.dependsOn = dependsOn;
     }
 
-    public void setInfo(String info) {
-        this.info = info;
-    }
-
     public void setOperation(Operation operation) {
         this.operation = operation;
-    }
-
-    public void setState(String state) {
-        this.state = state;
     }
 
 }
