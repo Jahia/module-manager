@@ -72,23 +72,31 @@ package org.jahia.modules.modulemanager.persistence;
 import javax.jcr.RepositoryException;
 
 import org.apache.jackrabbit.ocm.manager.ObjectContentManager;
-import org.jahia.modules.modulemanager.model.BinaryFile;
-import org.jahia.modules.modulemanager.model.Bundle;
-import org.jahia.modules.modulemanager.model.ClusterNode;
-import org.jahia.modules.modulemanager.model.ClusterNodeInfo;
-import org.jahia.modules.modulemanager.model.ModuleManagement;
-import org.jahia.modules.modulemanager.model.Operation;
+import org.jahia.modules.modulemanager.impl.BundleServiceImpl;
+import org.jahia.modules.modulemanager.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Responsible for initializing the JCR structure and information about deployment of modules if it is not present.
  * 
  * @author Sergiy Shyrkov
  */
-final class ModuleInfoInitializer {
+public class ModuleInfoInitializer {
 
     private static final Logger logger = LoggerFactory.getLogger(ModuleInfoInitializer.class);
+
+
+    @Autowired
+    private BundleServiceImpl bundleService;
+
+    public void setBundleService(BundleServiceImpl bundleService) {
+        this.bundleService = bundleService;
+    }
 
     public static void createTestStructure(ObjectContentManager ocm) throws RepositoryException {
         if (ocm.getSession().nodeExists("/module-management")) {
@@ -105,27 +113,41 @@ final class ModuleInfoInitializer {
         // ocm.save();
     }
 
-    public static void populateBundles(ModuleManagement moduleManagement) {
-        // TODO Auto-generated method stub
+    /**
+     * populate the list of bundles in the module management object
+     * @param moduleManagement module management to update the list of the bundles
+     */
+    public void populateBundles(ModuleManagement moduleManagement) {
+        bundleService.populateBundles(moduleManagement);
     }
 
-    public static void populateNodeBundles(ClusterNode clusterNode, ModuleManagement moduleManagement) {
-        // TODO Auto-generated method stub
+    /**
+     * Populate the list of bundles in the cluster node
+     * @param clusterNode cluster node to update its bundles
+     * @param bundleSources bundles sources
+     */
+    public void populateNodeBundles(ClusterNode clusterNode, TreeMap<String, Bundle> bundleSources) {
+        for (String bundleKey : bundleSources.keySet())
+        {
+            Bundle referencedBundle = bundleSources.get(bundleKey);
+            BundleReference bundleReference = new BundleReference(bundleKey);
+            bundleReference.setBundle(referencedBundle);
+            if(referencedBundle.getState() != null) {
+                bundleReference.setState(referencedBundle.getState().toLowerCase());
+            }
+            clusterNode.getBundles().put(bundleKey,bundleReference);
+        }
     }
 
-    private static void test(ObjectContentManager ocm) {
+    public static void test(ObjectContentManager ocm) {
         ModuleManagement mgt = new ModuleManagement();
         mgt.setPath("/module-management");
         Bundle b1 = new Bundle("bundleA-1.0.0-SNAPSHOT");
         b1.setSymbolicName("bundleA");
         b1.setVersion("1.0.0-SNAPSHOT");
-        b1.setFile(new BinaryFile("text/plain", "Some binray value".getBytes()));
+        b1.setPath("/module-management/bundleA-1.0.0-SNAPSHOT");
+        //b1.setFile(new BinaryFile("text/plain", "Some binray value".getBytes()));
         mgt.getBundles().put(b1.getName(), b1);
-        Bundle b2 = new Bundle("bundleB-2.0.0-SNAPSHOT");
-        b2.setSymbolicName("bundleB");
-        b2.setVersion("2.0.0-SNAPSHOT");
-        b2.setFile(new BinaryFile("text/plain", "Another binray value".getBytes()));
-        mgt.getBundles().put(b2.getName(), b2);
 
         ocm.insert(mgt);
 

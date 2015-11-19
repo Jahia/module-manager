@@ -6,8 +6,9 @@
                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
     <bean id="messageSource" class="org.jahia.utils.i18n.ModuleMessageSource"/>
-    
-    <bean id="ModuleInfoPersister" class="org.jahia.modules.modulemanager.persistence.ModuleInfoPersister" init-method="start">
+
+    <bean id="ModuleInfoPersister" class="org.jahia.modules.modulemanager.persistence.ModuleInfoPersister"
+          init-method="start">
         <property name="clusterNode">
             <bean class="org.jahia.modules.modulemanager.model.ClusterNodeInfo">
                 <property name="id" value="${cluster.node.serverId}"/>
@@ -15,6 +16,14 @@
                 <property name="clusterActivated" value="${cluster.activated}"/>
             </bean>
         </property>
+        <property name="moduleInfoInitializer" ref="ModuleInfoInitializer"/>
     </bean>
 
+    <bean id="BundleService" class="org.jahia.modules.modulemanager.impl.BundleServiceImpl"
+          init-method="start" destroy-method="stop">
+    </bean>
+
+    <bean id="ModuleInfoInitializer" class="org.jahia.modules.modulemanager.persistence.ModuleInfoInitializer">
+        <property name="bundleService" ref="BundleService"/>
+    </bean>
 </beans>

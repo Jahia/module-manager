@@ -102,6 +102,11 @@ public class Bundle extends BasePersistentObject {
     private String version;
 
     /**
+     * bundle state
+     */
+    private String state;
+
+    /**
      * Initializes an instance of this class.
      */
     public Bundle() {
@@ -141,6 +146,8 @@ public class Bundle extends BasePersistentObject {
         return version;
     }
 
+    public String getState() {return  state;}
+
     public void setChecksum(String checksum) {
         this.checksum = checksum;
     }
@@ -165,4 +172,7 @@ public class Bundle extends BasePersistentObject {
         this.version = version;
     }
 
+    public void setState(String state) {
+        this.state = state;
+    }
 }

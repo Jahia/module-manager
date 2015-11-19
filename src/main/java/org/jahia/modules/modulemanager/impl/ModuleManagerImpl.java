@@ -72,6 +72,7 @@ package org.jahia.modules.modulemanager.impl;
 import org.jahia.modules.modulemanager.ModuleManager;
 import org.jahia.modules.modulemanager.OperationResult;
 import org.jahia.modules.modulemanager.OperationScope;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 
 /**
