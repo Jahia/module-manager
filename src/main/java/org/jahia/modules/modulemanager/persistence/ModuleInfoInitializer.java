@@ -69,14 +69,17 @@
  */
 package org.jahia.modules.modulemanager.persistence;
 
+import java.util.TreeMap;
+
 import javax.jcr.RepositoryException;
 
 import org.apache.jackrabbit.ocm.manager.ObjectContentManager;
+import org.jahia.modules.modulemanager.impl.BundleServiceImpl;
 import org.jahia.modules.modulemanager.model.BinaryFile;
 import org.jahia.modules.modulemanager.model.Bundle;
 import org.jahia.modules.modulemanager.model.ClusterNode;
-import org.jahia.modules.modulemanager.model.ClusterNodeInfo;
 import org.jahia.modules.modulemanager.model.ModuleManagement;
+import org.jahia.modules.modulemanager.model.NodeBundle;
 import org.jahia.modules.modulemanager.model.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,7 +89,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Sergiy Shyrkov
  */
-final class ModuleInfoInitializer {
+public class ModuleInfoInitializer {
 
     private static final Logger logger = LoggerFactory.getLogger(ModuleInfoInitializer.class);
 
@@ -105,27 +108,15 @@ final class ModuleInfoInitializer {
         // ocm.save();
     }
 
-    public static void populateBundles(ModuleManagement moduleManagement) {
-        // TODO Auto-generated method stub
-    }
-
-    public static void populateNodeBundles(ClusterNode clusterNode, ModuleManagement moduleManagement) {
-        // TODO Auto-generated method stub
-    }
-
-    private static void test(ObjectContentManager ocm) {
+    public static void test(ObjectContentManager ocm) {
         ModuleManagement mgt = new ModuleManagement();
         mgt.setPath("/module-management");
         Bundle b1 = new Bundle("bundleA-1.0.0-SNAPSHOT");
         b1.setSymbolicName("bundleA");
         b1.setVersion("1.0.0-SNAPSHOT");
-        b1.setFile(new BinaryFile("text/plain", "Some binray value".getBytes()));
+        b1.setPath("/module-management/bundleA-1.0.0-SNAPSHOT");
+        // b1.setFile(new BinaryFile("text/plain", "Some binray value".getBytes()));
         mgt.getBundles().put(b1.getName(), b1);
-        Bundle b2 = new Bundle("bundleB-2.0.0-SNAPSHOT");
-        b2.setSymbolicName("bundleB");
-        b2.setVersion("2.0.0-SNAPSHOT");
-        b2.setFile(new BinaryFile("text/plain", "Another binray value".getBytes()));
-        mgt.getBundles().put(b2.getName(), b2);
 
         ocm.insert(mgt);
 
@@ -147,6 +138,7 @@ final class ModuleInfoInitializer {
 
         logger.info("After update: {}", mgt);
     }
+
     private static void test2(ObjectContentManager ocm) {
         ModuleManagement mgt = (ModuleManagement) ocm.getObject(ModuleManagement.class, "/module-management");
         Bundle b1 = new Bundle("AAA-29.0.0");
@@ -159,7 +151,43 @@ final class ModuleInfoInitializer {
         ocm.save();
     }
 
+    private BundleServiceImpl bundleService;
+
     private ModuleInfoInitializer() {
         super();
+    }
+
+    /**
+     * populate the list of bundles in the module management object
+     * 
+     * @param moduleManagement
+     *            module management to update the list of the bundles
+     */
+    public void populateBundles(ModuleManagement moduleManagement) {
+        bundleService.populateBundles(moduleManagement);
+    }
+
+    /**
+     * Populate the list of bundles in the cluster node
+     * 
+     * @param clusterNode
+     *            cluster node to update its bundles
+     * @param bundleSources
+     *            bundles sources
+     */
+    public void populateNodeBundles(ClusterNode clusterNode, TreeMap<String, Bundle> bundleSources) {
+        for (String bundleKey : bundleSources.keySet()) {
+            Bundle referencedBundle = bundleSources.get(bundleKey);
+            NodeBundle bundleReference = new NodeBundle(bundleKey);
+            bundleReference.setBundle(referencedBundle);
+            if (referencedBundle.getState() != null) {
+                bundleReference.setState(referencedBundle.getState().toLowerCase());
+            }
+            clusterNode.getBundles().put(bundleKey, bundleReference);
+        }
+    }
+
+    public void setBundleService(BundleServiceImpl bundleService) {
+        this.bundleService = bundleService;
     }
 }

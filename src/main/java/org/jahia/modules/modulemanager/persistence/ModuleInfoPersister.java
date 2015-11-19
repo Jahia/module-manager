@@ -69,8 +69,11 @@
  */
 package org.jahia.modules.modulemanager.persistence;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -124,6 +127,8 @@ public class ModuleInfoPersister {
 
     private AnnotationMapperImpl mapper;
 
+    private ModuleInfoInitializer moduleInfoInitializer;
+
     private String operationLogAutoSplitConfig;
 
     /**
@@ -148,6 +153,24 @@ public class ModuleInfoPersister {
         });
     }
 
+    private Mapper getMapper() {
+        // TODO replace annotations with XML descriptor to eliminate dependency of object model to jackrabbit-ocm?
+        if (mapper == null) {
+            @SuppressWarnings("rawtypes")
+            List<Class> classes = new LinkedList<Class>();
+            classes.add(ModuleManagement.class);
+            classes.add(Bundle.class);
+            classes.add(BinaryFile.class);
+            classes.add(Operation.class);
+            classes.add(ClusterNode.class);
+            classes.add(NodeBundle.class);
+            classes.add(NodeOperation.class);
+
+            mapper = new AnnotationMapperImpl(classes);
+        }
+        return mapper;
+    }
+
     // private AtomicTypeConverterProvider getAtomicTypeConverterProvider() {
     // if (atomicTypeConverterProvider == null) {
     // DefaultAtomicTypeConverterProvider converterProvider = new DefaultAtomicTypeConverterProvider();
@@ -168,24 +191,6 @@ public class ModuleInfoPersister {
     //
     // return null;
     // }
-
-    private Mapper getMapper() {
-        // TODO replace annotations with XML descriptor to eliminate dependency of object model to jackrabbit-ocm?
-        if (mapper == null) {
-            @SuppressWarnings("rawtypes")
-            List<Class> classes = new LinkedList<Class>();
-            classes.add(ModuleManagement.class);
-            classes.add(Bundle.class);
-            classes.add(BinaryFile.class);
-            classes.add(Operation.class);
-            classes.add(ClusterNode.class);
-            classes.add(NodeBundle.class);
-            classes.add(NodeOperation.class);
-
-            mapper = new AnnotationMapperImpl(classes);
-        }
-        return mapper;
-    }
 
     /**
      * Returns the module management object with the deployment information.
@@ -295,6 +300,14 @@ public class ModuleInfoPersister {
         this.clusterNodeInfo = clusterNodeInfo;
     }
 
+    public void setModuleInfoInitializer(ModuleInfoInitializer moduleInfoInitializer) {
+        this.moduleInfoInitializer = moduleInfoInitializer;
+    }
+
+    public void setOperationLogAutoSplitConfig(String operationLogAutoSplitConfig) {
+        this.operationLogAutoSplitConfig = operationLogAutoSplitConfig;
+    }
+
     protected void start() {
         try {
             doExecute(new OCMCallback<Object>() {
@@ -309,16 +322,30 @@ public class ModuleInfoPersister {
         }
     }
 
+    private void synchronizeBundleMapWithState(TreeMap<String, Bundle> mgtBundleMap,
+            TreeMap<String, Bundle> bundleWithStateMap) {
+        for (String bundleName : bundleWithStateMap.keySet()) {
+            Bundle mgtBundle = mgtBundleMap.get(bundleName);
+            Bundle bundleToSynchronize = bundleWithStateMap.get(bundleName);
+            mgtBundle.setState(bundleToSynchronize.getState());
+            mgtBundleMap.put(bundleName, mgtBundle);
+        }
+    }
+
     private void validateJcrTreeStructure(ObjectContentManager ocm) throws RepositoryException {
         // 1) ensure module-management skeleton is created in JCR
         ModuleManagement mgt = getModuleManagement(ocm);
 
+        TreeMap<String, Bundle> bundleWithStateMap = null;
         if (mgt.getBundles().isEmpty()) {
             // 2) populate information about available bundles
             logger.info("Start populating information about available module bundles...");
             long startTime = System.currentTimeMillis();
 
-            ModuleInfoInitializer.populateBundles(mgt);
+            Map<String, String> bundeStateMap = new HashMap<String, String>();
+            moduleInfoInitializer.populateBundles(mgt);
+            bundleWithStateMap = mgt.getBundles();
+            ocm.update(mgt);
             ocm.save();
 
             logger.info("Done populating information about available module bundles in {} ms",
@@ -339,15 +366,17 @@ public class ModuleInfoPersister {
             logger.info("Start populating information about module bundles for node {}...", clusterNodeInfo.getId());
             long startTime = System.currentTimeMillis();
 
-            ModuleInfoInitializer.populateNodeBundles(cn, getModuleManagement(ocm));
+            ClusterNode clusterNodeToUpdate = (ClusterNode) ocm.getObject(ClusterNode.class, cn.getPath());
+            mgt = getModuleManagement(ocm);
+            TreeMap<String, Bundle> mgtBundleMap = mgt.getBundles();
+            // TODO : update the status of the node bundles reference.
+            // synchronizeBundleMapWithState(mgtBundleMap, bundleWithStateMap);
+            moduleInfoInitializer.populateNodeBundles(clusterNodeToUpdate, mgtBundleMap);
+            ocm.update(clusterNodeToUpdate);
             ocm.save();
 
             logger.info("Done populating information about module bundles for node {} in {} ms",
                     clusterNodeInfo.getId(), System.currentTimeMillis() - startTime);
         }
-    }
-
-    public void setOperationLogAutoSplitConfig(String operationLogAutoSplitConfig) {
-        this.operationLogAutoSplitConfig = operationLogAutoSplitConfig;
     }
 }
