@@ -69,20 +69,14 @@
  */
 package org.jahia.modules.modulemanager.persistence;
 
+import java.util.Map;
 import java.util.TreeMap;
 
-import javax.jcr.RepositoryException;
-
-import org.apache.jackrabbit.ocm.manager.ObjectContentManager;
 import org.jahia.modules.modulemanager.impl.BundleServiceImpl;
-import org.jahia.modules.modulemanager.model.BinaryFile;
 import org.jahia.modules.modulemanager.model.Bundle;
 import org.jahia.modules.modulemanager.model.ClusterNode;
 import org.jahia.modules.modulemanager.model.ModuleManagement;
 import org.jahia.modules.modulemanager.model.NodeBundle;
-import org.jahia.modules.modulemanager.model.Operation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Responsible for initializing the JCR structure and information about deployment of modules if it is not present.
@@ -91,66 +85,6 @@ import org.slf4j.LoggerFactory;
  */
 public class ModuleInfoInitializer {
 
-    private static final Logger logger = LoggerFactory.getLogger(ModuleInfoInitializer.class);
-
-    public static void createTestStructure(ObjectContentManager ocm) throws RepositoryException {
-        if (ocm.getSession().nodeExists("/module-management")) {
-            test2(ocm);
-            return;
-        }
-
-        test(ocm);
-
-        // ModuleManagement mgt = new ModuleManagement();
-        // mgt.setPath("/module-management");
-        //
-        // ocm.insert(mgt);
-        // ocm.save();
-    }
-
-    public static void test(ObjectContentManager ocm) {
-        ModuleManagement mgt = new ModuleManagement();
-        mgt.setPath("/module-management");
-        Bundle b1 = new Bundle("bundleA-1.0.0-SNAPSHOT");
-        b1.setSymbolicName("bundleA");
-        b1.setVersion("1.0.0-SNAPSHOT");
-        b1.setPath("/module-management/bundleA-1.0.0-SNAPSHOT");
-        // b1.setFile(new BinaryFile("text/plain", "Some binray value".getBytes()));
-        mgt.getBundles().put(b1.getName(), b1);
-
-        ocm.insert(mgt);
-
-        mgt = (ModuleManagement) ocm.getObject("/module-management");
-
-        logger.info("After insert: {}", mgt);
-
-        Operation op = new Operation("install-" + mgt.getBundles().get("bundleB-2.0.0-SNAPSHOT").getName(), "install",
-                "open", mgt.getBundles().get("bundleB-2.0.0-SNAPSHOT"));
-        mgt.getOperations().put(op.getName(), op);
-        op = new Operation("install-" + mgt.getBundles().get("bundleA-1.0.0-SNAPSHOT").getName(), "install", "open",
-                mgt.getBundles().get("bundleA-1.0.0-SNAPSHOT"));
-        mgt.getOperations().put(op.getName(), op);
-
-        ocm.update(mgt);
-        ocm.save();
-
-        mgt = (ModuleManagement) ocm.getObject("/module-management");
-
-        logger.info("After update: {}", mgt);
-    }
-
-    private static void test2(ObjectContentManager ocm) {
-        ModuleManagement mgt = (ModuleManagement) ocm.getObject(ModuleManagement.class, "/module-management");
-        Bundle b1 = new Bundle("AAA-29.0.0");
-        b1.setSymbolicName("AAA");
-        b1.setVersion("29.0.0");
-        b1.setFile(new BinaryFile("text/plain", "Some binray value".getBytes()));
-        mgt.getBundles().put(b1.getName(), b1);
-
-        ocm.update(mgt);
-        ocm.save();
-    }
-
     private BundleServiceImpl bundleService;
 
     private ModuleInfoInitializer() {
@@ -158,13 +92,14 @@ public class ModuleInfoInitializer {
     }
 
     /**
-     * populate the list of bundles in the module management object
+     * Populate the list of bundles in the module management object.
      * 
      * @param moduleManagement
      *            module management to update the list of the bundles
+     * @return the map with found bundles and their states
      */
-    public void populateBundles(ModuleManagement moduleManagement) {
-        bundleService.populateBundles(moduleManagement);
+    public Map<String, String> populateBundles(ModuleManagement moduleManagement) {
+        return bundleService.populateBundles(moduleManagement);
     }
 
     /**
@@ -174,16 +109,19 @@ public class ModuleInfoInitializer {
      *            cluster node to update its bundles
      * @param bundleSources
      *            bundles sources
+     * @param bundleStates the map bundle-to-state 
      */
-    public void populateNodeBundles(ClusterNode clusterNode, TreeMap<String, Bundle> bundleSources) {
-        for (String bundleKey : bundleSources.keySet()) {
-            Bundle referencedBundle = bundleSources.get(bundleKey);
-            NodeBundle bundleReference = new NodeBundle(bundleKey);
-            bundleReference.setBundle(referencedBundle);
-            if (referencedBundle.getState() != null) {
-                bundleReference.setState(referencedBundle.getState().toLowerCase());
+    public void populateNodeBundles(ClusterNode clusterNode, TreeMap<String, Bundle> bundleSources, Map<String, String> bundleStates) {
+        for (Map.Entry<String, Bundle> entry : bundleSources.entrySet()) {
+            NodeBundle nodeBundle = new NodeBundle(entry.getKey());
+            nodeBundle.setBundle(entry.getValue());
+            if (bundleStates != null) {
+                String state = bundleStates.get(entry.getKey());
+                if (state != null) {
+                    nodeBundle.setState(state);
+                }
             }
-            clusterNode.getBundles().put(bundleKey, bundleReference);
+            clusterNode.getBundles().put(nodeBundle.getName(), nodeBundle);
         }
     }
 

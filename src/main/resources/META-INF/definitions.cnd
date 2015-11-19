@@ -52,7 +52,8 @@
 
 [jmm:nodeBundle] > nt:base, jmix:observable, mix:created, mix:lastModified, jmix:nolive
   - j:bundle (weakreference) < jmm:bundle
-  - j:state (string) nofulltext < 'installed', 'uninstalled', 'resolved', 'starting', 'stopping', 'active'
+//  - j:state (string) nofulltext < 'installed', 'uninstalled', 'resolved', 'starting', 'stopping', 'active'
+  - j:state (string) nofulltext
 
 [jmm:nodeOperations] > nt:base, jmix:observable
   + * (jmm:nodeOperation) = jmm:nodeOperation

@@ -69,6 +69,8 @@
  */
 package org.jahia.modules.modulemanager.model;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Bean;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Field;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
@@ -102,11 +104,6 @@ public class Bundle extends BasePersistentObject {
     private String version;
 
     /**
-     * bundle state
-     */
-    private String state;
-
-    /**
      * Initializes an instance of this class.
      */
     public Bundle() {
@@ -120,6 +117,20 @@ public class Bundle extends BasePersistentObject {
      */
     public Bundle(String name) {
         super(name);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+
+        if (obj != null && this.getClass() == obj.getClass()) {
+            Bundle other = (Bundle) obj;
+            return StringUtils.equals(getName(), other.getName())
+                    && StringUtils.equals(getChecksum(), other.getChecksum());
+        }
+
+        return false;
     }
 
     public String getChecksum() {
@@ -146,7 +157,10 @@ public class Bundle extends BasePersistentObject {
         return version;
     }
 
-    public String getState() {return  state;}
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder().append(getName()).append(getChecksum()).toHashCode();
+    }
 
     public void setChecksum(String checksum) {
         this.checksum = checksum;
@@ -170,9 +184,5 @@ public class Bundle extends BasePersistentObject {
 
     public void setVersion(String version) {
         this.version = version;
-    }
-
-    public void setState(String state) {
-        this.state = state;
     }
 }

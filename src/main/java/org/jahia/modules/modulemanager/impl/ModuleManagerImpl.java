@@ -155,7 +155,7 @@ public class ModuleManagerImpl implements ModuleManager {
         return b;
     }
 
-    private static DigestInputStream toDigestInputStream(InputStream is) {
+    static DigestInputStream toDigestInputStream(InputStream is) {
         try {
             return new DigestInputStream(is, MessageDigest.getInstance("MD5"));
         } catch (NoSuchAlgorithmException e) {

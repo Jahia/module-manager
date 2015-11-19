@@ -69,11 +69,9 @@
  */
 package org.jahia.modules.modulemanager.persistence;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -322,29 +320,17 @@ public class ModuleInfoPersister {
         }
     }
 
-    private void synchronizeBundleMapWithState(TreeMap<String, Bundle> mgtBundleMap,
-            TreeMap<String, Bundle> bundleWithStateMap) {
-        for (String bundleName : bundleWithStateMap.keySet()) {
-            Bundle mgtBundle = mgtBundleMap.get(bundleName);
-            Bundle bundleToSynchronize = bundleWithStateMap.get(bundleName);
-            mgtBundle.setState(bundleToSynchronize.getState());
-            mgtBundleMap.put(bundleName, mgtBundle);
-        }
-    }
-
     private void validateJcrTreeStructure(ObjectContentManager ocm) throws RepositoryException {
         // 1) ensure module-management skeleton is created in JCR
         ModuleManagement mgt = getModuleManagement(ocm);
 
-        TreeMap<String, Bundle> bundleWithStateMap = null;
+        Map<String, String> bundeStates = null;
         if (mgt.getBundles().isEmpty()) {
             // 2) populate information about available bundles
             logger.info("Start populating information about available module bundles...");
             long startTime = System.currentTimeMillis();
 
-            Map<String, String> bundeStateMap = new HashMap<String, String>();
-            moduleInfoInitializer.populateBundles(mgt);
-            bundleWithStateMap = mgt.getBundles();
+            bundeStates = moduleInfoInitializer.populateBundles(mgt);
             ocm.update(mgt);
             ocm.save();
 
@@ -367,11 +353,7 @@ public class ModuleInfoPersister {
             long startTime = System.currentTimeMillis();
 
             ClusterNode clusterNodeToUpdate = (ClusterNode) ocm.getObject(ClusterNode.class, cn.getPath());
-            mgt = getModuleManagement(ocm);
-            TreeMap<String, Bundle> mgtBundleMap = mgt.getBundles();
-            // TODO : update the status of the node bundles reference.
-            // synchronizeBundleMapWithState(mgtBundleMap, bundleWithStateMap);
-            moduleInfoInitializer.populateNodeBundles(clusterNodeToUpdate, mgtBundleMap);
+            moduleInfoInitializer.populateNodeBundles(clusterNodeToUpdate, getModuleManagement(ocm).getBundles(), bundeStates);
             ocm.update(clusterNodeToUpdate);
             ocm.save();
 

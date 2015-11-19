@@ -19,9 +19,7 @@
         <property name="moduleInfoInitializer" ref="ModuleInfoInitializer"/>
     </bean>
     
-    <bean id="BundleService" class="org.jahia.modules.modulemanager.impl.BundleServiceImpl"
-          init-method="start" destroy-method="stop">
-    </bean>
+    <bean id="BundleService" class="org.jahia.modules.modulemanager.impl.BundleServiceImpl"/>
 
     <bean id="ModuleInfoInitializer" class="org.jahia.modules.modulemanager.persistence.ModuleInfoInitializer">
         <property name="bundleService" ref="BundleService"/>

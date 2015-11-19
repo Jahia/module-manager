@@ -7,80 +7,37 @@ import org.eclipse.gemini.blueprint.context.BundleContextAware;
 import org.jahia.modules.modulemanager.model.BinaryFile;
 import org.jahia.modules.modulemanager.model.Bundle;
 import org.jahia.modules.modulemanager.model.ModuleManagement;
-import org.jahia.services.content.DefaultEventListener;
+import org.jahia.osgi.BundleUtils;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jcr.RepositoryException;
-import javax.jcr.observation.EventIterator;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
+import java.security.DigestInputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by achaabni on 17/11/15.
  */
-public class BundleServiceImpl extends DefaultEventListener implements BundleContextAware {
+public class BundleServiceImpl implements BundleContextAware {
 
-    private static final int STREAM_BUFFER_LENGTH = 1024;
-    private BundleContext bundleContext;
     private static final Logger logger = LoggerFactory.getLogger(BundleServiceImpl.class);
-
-    @Override
-    public int getEventTypes() {
-        return 0;
-    }
-
-    @Override
-    public void onEvent(EventIterator eventIterator) {
-
-    }
-
-    @Override
-    public void setBundleContext(BundleContext bundleContext) {
-        this.bundleContext = bundleContext;
-    }
-
-    /**
-     * Start method
-     */
-    public void start() {
-    }
-
-    /**
-     * Stop method
-     */
-    public void stop() {
-    }
-
-    public void populateBundles(ModuleManagement moduleManagement) {
-        List<Bundle> bundles = new ArrayList<Bundle>();
-        try {
-            bundles = getLocalBundles();
-        } catch (RepositoryException e) {
-            logger.error("Error initializing and verifying cluster JCR structures", e);
-        }
-        for (Bundle bundle : bundles) {
-            moduleManagement.getBundles().put(bundle.getName(), bundle);
-        }
-
-    }
-
+    
+    private BundleContext bundleContext;
 
     /**
      * Get local bundles from Context
      *
-     * @return local bundles
+     * @return local bundles with states
      * @throws RepositoryException
      */
-    private List<Bundle> getLocalBundles() throws RepositoryException {
-        List<Bundle> result = new ArrayList<Bundle>();
+    private Map<Bundle, String> getLocalBundles() throws RepositoryException {
+        Map<Bundle, String> result = new HashMap<>();
         for (org.osgi.framework.Bundle contextBundle : bundleContext.getBundles()) {
             if (contextBundle.getHeaders().get("Jahia-Module-Type") != null || contextBundle.getHeaders().get("Jahia-Cluster-Deployment") != null) {
                 Bundle bundleToAdd = new Bundle();
@@ -91,20 +48,18 @@ public class BundleServiceImpl extends DefaultEventListener implements BundleCon
                     bundleURL = new URL(bundleLocation);
                     bundleToAdd.setFileName(FilenameUtils.getName(bundleURL.getPath()));
                     inputStream = bundleURL.openStream();
-                    bundleToAdd.setFile(new BinaryFile("application/java-archive", IOUtils.toByteArray(inputStream)));
-                    bundleToAdd.setName(contextBundle.getHeaders().get("Bundle-SymbolicName").toString());
+                    DigestInputStream digestInputStream = ModuleManagerImpl.toDigestInputStream(inputStream);
+                    bundleToAdd.setFile(new BinaryFile(IOUtils.toByteArray(digestInputStream)));
+                    bundleToAdd.setSymbolicName(contextBundle.getHeaders().get("Bundle-SymbolicName").toString());
                     bundleToAdd.setDisplayName(contextBundle.getHeaders().get("Bundle-Name").toString());
                     bundleToAdd.setVersion(contextBundle.getHeaders().get("Bundle-Version").toString());
-                    bundleToAdd.setChecksum(getChecksum(bundleURL));
-                    bundleToAdd.setSymbolicName(bundleToAdd.getName());
-                    //bundleToAdd.setState( BundleUtils.getModule(contextBundle).getState().getState().toString().toLowerCase());
-                    result.add(bundleToAdd);
+                    bundleToAdd.setChecksum(Hex.encodeHexString(digestInputStream.getMessageDigest().digest()));
+                    bundleToAdd.setName(bundleToAdd.getSymbolicName() + "-" + bundleToAdd.getVersion());
+                    result.put(bundleToAdd, BundleUtils.getModule(contextBundle).getState().getState().toString().toLowerCase());
                 } catch (MalformedURLException e) {
                     logger.error("Couldn't resolve bundle URL " + bundleLocation, e);
-                    break;
                 } catch (IOException e) {
                     logger.error("Error storing bundle " + contextBundle + " in JCR", e);
-                    break;
                 } finally {
                     IOUtils.closeQuietly(inputStream);
                 }
@@ -115,52 +70,24 @@ public class BundleServiceImpl extends DefaultEventListener implements BundleCon
         return result;
     }
 
-    /**
-     * Get the Checksum from a specific URL
-     *
-     * @param resourceURL url to create the checksum
-     * @return checksum value
-     */
-    public String getChecksum(URL resourceURL) {
-        InputStream inputStream = null;
+    public Map<String, String> populateBundles(ModuleManagement moduleManagement) {
+        Map<String, String> states = new HashMap<>();
         try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            inputStream = resourceURL.openStream();
-            updateDigest(md, inputStream);
-            return new String(Hex.encodeHex(md.digest()));
-        } catch (IOException e) {
-            logger.error("Error processing contents of resource " + resourceURL, e);
-        } catch (NoSuchAlgorithmException e) {
-            logger.error("Error getting digest algorithm for resource " + resourceURL, e);
-        } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    logger.error("Error closing inputstream for resource URL " + resourceURL, e);
-                }
+            for (Map.Entry<Bundle, String> entry : getLocalBundles().entrySet()) {
+                Bundle bundle = entry.getKey();
+                moduleManagement.getBundles().put(bundle.getName(), bundle);
+                states.put(bundle.getName(), entry.getValue());
             }
+        } catch (RepositoryException e) {
+            logger.error("Error initializing and verifying cluster JCR structures", e);
         }
-        return null;
+        
+        return states;
     }
 
-    /**
-     * Update message digest for an input stream
-     *
-     * @param digest initial message digest
-     * @param data   input stream
-     * @return message digest updated
-     * @throws IOException
-     */
-    private static MessageDigest updateDigest(final MessageDigest digest, final InputStream data) throws IOException {
-        final byte[] buffer = new byte[STREAM_BUFFER_LENGTH];
-        int read = data.read(buffer, 0, STREAM_BUFFER_LENGTH);
 
-        while (read > -1) {
-            digest.update(buffer, 0, read);
-            read = data.read(buffer, 0, STREAM_BUFFER_LENGTH);
-        }
-
-        return digest;
+    @Override
+    public void setBundleContext(BundleContext bundleContext) {
+        this.bundleContext = bundleContext;
     }
 }
