@@ -67,59 +67,52 @@
  *     If you are unsure which license is appropriate for your use,
  *     please contact the sales department at sales@jahia.com.
  */
-package org.jahia.modules.modulemanager.model;
+package org.jahia.modules.modulemanager;
 
-import org.apache.jackrabbit.ocm.manager.beanconverter.impl.ReferenceBeanConverterImpl;
-import org.apache.jackrabbit.ocm.mapper.impl.annotation.Bean;
-import org.apache.jackrabbit.ocm.mapper.impl.annotation.Field;
-import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
+import org.jahia.exceptions.JahiaRuntimeException;
 
 /**
- * TODO comment me
+ * Module management related exception.
  * 
  * @author Sergiy Shyrkov
  */
-@Node(jcrType = "jmm:bundleReference", discriminator = false)
-public class BundleReference extends BasePersistentObject {
+public class ModuleManagementException extends JahiaRuntimeException {
 
-    private static final long serialVersionUID = 7399867537701726556L;
+    private static final long serialVersionUID = 6907933768921865172L;
 
-    @Bean(jcrName = "j:bundle", converter = ReferenceBeanConverterImpl.class)
-    private Bundle bundle;
-
-    @Field(jcrName = "j:state")
-    private String state;
-    
     /**
      * Initializes an instance of this class.
      */
-    public BundleReference() {
+    public ModuleManagementException() {
         super();
     }
 
     /**
      * Initializes an instance of this class.
      * 
-     * @param name
+     * @param message
      */
-    public BundleReference(String name) {
-        super(name);
+    public ModuleManagementException(String message) {
+        super(message);
     }
 
-    public Bundle getBundle() {
-        return bundle;
+    /**
+     * Initializes an instance of this class.
+     * 
+     * @param message
+     * @param cause
+     */
+    public ModuleManagementException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    public String getState() {
-        return state;
-    }
-
-    public void setBundle(Bundle bundle) {
-        this.bundle = bundle;
-    }
-
-    public void setState(String state) {
-        this.state = state;
+    /**
+     * Initializes an instance of this class.
+     * 
+     * @param cause
+     */
+    public ModuleManagementException(Throwable cause) {
+        super(cause);
     }
 
 }

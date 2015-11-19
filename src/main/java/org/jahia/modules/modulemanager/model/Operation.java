@@ -82,14 +82,19 @@ import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
 @Node(jcrType = "jmm:operation", discriminator = false)
 public class Operation extends BasePersistentObject {
 
+    private static final long serialVersionUID = 4571381338168962323L;
+
     @Field(jcrName = "j:action")
     private String action;
 
     @Bean(jcrName = "j:bundle", converter = ReferenceBeanConverterImpl.class)
     private Bundle bundle;
 
+    @Field(jcrName = "j:info")
+    private String info;
+
     @Field(jcrName = "j:state")
-    private String state;
+    private String state = "open";
 
     /**
      * Initializes an instance of this class.
@@ -121,6 +126,10 @@ public class Operation extends BasePersistentObject {
         return bundle;
     }
 
+    public String getInfo() {
+        return info;
+    }
+
     public String getState() {
         return state;
     }
@@ -131,6 +140,10 @@ public class Operation extends BasePersistentObject {
 
     public void setBundle(Bundle bundle) {
         this.bundle = bundle;
+    }
+
+    public void setInfo(String stateInfo) {
+        this.info = stateInfo;
     }
 
     public void setState(String state) {

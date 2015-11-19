@@ -67,95 +67,64 @@
  *     If you are unsure which license is appropriate for your use,
  *     please contact the sales department at sales@jahia.com.
  */
-package org.jahia.modules.modulemanager.model;
+package org.jahia.modules.modulemanager.impl;
 
-import java.util.LinkedHashMap;
-import java.util.TreeMap;
+import javax.jcr.observation.Event;
+import javax.jcr.observation.EventIterator;
 
-import org.apache.jackrabbit.ocm.mapper.impl.annotation.Collection;
-import org.apache.jackrabbit.ocm.mapper.impl.annotation.Field;
-import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
+import org.jahia.modules.modulemanager.model.ClusterNodeInfo;
+import org.jahia.services.content.DefaultEventListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * TODO comment me
+ * JCR event listener that is called on creation of module operations for the current cluster node.
  * 
  * @author Sergiy Shyrkov
  */
-@Node(jcrType = "jmm:node", discriminator = false)
-public class ClusterNode extends BasePersistentObject {
+public class NodeOperationEventListener extends DefaultEventListener {
 
-    private static final long serialVersionUID = 4606202580861227782L;
+    private static final Logger logger = LoggerFactory.getLogger(NodeOperationEventListener.class);
 
-    @Collection(jcrName = "bundles")
-    private TreeMap<String, NodeBundle> bundles = new TreeMap<>();
+    private ClusterNodeInfo clusterNodeInfo;
 
-    @Collection(jcrName = "operations")
-    private LinkedHashMap<String, NodeOperation> operations = new LinkedHashMap<>();
+    private NodeOperationProcessor operationProcessor;
 
-    @Field(jcrName = "j:processingServer")
-    private boolean processingServer = false;
-
-    @Field(jcrName = "j:started")
-    private boolean started = true;
-
-    @Field(jcrName = "j:type")
-    private String type;
-
-    /**
-     * Initializes an instance of this class.
-     */
-    public ClusterNode() {
-        super();
+    public void setOperationProcessor(NodeOperationProcessor operationProcessor) {
+        this.operationProcessor = operationProcessor;
     }
 
-    /**
-     * Initializes an instance of this class.
-     * 
-     * @param name
-     * @param processingServer
-     */
-    public ClusterNode(String name, boolean processingServer) {
-        super(name);
-        this.processingServer = processingServer;
+    @Override
+    public void onEvent(EventIterator events) {
+        while (events.hasNext()) {
+            Event evt = events.nextEvent();
+            logger.info("Got node-level event: {}", evt);
+            try {
+                operationProcessor.process();
+            } catch (Exception e) {
+                logger.error("Error processing module node-level operation event " + evt + ". Cause: " + e.getMessage(),
+                        e);
+            }
+        }
     }
 
-    public TreeMap<String, NodeBundle> getBundles() {
-        return bundles;
+    @Override
+    public String[] getNodeTypes() {
+        return new String[] { "jmm:nodeOperation" };
     }
 
-    public LinkedHashMap<String, NodeOperation> getOperations() {
-        return operations;
+    @Override
+    public String getPath() {
+        return "/module-management/nodes/" + clusterNodeInfo.getId() + "/operations";
     }
 
-    public String getType() {
-        return type;
+    @Override
+    public int getEventTypes() {
+        return Event.NODE_ADDED;
     }
 
-    public boolean isProcessingServer() {
-        return processingServer;
+    public void setClusterNodeInfo(ClusterNodeInfo clusterNodeInfo) {
+        this.clusterNodeInfo = clusterNodeInfo;
     }
 
-    public boolean isStarted() {
-        return started;
-    }
-
-    public void setBundles(TreeMap<String, NodeBundle> bundles) {
-        this.bundles = bundles;
-    }
-
-    public void setOperations(LinkedHashMap<String, NodeOperation> operations) {
-        this.operations = operations;
-    }
-
-    public void setProcessingServer(boolean processingServer) {
-        this.processingServer = processingServer;
-    }
-
-    public void setStarted(boolean started) {
-        this.started = started;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
 }

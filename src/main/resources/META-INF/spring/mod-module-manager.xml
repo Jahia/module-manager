@@ -7,14 +7,40 @@
 
     <bean id="messageSource" class="org.jahia.utils.i18n.ModuleMessageSource"/>
     
+    <bean id="ClusterNodeInfo" class="org.jahia.modules.modulemanager.model.ClusterNodeInfo">
+        <property name="id" value="${cluster.node.serverId}" />
+        <property name="processingServer" value="${processingServer:true}" />
+        <property name="clusterActivated" value="${cluster.activated}" />
+    </bean>
+    
     <bean id="ModuleInfoPersister" class="org.jahia.modules.modulemanager.persistence.ModuleInfoPersister" init-method="start">
-        <property name="clusterNode">
-            <bean class="org.jahia.modules.modulemanager.model.ClusterNodeInfo">
-                <property name="id" value="${cluster.node.serverId}"/>
-                <property name="processingServer" value="${processingServer:true}"/>
-                <property name="clusterActivated" value="${cluster.activated}"/>
-            </bean>
+        <property name="clusterNodeInfo" ref="ClusterNodeInfo"/>
+        <property name="operationLogAutoSplitConfig" value="date,jcr:created,yyyy;date,jcr:created,MM;date,jcr:created,dd"/>
+    </bean>
+    
+    <bean id="ModuleManager" class="org.jahia.modules.modulemanager.impl.ModuleManagerImpl">
+        <property name="persister" ref="ModuleInfoPersister"/>
+        <property name="operationProcessor" ref="OperationProcessor"/>
+    </bean>
+
+    <bean id="OperationProcessor" class="org.jahia.modules.modulemanager.impl.OperationProcessor">
+        <property name="persister" ref="ModuleInfoPersister"/>
+    </bean>
+    
+    <bean id="NodeOperationProcessor" class="org.jahia.modules.modulemanager.impl.NodeOperationProcessor">
+        <property name="clusterNodeInfo" ref="ClusterNodeInfo"/>
+        <property name="persister" ref="ModuleInfoPersister"/>
+    </bean>
+    
+    <bean id="NodeOperationEventListener" class="org.jahia.modules.modulemanager.impl.NodeOperationEventListener">
+        <property name="workspace" value="default"/>
+        <property name="operationTypes">
+            <set value-type="java.lang.Integer">
+                <value type="java.lang.Integer">1</value>
+            </set>
         </property>
+        <property name="clusterNodeInfo" ref="ClusterNodeInfo"/>
+        <property name="operationProcessor" ref="NodeOperationProcessor"/>
     </bean>
 
 </beans>

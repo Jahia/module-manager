@@ -26,28 +26,41 @@
   - j:checksum (string) nofulltext
 
 [jmm:operations] > nt:base, jmix:observable, mix:created, mix:lastModified, jmix:nolive
-  + * (jmm:operation)
-  + * (jmm:operations)
+  + * (jmm:operation) = jmm:operation
+  + * (jmm:operations) = jmm:operations 
 
 [jmm:operation] > nt:base, jmix:observable, mix:created, mix:lastModified, jmix:nolive
   - j:bundle (weakreference) < jmm:bundle
   - j:action (string) nofulltext < 'install', 'uninstall', 'start', 'stop'
   - j:sourceNode (weakreference) < jmm:node
-  - j:state (string) nofulltext < 'open', 'processing', 'failed', 'na'
+  - j:state (string) nofulltext < 'open', 'processing', 'successful', 'failed'
+  - j:info (string) indexed=no
 
 [jmm:nodes] > nt:base, jmix:observable, mix:created, mix:lastModified, jmix:nolive
   + * (jmm:node) = jmm:node
 
 [jmm:node] > nt:base, jmix:observable, mix:created, mix:lastModified, jmix:nolive
-  - j:state (string) nofulltext < 'online', 'offline', 'starting', 'stopping', 'na'
+  - j:started (boolean)
   - j:processingServer (boolean) = false
   - j:type (string) nofulltext
-  + bundles (jmm:bundleReferences) = jmm:bundleReferences
+  + bundles (jmm:nodeBundles) = jmm:nodeBundles
+  + operations (jmm:nodeOperations) = jmm:nodeOperations
+  + operationLog (jmm:nodeOperations) = jmm:nodeOperations
 
-[jmm:bundleReferences] > nt:base, jmix:observable
-  + * (jmm:bundleReference) = jmm:bundleReference
+[jmm:nodeBundles] > nt:base, jmix:observable
+  + * (jmm:nodeBundle) = jmm:nodeBundle
 
-[jmm:bundleReference] > nt:base, jmix:observable, mix:created, mix:lastModified, jmix:nolive
- - j:bundle (weakreference) < jmm:bundle
- - j:state (string) nofulltext < 'installed', 'uninstalled', 'resolved', 'starting', 'stopping', 'active'
+[jmm:nodeBundle] > nt:base, jmix:observable, mix:created, mix:lastModified, jmix:nolive
+  - j:bundle (weakreference) < jmm:bundle
+  - j:state (string) nofulltext < 'installed', 'uninstalled', 'resolved', 'starting', 'stopping', 'active'
+
+[jmm:nodeOperations] > nt:base, jmix:observable
+  + * (jmm:nodeOperation) = jmm:nodeOperation
+  + * (jmm:nodeOperations) = jmm:nodeOperations
+
+[jmm:nodeOperation] > nt:base, jmix:observable, mix:created, mix:lastModified, jmix:nolive
+  - j:operation (weakreference) < jmm:operation
+  - j:dependsOn (weakreference) multiple < jmm:nodeOperation
+  - j:state (string) nofulltext < 'open', 'processing', 'successful', 'failed'
+  - j:info (string) indexed=no
 

@@ -69,10 +69,8 @@
  */
 package org.jahia.modules.modulemanager.model;
 
-import java.util.LinkedHashMap;
-import java.util.TreeMap;
-
-import org.apache.jackrabbit.ocm.mapper.impl.annotation.Collection;
+import org.apache.jackrabbit.ocm.manager.beanconverter.impl.ReferenceBeanConverterImpl;
+import org.apache.jackrabbit.ocm.mapper.impl.annotation.Bean;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Field;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
 
@@ -81,30 +79,21 @@ import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
  * 
  * @author Sergiy Shyrkov
  */
-@Node(jcrType = "jmm:node", discriminator = false)
-public class ClusterNode extends BasePersistentObject {
+@Node(jcrType = "jmm:nodeBundle", discriminator = false)
+public class NodeBundle extends BasePersistentObject {
 
-    private static final long serialVersionUID = 4606202580861227782L;
+    private static final long serialVersionUID = 7399867537701726556L;
 
-    @Collection(jcrName = "bundles")
-    private TreeMap<String, NodeBundle> bundles = new TreeMap<>();
+    @Bean(jcrName = "j:bundle", converter = ReferenceBeanConverterImpl.class)
+    private Bundle bundle;
 
-    @Collection(jcrName = "operations")
-    private LinkedHashMap<String, NodeOperation> operations = new LinkedHashMap<>();
-
-    @Field(jcrName = "j:processingServer")
-    private boolean processingServer = false;
-
-    @Field(jcrName = "j:started")
-    private boolean started = true;
-
-    @Field(jcrName = "j:type")
-    private String type;
-
+    @Field(jcrName = "j:state")
+    private String state;
+    
     /**
      * Initializes an instance of this class.
      */
-    public ClusterNode() {
+    public NodeBundle() {
         super();
     }
 
@@ -112,50 +101,25 @@ public class ClusterNode extends BasePersistentObject {
      * Initializes an instance of this class.
      * 
      * @param name
-     * @param processingServer
      */
-    public ClusterNode(String name, boolean processingServer) {
+    public NodeBundle(String name) {
         super(name);
-        this.processingServer = processingServer;
     }
 
-    public TreeMap<String, NodeBundle> getBundles() {
-        return bundles;
+    public Bundle getBundle() {
+        return bundle;
     }
 
-    public LinkedHashMap<String, NodeOperation> getOperations() {
-        return operations;
+    public String getState() {
+        return state;
     }
 
-    public String getType() {
-        return type;
+    public void setBundle(Bundle bundle) {
+        this.bundle = bundle;
     }
 
-    public boolean isProcessingServer() {
-        return processingServer;
+    public void setState(String state) {
+        this.state = state;
     }
 
-    public boolean isStarted() {
-        return started;
-    }
-
-    public void setBundles(TreeMap<String, NodeBundle> bundles) {
-        this.bundles = bundles;
-    }
-
-    public void setOperations(LinkedHashMap<String, NodeOperation> operations) {
-        this.operations = operations;
-    }
-
-    public void setProcessingServer(boolean processingServer) {
-        this.processingServer = processingServer;
-    }
-
-    public void setStarted(boolean started) {
-        this.started = started;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
 }

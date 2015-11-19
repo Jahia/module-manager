@@ -69,9 +69,36 @@
  */
 package org.jahia.modules.modulemanager.impl;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.jar.JarInputStream;
+import java.util.jar.Manifest;
+
+import javax.jcr.RepositoryException;
+
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.jackrabbit.ocm.manager.ObjectContentManager;
+import org.jahia.modules.modulemanager.ModuleManagementException;
 import org.jahia.modules.modulemanager.ModuleManager;
 import org.jahia.modules.modulemanager.OperationResult;
 import org.jahia.modules.modulemanager.OperationScope;
+import org.jahia.modules.modulemanager.model.BinaryFile;
+import org.jahia.modules.modulemanager.model.Bundle;
+import org.jahia.modules.modulemanager.model.Operation;
+import org.jahia.modules.modulemanager.persistence.ModuleInfoPersister;
+import org.jahia.modules.modulemanager.persistence.ModuleInfoPersister.OCMCallback;
+import org.jahia.services.content.JCRContentUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 
 /**
@@ -82,10 +109,139 @@ import org.springframework.core.io.Resource;
  */
 public class ModuleManagerImpl implements ModuleManager {
 
+    private static final Logger logger = LoggerFactory.getLogger(ModuleManagerImpl.class);
+
+    private static void populateFromManifest(Bundle bundle, File bundleFile) throws IOException {
+        JarInputStream jarIs = new JarInputStream(new FileInputStream(bundleFile));
+        try {
+            Manifest mf = jarIs.getManifest();
+            if (mf != null) {
+                bundle.setSymbolicName(mf.getMainAttributes().getValue("Bundle-SymbolicName"));
+                bundle.setVersion(mf.getMainAttributes().getValue("Bundle-Version"));
+                bundle.setDisplayName(mf.getMainAttributes().getValue("Bundle-Name"));
+            }
+        } finally {
+            IOUtils.closeQuietly(jarIs);
+        }
+    }
+
+    private static Bundle toBundle(Resource bundleResource, File tmpFile) throws IOException {
+        // store bundle into a temporary file
+        DigestInputStream dis = toDigestInputStream(bundleResource.getInputStream());
+        FileUtils.copyInputStreamToFile(dis, tmpFile);
+
+        Bundle b = new Bundle();
+        // populate data from manifest
+        populateFromManifest(b, tmpFile);
+
+        if (StringUtils.isBlank(b.getSymbolicName()) || StringUtils.isBlank(b.getVersion())) {
+            // not a valid JAR or bundle information is missing -> we stop here
+            return null;
+        }
+
+        b.setName(b.getSymbolicName() + "-" + b.getVersion());
+        b.setPath("/module-management/bundles/" + b.getName());
+
+        // calculate checksum
+        b.setChecksum(Hex.encodeHexString(dis.getMessageDigest().digest()));
+
+        // keep original filename if available
+        b.setFileName(StringUtils.defaultIfBlank(bundleResource.getFilename(),
+                b.getSymbolicName() + "-" + b.getVersion() + ".jar"));
+
+        // TODO file
+        b.setFile(new BinaryFile(FileUtils.readFileToByteArray(tmpFile)));
+
+        return b;
+    }
+
+    private static DigestInputStream toDigestInputStream(InputStream is) {
+        try {
+            return new DigestInputStream(is, MessageDigest.getInstance("MD5"));
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private OperationProcessor operationProcessor;
+
+    private ModuleInfoPersister persister;
+
+    private void doInstall(final Bundle bundle, final OperationScope operationScope) throws RepositoryException {
+        persister.doExecute(new OCMCallback<Object>() {
+            @Override
+            public Object doInOCM(ObjectContentManager ocm) throws RepositoryException {
+                // store the bundle in JCR
+                ocm.insert(bundle);
+
+                // create operation node
+                Operation op = new Operation();
+                op.setBundle(bundle);
+                op.setAction("install");
+                op.setState("open");
+                op.setName(JCRContentUtils.findAvailableNodeName(
+                        ocm.getSession().getNode("/module-management/operations"), "install-" + bundle.getName()));
+                op.setPath("/module-management/operations/" + op.getName());
+                ocm.insert(op);
+
+                ocm.save();
+
+                return null;
+            }
+        });
+    }
+
     @Override
-    public OperationResult install(Resource bundle, OperationScope operationScope) {
-        // TODO Auto-generated method stub
+    public OperationResult install(Resource bundleResource, OperationScope operationScope)
+            throws ModuleManagementException {
+
+        // save to a temporary file and create Bundle data object
+        File tmp = null;
+        try {
+            tmp = File.createTempFile(bundleResource.getFilename() != null
+                    ? FilenameUtils.getBaseName(bundleResource.getFilename()) : "bundle", ".jar");
+            Bundle bundle = toBundle(bundleResource, tmp);
+            if (bundle == null) {
+                return OperationResult.NOT_VALID_BUNDLE;
+            }
+
+            // check, if we have this bundle already installed
+            Bundle existingBundle = persister.lookupBundle(bundle.getName());
+            if (existingBundle != null && existingBundle.getChecksum() != null
+                    && existingBundle.getChecksum().equals(bundle.getChecksum())) {
+                // we have exactly same bundle installed already -> refuse
+                return OperationResult.ALREADY_INSTALLED;
+            }
+
+            // store bundle in JCR and create operation node
+            doInstall(bundle, operationScope);
+
+            // notify the processor
+            notifyOperationProcessor();
+        } catch (Exception e) {
+            throw new ModuleManagementException(e);
+        } finally {
+            FileUtils.deleteQuietly(tmp);
+        }
+
         return OperationResult.SUCCESS;
+    }
+
+    private void notifyOperationProcessor() {
+        // TODO move into a background job
+        try {
+            operationProcessor.process();
+        } catch (ModuleManagementException e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+
+    public void setOperationProcessor(OperationProcessor operationProcessor) {
+        this.operationProcessor = operationProcessor;
+    }
+
+    public void setPersister(ModuleInfoPersister persister) {
+        this.persister = persister;
     }
 
     @Override

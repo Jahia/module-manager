@@ -81,10 +81,19 @@ public class ClusterNodeInfo implements Serializable {
 
     private static final long serialVersionUID = -9056316060892481092L;
 
+    /**
+     * Flag, indicating if the clustering is activated on the platform.
+     */
     private boolean clusterActivated;
 
+    /**
+     * The cluster node identifier (jahia.node.properties).
+     */
     private String id;
 
+    /**
+     * Is this a processing server node?
+     */
     private boolean processingServer;
 
     /**
@@ -98,8 +107,11 @@ public class ClusterNodeInfo implements Serializable {
      * Initializes an instance of this class.
      * 
      * @param id
+     *            the cluster node identifier (jahia.node.properties)
      * @param processingServer
+     *            <code>true</code> if this is a processing node
      * @param clusterActivated
+     *            <code>true</code> if the clustering is activated on the platform
      */
     public ClusterNodeInfo(String id, boolean processingServer, boolean clusterActivated) {
         super();

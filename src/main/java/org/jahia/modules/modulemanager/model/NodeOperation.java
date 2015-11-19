@@ -69,9 +69,11 @@
  */
 package org.jahia.modules.modulemanager.model;
 
-import java.util.LinkedHashMap;
-import java.util.TreeMap;
+import java.util.List;
 
+import org.apache.jackrabbit.ocm.manager.beanconverter.impl.ReferenceBeanConverterImpl;
+import org.apache.jackrabbit.ocm.manager.collectionconverter.impl.ReferenceCollectionConverterImpl;
+import org.apache.jackrabbit.ocm.mapper.impl.annotation.Bean;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Collection;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Field;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
@@ -81,30 +83,27 @@ import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
  * 
  * @author Sergiy Shyrkov
  */
-@Node(jcrType = "jmm:node", discriminator = false)
-public class ClusterNode extends BasePersistentObject {
+@Node(jcrType = "jmm:nodeOperation", discriminator = false)
+public class NodeOperation extends BasePersistentObject {
 
-    private static final long serialVersionUID = 4606202580861227782L;
+    private static final long serialVersionUID = 1285786369976605215L;
 
-    @Collection(jcrName = "bundles")
-    private TreeMap<String, NodeBundle> bundles = new TreeMap<>();
+    @Collection(jcrName = "j:dependsOn", collectionConverter = ReferenceCollectionConverterImpl.class)
+    private List<String> dependsOn;
 
-    @Collection(jcrName = "operations")
-    private LinkedHashMap<String, NodeOperation> operations = new LinkedHashMap<>();
+    @Field(jcrName = "j:info")
+    private String info;
 
-    @Field(jcrName = "j:processingServer")
-    private boolean processingServer = false;
+    @Bean(jcrName = "j:operation", converter = ReferenceBeanConverterImpl.class)
+    private Operation operation;
 
-    @Field(jcrName = "j:started")
-    private boolean started = true;
-
-    @Field(jcrName = "j:type")
-    private String type;
+    @Field(jcrName = "j:state")
+    private String state = "open";
 
     /**
      * Initializes an instance of this class.
      */
-    public ClusterNode() {
+    public NodeOperation() {
         super();
     }
 
@@ -112,50 +111,55 @@ public class ClusterNode extends BasePersistentObject {
      * Initializes an instance of this class.
      * 
      * @param name
-     * @param processingServer
+     * @param action
+     * @param state
+     * @param bundle
      */
-    public ClusterNode(String name, boolean processingServer) {
+    public NodeOperation(String name, String state, Operation operation) {
         super(name);
-        this.processingServer = processingServer;
+        this.state = state;
+        this.operation = operation;
     }
 
-    public TreeMap<String, NodeBundle> getBundles() {
-        return bundles;
+    public List<String> getDependsOn() {
+        return dependsOn;
     }
 
-    public LinkedHashMap<String, NodeOperation> getOperations() {
-        return operations;
+    public String getInfo() {
+        return info;
     }
 
-    public String getType() {
-        return type;
+    public Operation getOperation() {
+        return operation;
     }
 
-    public boolean isProcessingServer() {
-        return processingServer;
+    public String getState() {
+        return state;
     }
 
-    public boolean isStarted() {
-        return started;
+    /**
+     * Returns <code>true</code> if the operation is completed; either successfully or failed, but there is no more processing possible.
+     * 
+     * @return <code>true</code> if the operation is completed; either successfully or failed, but there is no more processing possible
+     */
+    public boolean isCompleted() {
+        return state != null && ("successful".equals(state) || "failed".equals(state));
     }
 
-    public void setBundles(TreeMap<String, NodeBundle> bundles) {
-        this.bundles = bundles;
+    public void setDependsOn(List<String> dependsOn) {
+        this.dependsOn = dependsOn;
     }
 
-    public void setOperations(LinkedHashMap<String, NodeOperation> operations) {
-        this.operations = operations;
+    public void setInfo(String info) {
+        this.info = info;
     }
 
-    public void setProcessingServer(boolean processingServer) {
-        this.processingServer = processingServer;
+    public void setOperation(Operation operation) {
+        this.operation = operation;
     }
 
-    public void setStarted(boolean started) {
-        this.started = started;
+    public void setState(String state) {
+        this.state = state;
     }
 
-    public void setType(String type) {
-        this.type = type;
-    }
 }

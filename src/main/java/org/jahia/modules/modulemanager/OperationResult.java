@@ -80,6 +80,20 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
  */
 public class OperationResult implements Serializable {
 
+    /**
+     * Indicates the fact that the same bundle is already installed.
+     */
+    public static final OperationResult ALREADY_INSTALLED = new OperationResult(false,
+            "The bundle is already installed", null);
+
+    /**
+     * Represents a successfully fulfilled or submitted operation.
+     */
+    public static final OperationResult NOT_VALID_BUNDLE = new OperationResult(false,
+            "Submitted bundle is either not a valid OSGi bundle or has no required manifest headers"
+                    + " Bundle-SymbolicName and Bundle-Version",
+            null);
+
     private static final long serialVersionUID = -6027106110628985206L;
 
     /**
