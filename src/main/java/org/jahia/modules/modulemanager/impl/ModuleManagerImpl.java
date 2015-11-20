@@ -89,7 +89,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.jackrabbit.ocm.manager.ObjectContentManager;
 import org.jahia.modules.modulemanager.ModuleManagementException;
 import org.jahia.modules.modulemanager.ModuleManager;
-import org.jahia.modules.modulemanager.OperationScope;
 import org.jahia.modules.modulemanager.model.BinaryFile;
 import org.jahia.modules.modulemanager.model.Bundle;
 import org.jahia.modules.modulemanager.model.Operation;
@@ -168,7 +167,7 @@ public class ModuleManagerImpl implements ModuleManager {
 
     private ModuleInfoPersister persister;
 
-    private void doInstall(final Bundle bundle, final OperationScope operationScope) throws RepositoryException {
+    private void doInstall(final Bundle bundle, final String[] nodeIds) throws RepositoryException {
         persister.doExecute(new OCMCallback<Object>() {
             @Override
             public Object doInOCM(ObjectContentManager ocm) throws RepositoryException {
@@ -193,7 +192,7 @@ public class ModuleManagerImpl implements ModuleManager {
     }
 
     @Override
-    public OperationResult install(Resource bundleResource, OperationScope operationScope)
+    public OperationResult install(Resource bundleResource, String[] nodeIds)
             throws ModuleManagementException {
 
         // save to a temporary file and create Bundle data object
@@ -216,7 +215,7 @@ public class ModuleManagerImpl implements ModuleManager {
             }
 
             // store bundle in JCR and create operation node
-            doInstall(bundle, operationScope);
+            doInstall(bundle, nodeIds);
 
             // notify the processor
             notifyOperationProcessor();
@@ -247,19 +246,19 @@ public class ModuleManagerImpl implements ModuleManager {
     }
 
     @Override
-    public OperationResult start(String bundleKey, OperationScope operationScope) {
+    public OperationResult start(String bundleKey, String[] nodeIds) {
         // TODO Auto-generated method stub
         return OperationResultImpl.SUCCESS;
     }
 
     @Override
-    public OperationResult stop(String bundleKey, OperationScope operationScope) {
+    public OperationResult stop(String bundleKey, String[] nodeIds) {
         // TODO Auto-generated method stub
         return OperationResultImpl.SUCCESS;
     }
 
     @Override
-    public OperationResult uninstall(String bundleKey, OperationScope operationScope) {
+    public OperationResult uninstall(String bundleKey, String[] nodeIds) {
         // TODO Auto-generated method stub
         return OperationResultImpl.SUCCESS;
     }

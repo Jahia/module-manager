@@ -70,7 +70,6 @@
 package org.jahia.modules.modulemanager;
 
 import org.jahia.modules.modulemanager.payload.OperationResult;
-import org.jahia.modules.modulemanager.payload.OperationResultImpl;
 import org.springframework.core.io.Resource;
 
 /**
@@ -81,12 +80,12 @@ import org.springframework.core.io.Resource;
  */
 public interface ModuleManager {
 
-    OperationResult install(Resource bundleResource, OperationScope operationScope) throws ModuleManagementException;
+    OperationResult install(Resource bundleResource, String[] targetNodes) throws ModuleManagementException;
 
-    OperationResult start(String bundleKey, OperationScope operationScope);
+    OperationResult start(String bundleKey, String[] targetNodes) throws ModuleManagementException;
 
-    OperationResult stop(String bundleKey, OperationScope operationScope);
+    OperationResult stop(String bundleKey, String[] targetNodes) throws ModuleManagementException;
 
-    OperationResult uninstall(String bundleKey, OperationScope operationScope);
+    OperationResult uninstall(String bundleKey, String[] targetNodes) throws ModuleManagementException;
 
 }
