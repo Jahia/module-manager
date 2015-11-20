@@ -69,6 +69,8 @@
  */
 package org.jahia.modules.modulemanager;
 
+import org.jahia.modules.modulemanager.payload.OperationResult;
+import org.jahia.modules.modulemanager.payload.OperationResultImpl;
 import org.springframework.core.io.Resource;
 
 /**

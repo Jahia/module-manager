@@ -89,11 +89,12 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.jackrabbit.ocm.manager.ObjectContentManager;
 import org.jahia.modules.modulemanager.ModuleManagementException;
 import org.jahia.modules.modulemanager.ModuleManager;
-import org.jahia.modules.modulemanager.OperationResult;
 import org.jahia.modules.modulemanager.OperationScope;
 import org.jahia.modules.modulemanager.model.BinaryFile;
 import org.jahia.modules.modulemanager.model.Bundle;
 import org.jahia.modules.modulemanager.model.Operation;
+import org.jahia.modules.modulemanager.payload.OperationResult;
+import org.jahia.modules.modulemanager.payload.OperationResultImpl;
 import org.jahia.modules.modulemanager.persistence.ModuleInfoPersister;
 import org.jahia.modules.modulemanager.persistence.ModuleInfoPersister.OCMCallback;
 import org.jahia.services.content.JCRContentUtils;
@@ -202,7 +203,7 @@ public class ModuleManagerImpl implements ModuleManager {
                     ? FilenameUtils.getBaseName(bundleResource.getFilename()) : "bundle", ".jar");
             Bundle bundle = toBundle(bundleResource, tmp);
             if (bundle == null) {
-                return OperationResult.NOT_VALID_BUNDLE;
+                return OperationResultImpl.NOT_VALID_BUNDLE;
             }
 
             // check, if we have this bundle already installed
@@ -211,7 +212,7 @@ public class ModuleManagerImpl implements ModuleManager {
                     && existingBundle.getChecksum().equals(bundle.getChecksum())) {
                 // we have exactly same bundle installed already -> refuse
                 logger.debug("Bundle {} already installed. Skipping it", existingBundle.getName());
-                return OperationResult.ALREADY_INSTALLED;
+                return OperationResultImpl.ALREADY_INSTALLED;
             }
 
             // store bundle in JCR and create operation node
@@ -225,7 +226,7 @@ public class ModuleManagerImpl implements ModuleManager {
             FileUtils.deleteQuietly(tmp);
         }
 
-        return OperationResult.SUCCESS;
+        return OperationResultImpl.SUCCESS;
     }
 
     private void notifyOperationProcessor() {
@@ -248,18 +249,18 @@ public class ModuleManagerImpl implements ModuleManager {
     @Override
     public OperationResult start(String bundleKey, OperationScope operationScope) {
         // TODO Auto-generated method stub
-        return OperationResult.SUCCESS;
+        return OperationResultImpl.SUCCESS;
     }
 
     @Override
     public OperationResult stop(String bundleKey, OperationScope operationScope) {
         // TODO Auto-generated method stub
-        return OperationResult.SUCCESS;
+        return OperationResultImpl.SUCCESS;
     }
 
     @Override
     public OperationResult uninstall(String bundleKey, OperationScope operationScope) {
         // TODO Auto-generated method stub
-        return OperationResult.SUCCESS;
+        return OperationResultImpl.SUCCESS;
     }
 }

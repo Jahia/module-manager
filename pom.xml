@@ -154,7 +154,26 @@
             <artifactId>gemini-blueprint-core</artifactId>
             <version>1.0.2.RELEASE</version>
             <scope>provided</scope>
+            <exclusions>
+            	<exclusion>
+            		<groupId>org.springframework</groupId>
+        			<artifactId>spring-context</artifactId>
+            	</exclusion>
+	           	<exclusion>
+	           		<groupId>org.springframework</groupId>
+	       			<artifactId>spring-beans</artifactId>
+	           	</exclusion>
+	           	<exclusion>
+	           		<groupId>org.springframework</groupId>
+	       			<artifactId>spring-core</artifactId>
+	           	</exclusion>
+	           	<exclusion>
+	           		<groupId>org.springframework</groupId>
+	       			<artifactId>spring-aop</artifactId>
+	           	</exclusion>
+            </exclusions>
         </dependency>
+
     </dependencies>
 
 </project>

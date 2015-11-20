@@ -67,9 +67,7 @@
  *     If you are unsure which license is appropriate for your use,
  *     please contact the sales department at sales@jahia.com.
  */
-package org.jahia.modules.modulemanager;
-
-import java.io.Serializable;
+package org.jahia.modules.modulemanager.payload;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
@@ -78,30 +76,28 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
  * 
  * @author Sergiy Shyrkov
  */
-public class OperationResult implements Serializable {
+public class OperationResultImpl implements OperationResult {
 
     /**
      * Indicates the fact that the same bundle is already installed.
      */
-    public static final OperationResult ALREADY_INSTALLED = new OperationResult(false,
-            "The bundle is already installed", null);
+    public static final OperationResultImpl ALREADY_INSTALLED = new OperationResultImpl(false,
+            "The bundle is already installed");
 
     /**
      * Represents a successfully fulfilled or submitted operation.
      */
-    public static final OperationResult NOT_VALID_BUNDLE = new OperationResult(false,
+    public static final OperationResultImpl NOT_VALID_BUNDLE = new OperationResultImpl(false,
             "Submitted bundle is either not a valid OSGi bundle or has no required manifest headers"
-                    + " Bundle-SymbolicName and Bundle-Version",
-            null);
+                    + " Bundle-SymbolicName and Bundle-Version");
 
     private static final long serialVersionUID = -6027106110628985206L;
 
     /**
      * Represents a successfully fulfilled or submitted operation.
      */
-    public static final OperationResult SUCCESS = new OperationResult(true, null, null);
+    public static final OperationResultImpl SUCCESS = new OperationResultImpl(true, null);
 
-    private Exception exception;
 
     private String message;
 
@@ -117,16 +113,11 @@ public class OperationResult implements Serializable {
      * @param exception
      *            an error cause in case of a failure
      */
-    public OperationResult(boolean success, String message, Exception exception) {
-        super();
+    public OperationResultImpl(boolean success, String message) {
         this.success = success;
         this.message = message;
-        this.exception = exception;
     }
 
-    public Exception getException() {
-        return exception;
-    }
 
     public String getMessage() {
         return message;
@@ -134,10 +125,6 @@ public class OperationResult implements Serializable {
 
     public boolean isSuccess() {
         return success;
-    }
-
-    public void setException(Exception exception) {
-        this.exception = exception;
     }
 
     public void setMessage(String message) {
