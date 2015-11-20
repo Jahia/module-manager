@@ -153,10 +153,25 @@ public class NodeOperationProcessor {
         long startTime = System.currentTimeMillis();
         logger.info("Start performing node operation {}", logger.isDebugEnabled() ? op : op.getPath());
 
+        switch (op.getOperation().getAction()) {
+            case "install":
+                performActionInstall(op);
+                break;
+
+            default:
+                logger.info("Unknown action {} for node operation {}. Refusing to execute it.", op.getPath());
+                success = false;
+                break;
+        }
         logger.info("Done performing node operation {} with status {} in {} ms",
                 new Object[] { logger.isDebugEnabled() ? op : op.getPath(), success ? "success" : "failure",
                         System.currentTimeMillis() - startTime });
         return success;
+    }
+
+    private void performActionInstall(NodeOperation op) {
+        // TODO Auto-generated method stub
+        
     }
 
     /**
