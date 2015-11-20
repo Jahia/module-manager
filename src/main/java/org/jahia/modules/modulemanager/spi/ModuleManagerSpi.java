@@ -34,7 +34,7 @@ public interface ModuleManagerSpi {
    * @return the operation result
    * @throws ModuleDeploymentException
    */
-  @RequestMapping(method=RequestMethod.POST, params={"bundleFile", "nodes"})
+  @RequestMapping(method=RequestMethod.POST, params={"bundleFile", "nodes"}, value={"","/install"})
   @ResponseBody
   ResponseEntity<OperationResult> install(@RequestParam(value = "bundleFile", required = true) MultipartFile bundleFile, @RequestParam(value="nodes", required = false) String[] targetNodes) throws ModuleDeploymentException;
   

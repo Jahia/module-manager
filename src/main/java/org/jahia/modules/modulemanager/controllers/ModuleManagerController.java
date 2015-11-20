@@ -8,7 +8,6 @@ import java.io.IOException;
 
 import javax.annotation.PostConstruct;
 
-import org.atmosphere.config.service.Post;
 import org.jahia.modules.modulemanager.ModuleManagementException;
 import org.jahia.modules.modulemanager.ModuleManager;
 import org.jahia.modules.modulemanager.exception.ModuleDeploymentException;
@@ -17,7 +16,6 @@ import org.jahia.modules.modulemanager.payload.OperationResultImpl;
 import org.jahia.modules.modulemanager.spi.ModuleManagerSpi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
