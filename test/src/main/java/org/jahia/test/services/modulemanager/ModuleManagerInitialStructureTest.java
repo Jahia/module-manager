@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
 /**
  * Created by achaabni on 20/11/15.
  */
-public class BundleServiceTest extends JahiaTestCase {
+public class ModuleManagerInitialStructureTest extends JahiaTestCase {
 
     private static JCRSessionWrapper session;
 
