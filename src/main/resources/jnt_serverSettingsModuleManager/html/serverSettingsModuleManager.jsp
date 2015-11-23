@@ -1,1 +1,0 @@
-My Module Manager view

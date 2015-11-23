@@ -96,6 +96,7 @@
         <jahia-depends>default,serverSettings</jahia-depends>
         <jahia-module-type>system</jahia-module-type>
         <jahia-deploy-on-site>system</jahia-deploy-on-site>
+        <export-package>org.jahia.modules.modulemanager.forge</export-package>
     </properties>
 
     <repositories>
@@ -155,6 +156,10 @@
             <version>1.0.2.RELEASE</version>
             <scope>provided</scope>
             <exclusions>
+                <exclusion>
+                    <artifactId>org.osgi.core</artifactId>
+                    <groupId>org.osgi</groupId>
+                </exclusion>
             	<exclusion>
             		<groupId>org.springframework</groupId>
         			<artifactId>spring-context</artifactId>
