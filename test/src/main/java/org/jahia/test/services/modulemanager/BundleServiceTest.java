@@ -5,15 +5,11 @@ import org.jahia.services.content.JCRNodeWrapper;
 import org.jahia.services.content.JCRSessionWrapper;
 import org.jahia.services.content.JCRTemplate;
 import org.jahia.test.JahiaTestCase;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 
-import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Created by achaabni on 20/11/15.
