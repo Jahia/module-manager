@@ -171,5 +171,25 @@
             </exclusions>
         </dependency>
     </dependencies>
-
+	
+	<build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Import-Package>
+                            org.springframework.cglib.core,
+                            org.springframework.cglib.proxy,
+                            org.springframework.beans.factory,
+                            ${jahia.plugin.projectPackageImport},
+                            *
+                        </Import-Package>
+                    </instructions>
+                </configuration>
+            </plugin>            
+        </plugins>
+    </build>
 </project>

@@ -5,6 +5,8 @@ package org.jahia.modules.modulemanager.exception;
 
 import org.springframework.http.HttpStatus;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * The Exception raised when a deployment failed. 
  * Contains the underlying error and a HTTP status code to send to the client. 
@@ -12,6 +14,7 @@ import org.springframework.http.HttpStatus;
  * @author bdjiba
  *
  */
+@JsonIgnoreProperties(value={ "cause", "stackTrace", "localizedMessage", "suppressed" }, ignoreUnknown=true)
 public class ModuleDeploymentException extends Exception {
   private static final long serialVersionUID = -1886713186574565575L;
   

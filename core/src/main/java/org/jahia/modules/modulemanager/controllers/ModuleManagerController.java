@@ -8,8 +8,10 @@ import java.io.IOException;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang.StringUtils;
 import org.jahia.modules.modulemanager.ModuleManagementException;
 import org.jahia.modules.modulemanager.ModuleManager;
+import org.jahia.modules.modulemanager.exception.MissingBundleKeyValueException;
 import org.jahia.modules.modulemanager.exception.ModuleDeploymentException;
 import org.jahia.modules.modulemanager.payload.OperationResult;
 import org.jahia.modules.modulemanager.payload.OperationResultImpl;
@@ -45,12 +47,19 @@ public class ModuleManagerController implements ModuleManagerSpi {
    * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#install(org.springframework.web.multipart.MultipartFile, java.lang.String[])
    */
   @Override
-  public ResponseEntity<OperationResult> install(MultipartFile uploaded, String[] targetNodes)
+  public ResponseEntity<OperationResult> install(MultipartFile file, String[] nodes)
       throws ModuleDeploymentException {
-    log.info("Install bundle " + uploaded.getName());
+    // TODO: language translation for messages
+    if(file == null) {
+      throw new ModuleDeploymentException(HttpStatus.NOT_ACCEPTABLE, "The bundle file could not be null");
+    }
+    if(!StringUtils.equalsIgnoreCase("application/java-archive", file.getContentType())) {
+      throw new ModuleDeploymentException(HttpStatus.NOT_ACCEPTABLE, "Expected bundle file should be java archive");
+    }
+    log.debug("Install bundle " + file.getName() + " filename: " + file.getOriginalFilename() + " content-type: " + file.getContentType());
     try {
-      Resource bundleResource = getUploadedFileAsResource(uploaded);
-      moduleManager.install(bundleResource, targetNodes);
+      Resource bundleResource = getUploadedFileAsResource(file);
+      moduleManager.install(bundleResource, nodes);
       OperationResult result = OperationResultImpl.SUCCESS;
       return new ResponseEntity<OperationResult>(result, HttpStatus.OK);
     } catch (IOException ioe) {
@@ -70,11 +79,12 @@ public class ModuleManagerController implements ModuleManagerSpi {
    * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#uninstall(java.lang.String, java.lang.String[])
    */
   @Override
-  public ResponseEntity<OperationResult> uninstall(String bundleKey, String[] targetNodes)
+  public ResponseEntity<OperationResult> uninstall(String bundleKey, String[] nodes)
       throws ModuleDeploymentException {
-    log.info("Uninstall bundle " + bundleKey);
+    validateBundleOperation(bundleKey, "uninstall");
+    log.debug("Uninstall bundle " + bundleKey + " on nodes " + StringUtils.defaultIfBlank(StringUtils.join(nodes, ","), "all"));
     try{
-      moduleManager.uninstall(bundleKey, targetNodes);
+      moduleManager.uninstall(bundleKey, nodes);
       OperationResult result = OperationResultImpl.SUCCESS;
       return new ResponseEntity<OperationResult>(result, HttpStatus.OK);      
     } catch(ModuleManagementException mmEx){
@@ -87,11 +97,12 @@ public class ModuleManagerController implements ModuleManagerSpi {
    * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#start(java.lang.String, java.lang.String[])
    */
   @Override
-  public ResponseEntity<OperationResult> start(String bundleKey, String[] targetNodes)
+  public ResponseEntity<OperationResult> start(String bundleKey, String[] nodes)
       throws ModuleDeploymentException {
-    log.info("Start bundle " + bundleKey);
+    validateBundleOperation(bundleKey, "start");
+    log.debug("Start bundle " + bundleKey + " on nodes " + StringUtils.defaultIfBlank(StringUtils.join(nodes, ","), "all"));
     try{
-      moduleManager.start(bundleKey, targetNodes);
+      moduleManager.start(bundleKey, nodes);
       OperationResult result = OperationResultImpl.SUCCESS;
       return new ResponseEntity<OperationResult>(result, HttpStatus.OK);      
     } catch(ModuleManagementException mmEx){
@@ -104,11 +115,12 @@ public class ModuleManagerController implements ModuleManagerSpi {
    * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#stop(java.lang.String, java.lang.String[])
    */
   @Override
-  public ResponseEntity<OperationResult> stop(String bundleKey, String[] targetNodes)
+  public ResponseEntity<OperationResult> stop(String bundleKey, String[] nodes)
       throws ModuleDeploymentException {
-    log.info("Stop bundle " + bundleKey);
+    validateBundleOperation(bundleKey, "stop");
+    log.debug("Stop bundle " + bundleKey + " on nodes " + StringUtils.defaultIfBlank(StringUtils.join(nodes, ","), "all"));
     try{
-      moduleManager.stop(bundleKey, targetNodes);
+      moduleManager.stop(bundleKey, nodes);
       OperationResult result = OperationResultImpl.SUCCESS;
       return new ResponseEntity<OperationResult>(result, HttpStatus.OK);      
     } catch(ModuleManagementException mmEx){
@@ -122,6 +134,12 @@ public class ModuleManagerController implements ModuleManagerSpi {
     log.info("Test done !");
     OperationResult result = OperationResultImpl.SUCCESS;
     return new ResponseEntity<OperationResult>(result, HttpStatus.OK);
+  }
+  
+  private void validateBundleOperation(String bundleKey, String operationName) throws MissingBundleKeyValueException {
+    if(StringUtils.isBlank(bundleKey)) {
+      throw new MissingBundleKeyValueException("Bundle key is mandatory for " + operationName + " action.");
+    }
   }
 
 }
