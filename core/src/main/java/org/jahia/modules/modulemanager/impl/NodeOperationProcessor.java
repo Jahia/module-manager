@@ -69,18 +69,29 @@
  */
 package org.jahia.modules.modulemanager.impl;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.List;
 
+import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.jackrabbit.ocm.manager.ObjectContentManager;
+import org.jahia.data.templates.ModuleState;
 import org.jahia.modules.modulemanager.ModuleManagementException;
 import org.jahia.modules.modulemanager.model.ClusterNodeInfo;
+import org.jahia.modules.modulemanager.model.NodeBundle;
 import org.jahia.modules.modulemanager.model.NodeOperation;
 import org.jahia.modules.modulemanager.model.Operation;
 import org.jahia.modules.modulemanager.persistence.ModuleInfoPersister;
 import org.jahia.modules.modulemanager.persistence.ModuleInfoPersister.OCMCallback;
+import org.jahia.osgi.BundleUtils;
+import org.jahia.osgi.FrameworkService;
+import org.jahia.services.templates.JahiaTemplateManagerService;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,6 +109,10 @@ public class NodeOperationProcessor {
     private String operationLogPath;
 
     private ModuleInfoPersister persister;
+
+    private String clusterNodePath;
+    
+    private JahiaTemplateManagerService templateManagerService;
 
     /**
      * Performs the check if the operation can be started or not, which is based on the dependencies of it.
@@ -148,30 +163,105 @@ public class NodeOperationProcessor {
         ocm.move(globalOp.getPath(), "/module-management/operationLog/" + globalOp.getName());
     }
 
-    protected boolean performAction(NodeOperation op) {
+    protected boolean performAction(NodeOperation op, ObjectContentManager ocm)
+            throws PathNotFoundException, ModuleManagementException {
         boolean success = true;
         long startTime = System.currentTimeMillis();
         logger.info("Start performing node operation {}", logger.isDebugEnabled() ? op : op.getPath());
 
-        switch (op.getOperation().getAction()) {
-            case "install":
-                performActionInstall(op);
-                break;
+        String action = op.getOperation().getAction();
 
-            default:
-                logger.info("Unknown action {} for node operation {}. Refusing to execute it.", op.getPath());
-                success = false;
-                break;
+        if (action.equals("install")) {
+            performActionInstall(op, ocm);
+        } else {
+            ensureNodeBundlePresent(op, ocm);
+
+            Bundle osgiBundle = BundleUtils.getBundle(op.getOperation().getBundle().getSymbolicName(),
+                    op.getOperation().getBundle().getVersion());
+            if (osgiBundle == null) {
+                throw new ModuleManagementException(
+                        "Bundle " + op.getOperation().getBundle().getName() + " is not installed on the current node.");
+            }
+
+            performAction(osgiBundle, action);
         }
+
         logger.info("Done performing node operation {} with status {} in {} ms",
                 new Object[] { logger.isDebugEnabled() ? op : op.getPath(), success ? "success" : "failure",
                         System.currentTimeMillis() - startTime });
         return success;
     }
 
-    private void performActionInstall(NodeOperation op) {
-        // TODO Auto-generated method stub
-        
+    private void ensureNodeBundlePresent(NodeOperation op, ObjectContentManager ocm) throws PathNotFoundException {
+        String bundleKey = op.getOperation().getBundle().getName();
+        String path = clusterNodePath + "/bundles/" + bundleKey;
+        NodeBundle nodeBundle = (NodeBundle) ocm.getObject(NodeBundle.class, path);
+
+        if (nodeBundle == null) {
+            throw new ModuleManagementException("Bundle " + bundleKey + " is not installed on the current node.");
+        }
+    }
+
+    private void performAction(Bundle osgiBundle, String action) throws ModuleManagementException {
+        try {
+            switch (action) {
+                case "start":
+                    osgiBundle.start();
+                    break;
+                case "stop":
+                    osgiBundle.stop();
+                    ;
+                    break;
+                case "uninstall":
+                    osgiBundle.uninstall();
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown bundle action " + action);
+            }
+        } catch (BundleException e) {
+            throw new ModuleManagementException("Error performing action " + action + " on a bundle "
+                    + osgiBundle.getSymbolicName() + "-" + osgiBundle.getVersion() + ". Cause: " + e.getMessage(), e);
+        }
+    }
+
+    private boolean performActionInstall(NodeOperation op, ObjectContentManager ocm) {
+        boolean success = true;
+        long startTime = System.currentTimeMillis();
+        logger.info("Start performing node operation {}", logger.isDebugEnabled() ? op : op.getPath());
+
+        org.jahia.modules.modulemanager.model.Bundle b = op.getOperation().getBundle();
+        String nodeBundlePath = clusterNodePath + "/bundles/" + b.getName();
+
+        Bundle osgiBundle = BundleUtils.getBundle(b.getSymbolicName(), b.getVersion());
+        InputStream is = new ByteArrayInputStream(b.getFile().getData());
+        try {
+            if (osgiBundle == null) {
+                // installing new bundle
+                osgiBundle = FrameworkService.getBundleContext().installBundle("jcr:" + b.getName(), is);
+            } else {
+                // updating existing one
+                osgiBundle.update(is);
+            }
+            NodeBundle nodeBundle = new NodeBundle(b.getName());
+            nodeBundle.setPath(nodeBundlePath);
+            nodeBundle.setBundle(b);
+            ModuleState moduleState = templateManagerService.getModuleStates().get(osgiBundle);
+            if (moduleState != null) {
+                nodeBundle.setState(moduleState.getState().toString().toLowerCase());
+            }
+            ocm.insert(nodeBundle);
+        } catch (BundleException e) {
+            throw new ModuleManagementException(
+                    "Error performing install action on a bundle " + b.getName() + ". Cause: " + e.getMessage(), e);
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
+
+        logger.info("Done performing node operation {} with status {} in {} ms",
+                new Object[] { logger.isDebugEnabled() ? op : op.getPath(), success ? "success" : "failure",
+                        System.currentTimeMillis() - startTime });
+
+        return success;
     }
 
     /**
@@ -224,7 +314,7 @@ public class NodeOperationProcessor {
 
                 try {
                     // execute the action and update operation state depending on the result
-                    op.setState(performAction(op) ? "successful" : "failed");
+                    op.setState(performAction(op, ocm) ? "successful" : "failed");
                 } catch (Exception e) {
                     // change the state of the operation to failed, providing the failure cause
                     op.setState("failed");
@@ -246,7 +336,6 @@ public class NodeOperationProcessor {
                         // we have to complete the global operation as this node is the last one in processing chain
                         completeGlobalOperationFor(op, ocm);
                     }
-                    ocm.save();
 
                     // archive this node operation
                     ocm.move(op.getPath(), new StringBuilder(operationLogPath.length() + op.getName().length())
@@ -262,8 +351,8 @@ public class NodeOperationProcessor {
 
     public void setClusterNodeInfo(ClusterNodeInfo clusterNodeInfo) {
         this.clusterNodeInfo = clusterNodeInfo;
-        operationLogPath = clusterNodeInfo != null
-                ? "/module-management/nodes/" + clusterNodeInfo.getId() + "/operationLog/" : null;
+        clusterNodePath = clusterNodeInfo != null ? "/module-management/nodes/" + clusterNodeInfo.getId() : null;
+        operationLogPath = clusterNodeInfo != null ? clusterNodePath + "/operationLog/" : null;
     }
 
     /**
@@ -274,5 +363,9 @@ public class NodeOperationProcessor {
      */
     public void setPersister(ModuleInfoPersister persister) {
         this.persister = persister;
+    }
+
+    public void setTemplateManagerService(JahiaTemplateManagerService templateManagerService) {
+        this.templateManagerService = templateManagerService;
     }
 }

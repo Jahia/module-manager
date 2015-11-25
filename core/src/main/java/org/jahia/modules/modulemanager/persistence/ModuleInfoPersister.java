@@ -82,6 +82,8 @@ import org.apache.jackrabbit.ocm.manager.ObjectContentManager;
 import org.apache.jackrabbit.ocm.manager.impl.ObjectContentManagerImpl;
 import org.apache.jackrabbit.ocm.mapper.Mapper;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.AnnotationMapperImpl;
+import org.apache.jackrabbit.ocm.reflection.ReflectionUtils;
+import org.jahia.modules.modulemanager.impl.BundleServiceImpl;
 import org.jahia.modules.modulemanager.model.BinaryFile;
 import org.jahia.modules.modulemanager.model.Bundle;
 import org.jahia.modules.modulemanager.model.ClusterNode;
@@ -121,11 +123,11 @@ public class ModuleInfoPersister {
 
     private static final String ROOT_NODE_PATH = "/module-management";
 
+    private BundleServiceImpl bundleService;
+
     private ClusterNodeInfo clusterNodeInfo;
 
     private AnnotationMapperImpl mapper;
-
-    private ModuleInfoInitializer moduleInfoInitializer;
 
     private String operationLogAutoSplitConfig;
 
@@ -151,22 +153,27 @@ public class ModuleInfoPersister {
         });
     }
 
-    private Mapper getMapper() {
-        // TODO replace annotations with XML descriptor to eliminate dependency of object model to jackrabbit-ocm?
-        if (mapper == null) {
-            @SuppressWarnings("rawtypes")
-            List<Class> classes = new LinkedList<Class>();
-            classes.add(ModuleManagement.class);
-            classes.add(Bundle.class);
-            classes.add(BinaryFile.class);
-            classes.add(Operation.class);
-            classes.add(ClusterNode.class);
-            classes.add(NodeBundle.class);
-            classes.add(NodeOperation.class);
+    /**
+     * Returns a list of known cluster nodes.
+     * 
+     * @param ocm
+     *            current instance of the object manager
+     * @return a list of known cluster nodes
+     * @throws RepositoryException
+     *             in case of a JCR error
+     */
+    public List<ClusterNode> getClusterNodes(ObjectContentManager ocm) throws RepositoryException {
+        NodeIterator it = ocm.getSession().getNode("/module-management/nodes").getNodes();
 
-            mapper = new AnnotationMapperImpl(classes);
+        List<ClusterNode> nodes = new LinkedList<>();
+        while (it.hasNext()) {
+            Node nextNode = it.nextNode();
+            if (nextNode.isNodeType("jmm:node")) {
+                nodes.add((ClusterNode) ocm.getObject(nextNode.getPath()));
+            }
         }
-        return mapper;
+
+        return nodes;
     }
 
     // private AtomicTypeConverterProvider getAtomicTypeConverterProvider() {
@@ -190,23 +197,24 @@ public class ModuleInfoPersister {
     // return null;
     // }
 
-    /**
-     * Returns the module management object with the deployment information.
-     * 
-     * @return the module management object with the deployment information
-     * @throws RepositoryException
-     *             in case of a repository access error
-     */
-    public ModuleManagement getModuleManagement() throws RepositoryException {
-        return doExecute(new OCMCallback<ModuleManagement>() {
-            @Override
-            public ModuleManagement doInOCM(ObjectContentManager ocm) throws RepositoryException {
+    private Mapper getMapper() {
+        // TODO replace annotations with XML descriptor to eliminate dependency of object model to jackrabbit-ocm?
+        if (mapper == null) {
+            ReflectionUtils.setClassLoader(getClass().getClassLoader());
 
-                ModuleManagement mgt = (ModuleManagement) ocm.getObject(ModuleManagement.class, ROOT_NODE_PATH);
+            @SuppressWarnings("rawtypes")
+            List<Class> classes = new LinkedList<Class>();
+            classes.add(ModuleManagement.class);
+            classes.add(Bundle.class);
+            classes.add(BinaryFile.class);
+            classes.add(Operation.class);
+            classes.add(ClusterNode.class);
+            classes.add(NodeBundle.class);
+            classes.add(NodeOperation.class);
 
-                return mgt;
-            }
-        });
+            mapper = new AnnotationMapperImpl(classes);
+        }
+        return mapper;
     }
 
     private ModuleManagement getModuleManagement(ObjectContentManager ocm) {
@@ -294,12 +302,12 @@ public class ModuleInfoPersister {
         });
     }
 
-    public void setClusterNodeInfo(ClusterNodeInfo clusterNodeInfo) {
-        this.clusterNodeInfo = clusterNodeInfo;
+    public void setBundleService(BundleServiceImpl bundleService) {
+        this.bundleService = bundleService;
     }
 
-    public void setModuleInfoInitializer(ModuleInfoInitializer moduleInfoInitializer) {
-        this.moduleInfoInitializer = moduleInfoInitializer;
+    public void setClusterNodeInfo(ClusterNodeInfo clusterNodeInfo) {
+        this.clusterNodeInfo = clusterNodeInfo;
     }
 
     public void setOperationLogAutoSplitConfig(String operationLogAutoSplitConfig) {
@@ -330,7 +338,7 @@ public class ModuleInfoPersister {
             logger.info("Start populating information about available module bundles...");
             long startTime = System.currentTimeMillis();
 
-            bundeStates = moduleInfoInitializer.populateBundles(mgt);
+            bundeStates = bundleService.populateBundles(mgt);
             ocm.update(mgt);
             ocm.save();
 
@@ -353,7 +361,7 @@ public class ModuleInfoPersister {
             long startTime = System.currentTimeMillis();
 
             ClusterNode clusterNodeToUpdate = (ClusterNode) ocm.getObject(ClusterNode.class, cn.getPath());
-            moduleInfoInitializer.populateNodeBundles(clusterNodeToUpdate, getModuleManagement(ocm).getBundles(), bundeStates);
+            bundleService.populateNodeBundles(clusterNodeToUpdate, getModuleManagement(ocm).getBundles(), bundeStates);
             ocm.update(clusterNodeToUpdate);
             ocm.save();
 

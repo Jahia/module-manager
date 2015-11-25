@@ -89,7 +89,7 @@ public class OperationResultImpl implements OperationResult {
      */
     public static final OperationResultImpl NOT_VALID_BUNDLE = new OperationResultImpl(false,
             "Submitted bundle is either not a valid OSGi bundle or has no required manifest headers"
-                    + " Bundle-SymbolicName and Bundle-Version");
+                    + " Bundle-SymbolicName and Implementation-Version/Bundle-Version");
 
     private static final long serialVersionUID = -6027106110628985206L;
 

@@ -21,14 +21,10 @@
     <bean id="ModuleInfoPersister" class="org.jahia.modules.modulemanager.persistence.ModuleInfoPersister" init-method="start">
         <property name="clusterNodeInfo" ref="ClusterNodeInfo"/>
         <property name="operationLogAutoSplitConfig" value="date,jcr:created,yyyy;date,jcr:created,MM;date,jcr:created,dd"/>
-        <property name="moduleInfoInitializer" ref="ModuleInfoInitializer"/>
+        <property name="bundleService" ref="BundleService"/>
     </bean>
     
     <bean id="BundleService" class="org.jahia.modules.modulemanager.impl.BundleServiceImpl"/>
-
-    <bean id="ModuleInfoInitializer" class="org.jahia.modules.modulemanager.persistence.ModuleInfoInitializer">
-        <property name="bundleService" ref="BundleService"/>
-    </bean>
     
     <bean id="ModuleManager" class="org.jahia.modules.modulemanager.impl.ModuleManagerImpl">
         <property name="persister" ref="ModuleInfoPersister"/>
@@ -42,6 +38,7 @@
     <bean id="NodeOperationProcessor" class="org.jahia.modules.modulemanager.impl.NodeOperationProcessor">
         <property name="clusterNodeInfo" ref="ClusterNodeInfo"/>
         <property name="persister" ref="ModuleInfoPersister"/>
+        <property name="templateManagerService" ref="JahiaTemplateManagerService" />
     </bean>
     
     <bean id="NodeOperationEventListener" class="org.jahia.modules.modulemanager.impl.NodeOperationEventListener">

@@ -79,7 +79,6 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.jackrabbit.ocm.manager.ObjectContentManager;
 import org.jahia.modules.modulemanager.ModuleManagementException;
 import org.jahia.modules.modulemanager.model.ClusterNode;
-import org.jahia.modules.modulemanager.model.ModuleManagement;
 import org.jahia.modules.modulemanager.model.NodeOperation;
 import org.jahia.modules.modulemanager.model.Operation;
 import org.jahia.modules.modulemanager.persistence.ModuleInfoPersister;
@@ -100,35 +99,41 @@ public class OperationProcessor {
 
     private ModuleInfoPersister persister;
 
+    private NodeOperation createNodeOperation(Operation op, ClusterNode cn, ObjectContentManager ocm)
+            throws PathNotFoundException, RepositoryException {
+        NodeOperation nodeOp = new NodeOperation();
+        nodeOp.setName(JCRContentUtils.findAvailableNodeName(ocm.getSession().getNode(cn.getPath() + "/operations"), op.getName()));
+        nodeOp.setPath(cn.getPath() + "/operations/" + nodeOp.getName());
+        nodeOp.setOperation(op);
+        
+        return nodeOp;
+    }
+
     private void createNodeOperations(final Operation op, ObjectContentManager ocm)
             throws PathNotFoundException, RepositoryException {
-        ModuleManagement mgt = (ModuleManagement) ocm.getObject(ModuleManagement.class, "/module-management");
         List<NodeOperation> dependsOn = new LinkedList<>();
 
+        List<ClusterNode> clusterNodes = persister.getClusterNodes(ocm);
+
         // first iterate over non-processing nodes
-        for (ClusterNode cn : mgt.getNodes().values()) {
+        for (ClusterNode cn : clusterNodes) {
             if (cn.isProcessingServer()) {
                 continue;
             }
-            NodeOperation nodeOp = new NodeOperation();
-            nodeOp.setName(JCRContentUtils.findAvailableNodeName(ocm.getSession().getNode(cn.getPath()), op.getName()));
-            nodeOp.setOperation(op);
+            NodeOperation nodeOp = createNodeOperation(op, cn, ocm);
             // TODO verify the way we detect if the node is currently started or not
             if (cn.isStarted()) {
                 dependsOn.add(nodeOp);
             }
-            cn.getOperations().put(nodeOp.getName(), nodeOp);
+            ocm.insert(nodeOp);
         }
-        ocm.update(mgt);
 
         // now the processing node
-        for (ClusterNode cn : mgt.getNodes().values()) {
+        for (ClusterNode cn : clusterNodes) {
             if (!cn.isProcessingServer()) {
                 continue;
             }
-            NodeOperation nodeOp = new NodeOperation();
-            nodeOp.setName(op.getName());
-            nodeOp.setOperation(op);
+            NodeOperation nodeOp = createNodeOperation(op, cn, ocm);
             if (!dependsOn.isEmpty()) {
                 // we have to wait for active non-processing nodes, so store the list of dependent operations
                 List<String> uuids = new LinkedList<>();
@@ -137,9 +142,8 @@ public class OperationProcessor {
                 }
                 nodeOp.setDependsOn(uuids);
             }
-            cn.getOperations().put(nodeOp.getName(), nodeOp);
+            ocm.insert(nodeOp);
         }
-        ocm.update(mgt);
 
         ocm.save();
     }
@@ -208,7 +212,6 @@ public class OperationProcessor {
                     op.setInfo("Cause: " + ExceptionUtils.getMessage(e) + "\nRoot cause: "
                             + ExceptionUtils.getRootCauseMessage(e) + "\n" + ExceptionUtils.getFullStackTrace(e));
                     ocm.update(op);
-                    ocm.save();
 
                     // archive the operation
                     ocm.move(op.getPath(), "/module-management/operationLog");

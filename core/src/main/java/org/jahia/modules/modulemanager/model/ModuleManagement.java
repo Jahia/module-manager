@@ -85,13 +85,13 @@ public class ModuleManagement extends BasePersistentObject {
 
     private static final long serialVersionUID = 3721980381995804955L;
 
-    @Collection(jcrName = "bundles")
+    @Collection(jcrName = "bundles", proxy = true)
     private TreeMap<String, Bundle> bundles = new TreeMap<>();
 
-    @Collection(jcrName = "nodes")
+    @Collection(jcrName = "nodes", proxy = true)
     private LinkedHashMap<String, ClusterNode> nodes = new LinkedHashMap<>();
 
-    @Collection(jcrName = "operations")
+    @Collection(jcrName = "operations", proxy = true)
     private LinkedHashMap<String, Operation> operations = new LinkedHashMap<>();
 
     // @Collection(proxy=true)

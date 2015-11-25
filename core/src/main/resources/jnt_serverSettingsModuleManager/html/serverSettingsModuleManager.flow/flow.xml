@@ -177,7 +177,7 @@
     </action-state>
 
     <action-state id="undeployModule">
-        <evaluate expression="JahiaTemplateManagerService.undeployModule(requestParameters.module,requestParameters.version)"/>
+        <evaluate expression="flowHandler.uninstallModule(requestParameters.module,requestParameters.version,flowRequestContext)"/>
         <transition to="view"/>
     </action-state>
 

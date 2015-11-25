@@ -79,6 +79,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 
+import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 
 import org.apache.commons.codec.binary.Hex;
@@ -117,7 +118,11 @@ public class ModuleManagerImpl implements ModuleManager {
             Manifest mf = jarIs.getManifest();
             if (mf != null) {
                 bundle.setSymbolicName(mf.getMainAttributes().getValue("Bundle-SymbolicName"));
-                bundle.setVersion(mf.getMainAttributes().getValue("Bundle-Version"));
+                String version = mf.getMainAttributes().getValue("Implementation-Version");
+                if (version == null) {
+                    version = mf.getMainAttributes().getValue("Bundle-Version");
+                }
+                bundle.setVersion(version);
                 bundle.setDisplayName(mf.getMainAttributes().getValue("Bundle-Name"));
             }
         } finally {
@@ -174,15 +179,8 @@ public class ModuleManagerImpl implements ModuleManager {
                 // store the bundle in JCR
                 ocm.insert(bundle);
 
-                // create operation node
-                Operation op = new Operation();
-                op.setBundle(bundle);
-                op.setAction("install");
-                op.setState("open");
-                op.setName(JCRContentUtils.findAvailableNodeName(
-                        ocm.getSession().getNode("/module-management/operations"), "install-" + bundle.getName()));
-                op.setPath("/module-management/operations/" + op.getName());
-                ocm.insert(op);
+                // create the operation node
+                doOperation(bundle.getName(), "install", ocm);
 
                 ocm.save();
 
@@ -191,9 +189,41 @@ public class ModuleManagerImpl implements ModuleManager {
         });
     }
 
+    private void doOperation(final String bundleKey, final String operationAction) throws RepositoryException {
+        persister.doExecute(new OCMCallback<Object>() {
+            @Override
+            public Object doInOCM(ObjectContentManager ocm) throws RepositoryException {
+                doOperation(bundleKey, operationAction, ocm);
+                ocm.save();
+
+                return null;
+            }
+
+        });
+    }
+
+    private void doOperation(final String bundleKey, final String operationAction, ObjectContentManager ocm)
+            throws RepositoryException {
+        // store the bundle in JCR
+        String path = "/module-management/bundles/" + bundleKey;
+        Bundle bundle = (Bundle) ocm.getObject(Bundle.class, path);
+        if (bundle == null) {
+            throw new PathNotFoundException("Bundle for key " + bundleKey + " (" + path + ") could not be found.");
+        }
+
+        // create operation node
+        Operation op = new Operation();
+        op.setBundle(bundle);
+        op.setAction(operationAction);
+        op.setState("open");
+        op.setName(JCRContentUtils.findAvailableNodeName(ocm.getSession().getNode("/module-management/operations"),
+                operationAction + "-" + bundle.getName()));
+        op.setPath("/module-management/operations/" + op.getName());
+        ocm.insert(op);
+    }
+
     @Override
-    public OperationResult install(Resource bundleResource, String[] nodeIds)
-            throws ModuleManagementException {
+    public OperationResult install(Resource bundleResource, String[] nodeIds) throws ModuleManagementException {
 
         // save to a temporary file and create Bundle data object
         File tmp = null;
@@ -247,19 +277,56 @@ public class ModuleManagerImpl implements ModuleManager {
 
     @Override
     public OperationResult start(String bundleKey, String[] nodeIds) {
-        // TODO Auto-generated method stub
+        try {
+            doOperation(bundleKey, "start");
+
+            // notify the processor
+            notifyOperationProcessor();
+        } catch (PathNotFoundException e) {
+            // no such module
+            return new OperationResultImpl(false, "Unable to perform the start operation." + " The requested bundle "
+                    + bundleKey + " cannot be found.");
+        } catch (RepositoryException e) {
+            throw new ModuleManagementException(e);
+        }
+
         return OperationResultImpl.SUCCESS;
     }
 
     @Override
     public OperationResult stop(String bundleKey, String[] nodeIds) {
-        // TODO Auto-generated method stub
+        try {
+            doOperation(bundleKey, "stop");
+
+            // notify the processor
+            notifyOperationProcessor();
+        } catch (PathNotFoundException e) {
+            // no such module
+            // no such module
+            return new OperationResultImpl(false, "Unable to perform the stop operation." + " The requested bundle "
+                    + bundleKey + " cannot be found.");
+        } catch (RepositoryException e) {
+            throw new ModuleManagementException(e);
+        }
+
         return OperationResultImpl.SUCCESS;
     }
 
     @Override
     public OperationResult uninstall(String bundleKey, String[] nodeIds) {
-        // TODO Auto-generated method stub
+        try {
+            doOperation(bundleKey, "uninstall");
+
+            // notify the processor
+            notifyOperationProcessor();
+        } catch (PathNotFoundException e) {
+            // no such module
+            return new OperationResultImpl(false, "Unable to perform the uninstall operation."
+                    + " The requested bundle " + bundleKey + " cannot be found.");
+        } catch (RepositoryException e) {
+            throw new ModuleManagementException(e);
+        }
+
         return OperationResultImpl.SUCCESS;
     }
 }

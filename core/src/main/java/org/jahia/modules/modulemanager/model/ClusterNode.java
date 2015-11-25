@@ -86,10 +86,10 @@ public class ClusterNode extends BasePersistentObject {
 
     private static final long serialVersionUID = 4606202580861227782L;
 
-    @Collection(jcrName = "bundles")
+    @Collection(jcrName = "bundles", proxy = true)
     private TreeMap<String, NodeBundle> bundles = new TreeMap<>();
 
-    @Collection(jcrName = "operations")
+    @Collection(jcrName = "operations", proxy = true)
     private LinkedHashMap<String, NodeOperation> operations = new LinkedHashMap<>();
 
     @Field(jcrName = "j:processingServer")

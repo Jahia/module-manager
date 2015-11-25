@@ -8,10 +8,11 @@ import org.apache.poi.util.IOUtils;
 import org.eclipse.gemini.blueprint.context.BundleContextAware;
 import org.jahia.modules.modulemanager.model.BinaryFile;
 import org.jahia.modules.modulemanager.model.Bundle;
+import org.jahia.modules.modulemanager.model.ClusterNode;
 import org.jahia.modules.modulemanager.model.ModuleManagement;
+import org.jahia.modules.modulemanager.model.NodeBundle;
 import org.jahia.osgi.BundleUtils;
 import org.jahia.settings.SettingsBean;
-import org.jahia.utils.Url;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.slf4j.Logger;
@@ -25,10 +26,12 @@ import java.net.URL;
 import java.security.DigestInputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
- * Bundle Service Implementation to manage the cluster nodes bundles
- * Created by achaabni on 17/11/15.
+ * Bundle Service Implementation to manage the cluster nodes bundles.
+ * 
+ * @author achaabni
  */
 public class BundleServiceImpl implements BundleContextAware {
 
@@ -74,12 +77,16 @@ public class BundleServiceImpl implements BundleContextAware {
                 try {
                     fileName = FilenameUtils.getName(bundleURL.getPath());
                     bundleToAdd.setFileName(fileName);
-                    DigestInputStream digestInputStream = getDigestInputStreamFromUrlOrBundleArchives(bundleURL, fileName, archives);
+                    DigestInputStream digestInputStream = getBundleInputStream(bundleURL, fileName, archives);
                     BinaryFile file = new BinaryFile(IOUtils.toByteArray(digestInputStream));
                     bundleToAdd.setFile(file);
-                    bundleToAdd.setSymbolicName(contextBundle.getHeaders().get("Bundle-SymbolicName").toString());
-                    bundleToAdd.setDisplayName(contextBundle.getHeaders().get("Bundle-Name").toString());
-                    bundleToAdd.setVersion(contextBundle.getHeaders().get("Bundle-Version").toString());
+                    bundleToAdd.setSymbolicName(contextBundle.getHeaders().get("Bundle-SymbolicName"));
+                    bundleToAdd.setDisplayName(contextBundle.getHeaders().get("Bundle-Name"));
+                    String version = contextBundle.getHeaders().get("Implementation-Version");
+                    if (version == null) {
+                        version = contextBundle.getHeaders().get("Bundle-Version");
+                    }
+                    bundleToAdd.setVersion(version);
                     bundleToAdd.setChecksum(Hex.encodeHexString(digestInputStream.getMessageDigest().digest()));
                     bundleToAdd.setName(bundleToAdd.getSymbolicName() + "-" + bundleToAdd.getVersion());
                     result.put(bundleToAdd, BundleUtils.getModule(contextBundle).getState().getState().toString().toLowerCase());
@@ -101,46 +108,27 @@ public class BundleServiceImpl implements BundleContextAware {
      * @param archives list of bundle archives
      * @return digest input stream
      */
-    private DigestInputStream getDigestInputStreamFromUrlOrBundleArchives(URL bundleURL, String fileName, BundleArchive[] archives) {
-        DigestInputStream result = null;
+    private DigestInputStream getBundleInputStream(URL bundleURL, String fileName, BundleArchive[] archives) {
+        InputStream result = null;
         try {
-            result = getDigestInputStreamFromUrl(bundleURL);
+            result = bundleURL.openStream();
         } catch (IOException e) {
-            BundleArchive archive = findArchiveByFileName(fileName, archives);
-            result = getDigestInputStreamFromBundleArchive(archive);
+            // unable to find original file
+            logger.warn(e.getMessage(), e);
         }
-        return result;
-    }
-
-    /**
-     * Get the digest input stream from an URL
-     * @param bundleURL url
-     * @return digest input stream
-     * @throws IOException when the url file doesn't existe
-     */
-    private DigestInputStream getDigestInputStreamFromUrl(URL bundleURL) throws IOException
-    {
-        DigestInputStream result = null;
-        InputStream inputStream = null;
-        inputStream = bundleURL.openStream();
-        DigestInputStream digestInputStream = ModuleManagerImpl.toDigestInputStream(inputStream);
-        return  result;
-    }
-
-    /**
-     * Get the digest input stream from one archive
-     * @param archive felix bundle archive
-     * @return digest input stream
-     */
-    private DigestInputStream getDigestInputStreamFromBundleArchive(BundleArchive archive) {
-        DigestInputStream result = null;
-        URL bundleURL = null;
-        try {
-            bundleURL = new URL(archive.getLocation());
-        } catch (Exception e) {
-            return  null;
+        if (result == null) {
+            try {
+                BundleArchive archive = findArchiveByFileName(fileName, archives);
+                if (archive != null) {
+                    result = new URL(archive.getLocation()).openStream();
+                }
+            } catch (Exception e) {
+                // cannot get it from the bundle archive
+                logger.warn(e.getMessage(), e);
+            }
         }
-        return  result;
+        
+        return result != null ? ModuleManagerImpl.toDigestInputStream(result) : null;
     }
 
     /**
@@ -201,6 +189,28 @@ public class BundleServiceImpl implements BundleContextAware {
         return states;
     }
 
+    /**
+     * Populate the list of bundles in the cluster node
+     * 
+     * @param clusterNode
+     *            cluster node to update its bundles
+     * @param bundleSources
+     *            bundles sources
+     * @param bundleStates the map bundle-to-state 
+     */
+    public void populateNodeBundles(ClusterNode clusterNode, TreeMap<String, Bundle> bundleSources, Map<String, String> bundleStates) {
+        for (Map.Entry<String, Bundle> entry : bundleSources.entrySet()) {
+            NodeBundle nodeBundle = new NodeBundle(entry.getKey());
+            nodeBundle.setBundle(entry.getValue());
+            if (bundleStates != null) {
+                String state = bundleStates.get(entry.getKey());
+                if (state != null) {
+                    nodeBundle.setState(state);
+                }
+            }
+            clusterNode.getBundles().put(nodeBundle.getName(), nodeBundle);
+        }
+    }
 
     @Override
     public void setBundleContext(BundleContext bundleContext) {
