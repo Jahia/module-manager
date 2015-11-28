@@ -154,8 +154,7 @@ public class ModuleManagerImpl implements ModuleManager {
         b.setFileName(StringUtils.defaultIfBlank(bundleResource.getFilename(),
                 b.getSymbolicName() + "-" + b.getVersion() + ".jar"));
 
-        // TODO file
-        b.setFile(new BinaryFile(FileUtils.readFileToByteArray(tmpFile)));
+        b.setFile(new BinaryFile(tmpFile.toURI().toURL()));
 
         return b;
     }

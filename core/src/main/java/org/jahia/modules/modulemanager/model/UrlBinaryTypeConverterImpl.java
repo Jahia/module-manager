@@ -69,83 +69,78 @@
  */
 package org.jahia.modules.modulemanager.model;
 
-import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
 
-import org.apache.jackrabbit.ocm.mapper.impl.annotation.Field;
-import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Value;
+import javax.jcr.ValueFactory;
+
+import org.apache.jackrabbit.ocm.exception.IncorrectAtomicTypeException;
+import org.apache.jackrabbit.ocm.manager.atomictypeconverter.impl.BinaryTypeConverterImpl;
 
 /**
  * TODO comment me
  * 
  * @author Sergiy Shyrkov
  */
-@Node(jcrType = "nt:resource", discriminator = false)
-public class BinaryFile {
+public class UrlBinaryTypeConverterImpl extends BinaryTypeConverterImpl {
 
-    @Field(jcrName = "jcr:mimeType")
-    private String mimeType = "application/java-archive";
+    private class JCRURLStreamHandler extends URLStreamHandler {
 
-    @Field(jcrName = "jcr:data", converter = UrlBinaryTypeConverterImpl.class)
-    private URL url;
+        private Value jcrValue;
 
-    /**
-     * Initializes an instance of this class.
-     */
-    public BinaryFile() {
-        super();
+        public JCRURLStreamHandler(Value binaryValue) {
+            super();
+            jcrValue = binaryValue;
+        }
+
+        @Override
+        protected URLConnection openConnection(URL u) throws IOException {
+            return new URLConnection(u) {
+
+                @Override
+                public void connect() throws IOException {
+                    // do nothing
+                }
+
+                @Override
+                public InputStream getInputStream() throws IOException {
+                    try {
+                        return jcrValue.getBinary().getStream();
+                    } catch (RepositoryException e) {
+                        throw new IOException(e);
+                    }
+                }
+
+            };
+        }
+
     }
 
-    /**
-     * Initializes an instance of this class.
-     * 
-     * @param url
-     */
-    public BinaryFile(URL url) {
-        this();
-        this.url = url;
-    }
-
-    /**
-     * Initializes an instance of this class.
-     * 
-     * @param bundleJarFile
-     *            the bundle JAR file
-     */
-    public BinaryFile(File bundleJarFile) {
-        this();
+    @Override
+    public Object getObject(Value value) {
         try {
-            this.url = bundleJarFile.toURI().toURL();
+            return new URL("ocm", "localhost", -1, "", new JCRURLStreamHandler(value));
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException(e);
         }
     }
 
-    /**
-     * Initializes an instance of this class.
-     * 
-     * @param url
-     * @param mimeType
-     */
-    public BinaryFile(URL url, String mimeType) {
-        this(url);
-        this.mimeType = mimeType;
-    }
+    @Override
+    public Value getValue(ValueFactory valueFactory, Object propValue) {
+        if (propValue == null) {
+            return null;
+        }
 
-    public String getMimeType() {
-        return mimeType;
-    }
-
-    public URL getUrl() {
-        return url;
-    }
-
-    public void setMimeType(String mimeType) {
-        this.mimeType = mimeType;
-    }
-
-    public void setUrl(URL url) {
-        this.url = url;
+        try {
+            return super.getValue(valueFactory, ((URL) propValue).openStream());
+        } catch (IOException ex) {
+            throw new IncorrectAtomicTypeException("Impossible to create binary value from URL!", ex);
+        }
     }
 }

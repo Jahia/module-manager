@@ -19,8 +19,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jcr.RepositoryException;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.DigestInputStream;
@@ -66,20 +69,12 @@ public class BundleServiceImpl implements BundleContextAware {
             if (contextBundle.getHeaders().get("Jahia-Module-Type") != null || contextBundle.getHeaders().get("Jahia-Cluster-Deployment") != null) {
                 Bundle bundleToAdd = new Bundle();
                 String bundleLocation = contextBundle.getLocation();
-                String fileName = null;
-                URL bundleURL = null;
                 try {
-                    bundleURL = new URL(bundleLocation);
+                    bundleToAdd.setFileName(FilenameUtils.getName(new URL(bundleLocation).getPath()));
                 } catch (MalformedURLException e) {
-                    logger.error("Couldn't resolve bundle URL " + bundleLocation, e);
-                    continue;
+                    // ignore;
                 }
                 try {
-                    fileName = FilenameUtils.getName(bundleURL.getPath());
-                    bundleToAdd.setFileName(fileName);
-                    DigestInputStream digestInputStream = getBundleInputStream(bundleURL, fileName, archives);
-                    BinaryFile file = new BinaryFile(IOUtils.toByteArray(digestInputStream));
-                    bundleToAdd.setFile(file);
                     bundleToAdd.setSymbolicName(contextBundle.getHeaders().get("Bundle-SymbolicName"));
                     bundleToAdd.setDisplayName(contextBundle.getHeaders().get("Bundle-Name"));
                     String version = contextBundle.getHeaders().get("Implementation-Version");
@@ -87,8 +82,15 @@ public class BundleServiceImpl implements BundleContextAware {
                         version = contextBundle.getHeaders().get("Bundle-Version");
                     }
                     bundleToAdd.setVersion(version);
-                    bundleToAdd.setChecksum(Hex.encodeHexString(digestInputStream.getMessageDigest().digest()));
                     bundleToAdd.setName(bundleToAdd.getSymbolicName() + "-" + bundleToAdd.getVersion());
+                    File jarFile = getBundleJar(contextBundle.getBundleId(), archives);
+                    if (jarFile == null) {
+                        logger.warn("Unable to find the location of the bundle.jar for bunlde {}", bundleToAdd.getName());
+                        continue;
+                    }
+                    BinaryFile file = new BinaryFile(jarFile);
+                    bundleToAdd.setFile(file);
+                    bundleToAdd.setChecksum(calculateDigest(jarFile));
                     result.put(bundleToAdd, BundleUtils.getModule(contextBundle).getState().getState().toString().toLowerCase());
                 } catch (IOException e) {
                     logger.error("Error storing bundle " + contextBundle + " in JCR", e);
@@ -101,55 +103,55 @@ public class BundleServiceImpl implements BundleContextAware {
         return result;
     }
 
-    /**
-     * Get the digest input stream from an URL or from a list of bundle archives
-     * @param bundleURL bundleUrl
-     * @param fileName fileName
-     * @param archives list of bundle archives
-     * @return digest input stream
-     */
-    private DigestInputStream getBundleInputStream(URL bundleURL, String fileName, BundleArchive[] archives) {
-        InputStream result = null;
+    private static File getBundleJar(long bundleId, BundleArchive[] archives) {
+        BundleArchive arch = findBundleArchiveById(bundleId, archives);
+
+        if (arch == null) {
+            return null;
+        }
+
+        File jar = new File(arch.getCurrentRevision().getRevisionRootDir(), "bundle.jar");
+
+        return jar.exists() ? jar : null;
+    }
+
+    private static String calculateDigest(File jarFile) throws IOException {
+        byte[] b = new byte[1024 * 8];
+        DigestInputStream digestInputStream = null;
         try {
-            result = bundleURL.openStream();
-        } catch (IOException e) {
-            // unable to find original file
-            logger.warn(e.getMessage(), e);
-        }
-        if (result == null) {
-            try {
-                BundleArchive archive = findArchiveByFileName(fileName, archives);
-                if (archive != null) {
-                    result = new URL(archive.getLocation()).openStream();
-                }
-            } catch (Exception e) {
-                // cannot get it from the bundle archive
-                logger.warn(e.getMessage(), e);
+            digestInputStream = ModuleManagerImpl
+                    .toDigestInputStream(new BufferedInputStream(new FileInputStream(jarFile)));
+            int read = 0;
+            while (read != -1) {
+                read = digestInputStream.read(b);
             }
+
+            return Hex.encodeHexString(digestInputStream.getMessageDigest().digest());
+        } finally {
+            IOUtils.closeQuietly(digestInputStream);
         }
-        
-        return result != null ? ModuleManagerImpl.toDigestInputStream(result) : null;
     }
 
     /**
-     * Find bundle archive by file name from a list of bundle archives
-     * @param fileName file name to search the bundle with
-     * @param archives list of bundle archives
-     * @return the bundle archive
+     * Find bundle archive by its ID from a list of bundle archives.
+     * 
+     * @param bundleId
+     *            the ID of the bundle
+     * @param archives
+     *            an array of bundle archives
+     * @return the found bundle archive or null if no bundle archive with this ID could be found
      */
-    private BundleArchive findArchiveByFileName(String fileName, BundleArchive[] archives) {
+    private static BundleArchive findBundleArchiveById(long bundleId, BundleArchive[] archives) {
         BundleArchive result = null;
         try {
             for (BundleArchive archive : archives) {
-                if (archive.getLocation().contains(fileName)) {
+                if (archive.getId() == bundleId) {
                     result = archive;
                     break;
                 }
-
             }
         } catch (Exception e) {
             logger.error(e.getMessage());
-            return null;
         }
         return result;
     }
@@ -159,7 +161,7 @@ public class BundleServiceImpl implements BundleContextAware {
      *
      * @return list of archives
      */
-    private BundleArchive[] getBundleArchives() throws Exception {
+    private static BundleArchive[] getBundleArchives() throws Exception {
         BundleArchive[] result = null;
         Map<String, String> configMap = new HashMap<String, String>();
         configMap.put(Constants.FRAMEWORK_STORAGE, SettingsBean.getInstance().getJahiaVarDiskPath() + "/bundles-deployed");

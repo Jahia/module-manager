@@ -70,6 +70,7 @@
 package org.jahia.modules.modulemanager.impl;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -233,8 +234,9 @@ public class NodeOperationProcessor {
         String nodeBundlePath = clusterNodePath + "/bundles/" + b.getName();
 
         Bundle osgiBundle = BundleUtils.getBundle(b.getSymbolicName(), b.getVersion());
-        InputStream is = new ByteArrayInputStream(b.getFile().getData());
+        InputStream is = null;
         try {
+            is = b.getFile().getUrl().openStream();
             if (osgiBundle == null) {
                 // installing new bundle
                 osgiBundle = FrameworkService.getBundleContext().installBundle("jcr:" + b.getName(), is);
@@ -250,7 +252,7 @@ public class NodeOperationProcessor {
                 nodeBundle.setState(moduleState.getState().toString().toLowerCase());
             }
             ocm.insert(nodeBundle);
-        } catch (BundleException e) {
+        } catch (IOException | BundleException e) {
             throw new ModuleManagementException(
                     "Error performing install action on a bundle " + b.getName() + ". Cause: " + e.getMessage(), e);
         } finally {
