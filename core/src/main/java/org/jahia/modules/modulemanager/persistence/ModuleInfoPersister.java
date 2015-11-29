@@ -77,6 +77,7 @@ import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.jackrabbit.ocm.exception.ObjectContentManagerException;
 import org.apache.jackrabbit.ocm.manager.ObjectContentManager;
 import org.apache.jackrabbit.ocm.manager.impl.ObjectContentManagerImpl;
@@ -132,6 +133,30 @@ public class ModuleInfoPersister {
     private String operationLogAutoSplitConfig;
 
     /**
+     * Checks if the specified bundle is already installed on the current node.
+     * 
+     * @param uniqueBundleKey
+     *            the unique key of the bundle
+     * @param checksum
+     *            the bundle checksum
+     * @return <code>true</code> if the specified bundle is already installed on the current node; <code>false</code> otherwise
+     * @throws RepositoryException
+     *             in case of a JCR error
+     */
+    public boolean alreadyInstalled(final String uniqueBundleKey, final String checksum) throws RepositoryException {
+        return doExecute(new OCMCallback<Boolean>() {
+            @Override
+            public Boolean doInOCM(ObjectContentManager ocm) throws RepositoryException {
+                Bundle existingBundle = (Bundle) ocm.getObject(Bundle.class,
+                        ROOT_NODE_PATH + "/bundles/" + uniqueBundleKey);
+                return (existingBundle != null && existingBundle.getChecksum() != null
+                        && StringUtils.equals(existingBundle.getChecksum(), checksum) && ocm.objectExists(
+                                ROOT_NODE_PATH + "/nodes/" + clusterNodeInfo.getId() + "/bundles/" + uniqueBundleKey));
+            }
+        });
+    }
+
+    /**
      * Executes the provided callback in the OCM context.
      * 
      * @param callback
@@ -152,6 +177,27 @@ public class ModuleInfoPersister {
             }
         });
     }
+
+    // private AtomicTypeConverterProvider getAtomicTypeConverterProvider() {
+    // if (atomicTypeConverterProvider == null) {
+    // DefaultAtomicTypeConverterProvider converterProvider = new DefaultAtomicTypeConverterProvider();
+    // converterProvider.setAtomicTypeConvertors(converters);
+    //
+    // }
+    // return atomicTypeConverterProvider;
+    // }
+    // protected ObjectContentManager createOCM(JCRSessionWrapper session) {
+    // AtomicTypeConverterProvider converterProvider = getAtomicTypeConverterProvider();
+    // @SuppressWarnings("rawtypes")
+    // Map atomicTypeConverters = converterProvider.getAtomicTypeConverters();
+    // ObjectCache requestObjectCache = new RequestObjectCacheImpl();
+    // ObjectContentManager ocm = new ObjectContentManagerImpl(getMapper(),
+    // new ObjectConverterImpl(mapper, converterProvider, new ProxyManagerImpl(), requestObjectCache),
+    // new QueryManagerImpl(mapper, atomicTypeConverters, session.getValueFactory()),
+    // requestObjectCache, session);
+    //
+    // return null;
+    // }
 
     /**
      * Returns a list of known cluster nodes.
@@ -175,27 +221,6 @@ public class ModuleInfoPersister {
 
         return nodes;
     }
-
-    // private AtomicTypeConverterProvider getAtomicTypeConverterProvider() {
-    // if (atomicTypeConverterProvider == null) {
-    // DefaultAtomicTypeConverterProvider converterProvider = new DefaultAtomicTypeConverterProvider();
-    // converterProvider.setAtomicTypeConvertors(converters);
-    //
-    // }
-    // return atomicTypeConverterProvider;
-    // }
-    // protected ObjectContentManager createOCM(JCRSessionWrapper session) {
-    // AtomicTypeConverterProvider converterProvider = getAtomicTypeConverterProvider();
-    // @SuppressWarnings("rawtypes")
-    // Map atomicTypeConverters = converterProvider.getAtomicTypeConverters();
-    // ObjectCache requestObjectCache = new RequestObjectCacheImpl();
-    // ObjectContentManager ocm = new ObjectContentManagerImpl(getMapper(),
-    // new ObjectConverterImpl(mapper, converterProvider, new ProxyManagerImpl(), requestObjectCache),
-    // new QueryManagerImpl(mapper, atomicTypeConverters, session.getValueFactory()),
-    // requestObjectCache, session);
-    //
-    // return null;
-    // }
 
     private Mapper getMapper() {
         // TODO replace annotations with XML descriptor to eliminate dependency of object model to jackrabbit-ocm?
@@ -280,24 +305,6 @@ public class ModuleInfoPersister {
                 }
 
                 return null;
-            }
-        });
-    }
-
-    /**
-     * Looks up the bundle in the JCR tree by the unique key.
-     * 
-     * @param uniqueKey
-     *            the unique key of the bundle
-     * @return the found bundle or <code>null</code> if no bundle can be found for that key
-     * @throws RepositoryException
-     *             in case of a JCR error
-     */
-    public Bundle lookupBundle(final String uniqueKey) throws RepositoryException {
-        return doExecute(new OCMCallback<Bundle>() {
-            @Override
-            public Bundle doInOCM(ObjectContentManager ocm) throws RepositoryException {
-                return (Bundle) ocm.getObject(Bundle.class, ROOT_NODE_PATH + "/bundles/" + uniqueKey);
             }
         });
     }

@@ -69,7 +69,6 @@
  */
 package org.jahia.modules.modulemanager.impl;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -177,14 +176,26 @@ public class NodeOperationProcessor {
         } else {
             ensureNodeBundlePresent(op, ocm);
 
-            Bundle osgiBundle = BundleUtils.getBundle(op.getOperation().getBundle().getSymbolicName(),
-                    op.getOperation().getBundle().getVersion());
+            org.jahia.modules.modulemanager.model.Bundle b = op.getOperation().getBundle();
+            
+            Bundle osgiBundle = BundleUtils.getBundle(b.getSymbolicName(), b.getVersion());
             if (osgiBundle == null) {
                 throw new ModuleManagementException(
                         "Bundle " + op.getOperation().getBundle().getName() + " is not installed on the current node.");
             }
 
             performAction(osgiBundle, action);
+            String clusterBundlePath = clusterNodePath + "/bundles/" + b.getName();
+            if ("uninstall".equals(action)) {
+                ocm.remove(clusterBundlePath);
+            } else {
+                NodeBundle nodeBundle = new NodeBundle(b.getName());
+                nodeBundle.setPath(clusterBundlePath);
+                nodeBundle.setBundle(b);
+                ModuleState moduleState = templateManagerService.getModuleStates().get(osgiBundle);
+                nodeBundle.setState(moduleState != null ? moduleState.getState().toString().toLowerCase() : "failed");
+                ocm.update(nodeBundle);
+            }
         }
 
         logger.info("Done performing node operation {} with status {} in {} ms",
@@ -248,9 +259,7 @@ public class NodeOperationProcessor {
             nodeBundle.setPath(nodeBundlePath);
             nodeBundle.setBundle(b);
             ModuleState moduleState = templateManagerService.getModuleStates().get(osgiBundle);
-            if (moduleState != null) {
-                nodeBundle.setState(moduleState.getState().toString().toLowerCase());
-            }
+            nodeBundle.setState(moduleState != null ? moduleState.getState().toString().toLowerCase() : "unknown");
             ocm.insert(nodeBundle);
         } catch (IOException | BundleException e) {
             throw new ModuleManagementException(

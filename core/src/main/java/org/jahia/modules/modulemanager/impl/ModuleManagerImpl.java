@@ -176,7 +176,11 @@ public class ModuleManagerImpl implements ModuleManager {
             @Override
             public Object doInOCM(ObjectContentManager ocm) throws RepositoryException {
                 // store the bundle in JCR
-                ocm.insert(bundle);
+                if (ocm.objectExists(bundle.getPath())) {
+                    ocm.update(bundle);
+                } else {
+                    ocm.insert(bundle);
+                }
 
                 // create the operation node
                 doOperation(bundle.getName(), "install", ocm);
@@ -229,17 +233,14 @@ public class ModuleManagerImpl implements ModuleManager {
         try {
             tmp = File.createTempFile(bundleResource.getFilename() != null
                     ? FilenameUtils.getBaseName(bundleResource.getFilename()) : "bundle", ".jar");
-            Bundle bundle = toBundle(bundleResource, tmp);
+            final Bundle bundle = toBundle(bundleResource, tmp);
             if (bundle == null) {
                 return OperationResultImpl.NOT_VALID_BUNDLE;
             }
 
             // check, if we have this bundle already installed
-            Bundle existingBundle = persister.lookupBundle(bundle.getName());
-            if (existingBundle != null && existingBundle.getChecksum() != null
-                    && existingBundle.getChecksum().equals(bundle.getChecksum())) {
+            if (persister.alreadyInstalled(bundle.getName(), bundle.getChecksum())) {
                 // we have exactly same bundle installed already -> refuse
-                logger.debug("Bundle {} already installed. Skipping it", existingBundle.getName());
                 return OperationResultImpl.ALREADY_INSTALLED;
             }
 
