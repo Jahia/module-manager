@@ -178,27 +178,6 @@ public class ModuleInfoPersister {
         });
     }
 
-    // private AtomicTypeConverterProvider getAtomicTypeConverterProvider() {
-    // if (atomicTypeConverterProvider == null) {
-    // DefaultAtomicTypeConverterProvider converterProvider = new DefaultAtomicTypeConverterProvider();
-    // converterProvider.setAtomicTypeConvertors(converters);
-    //
-    // }
-    // return atomicTypeConverterProvider;
-    // }
-    // protected ObjectContentManager createOCM(JCRSessionWrapper session) {
-    // AtomicTypeConverterProvider converterProvider = getAtomicTypeConverterProvider();
-    // @SuppressWarnings("rawtypes")
-    // Map atomicTypeConverters = converterProvider.getAtomicTypeConverters();
-    // ObjectCache requestObjectCache = new RequestObjectCacheImpl();
-    // ObjectContentManager ocm = new ObjectContentManagerImpl(getMapper(),
-    // new ObjectConverterImpl(mapper, converterProvider, new ProxyManagerImpl(), requestObjectCache),
-    // new QueryManagerImpl(mapper, atomicTypeConverters, session.getValueFactory()),
-    // requestObjectCache, session);
-    //
-    // return null;
-    // }
-
     /**
      * Returns a list of known cluster nodes.
      * 
