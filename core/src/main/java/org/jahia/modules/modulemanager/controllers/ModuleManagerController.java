@@ -30,24 +30,20 @@ import org.springframework.web.multipart.MultipartFile;
  * @author bdjiba
  *
  */
-@Component
-public class ModuleManagerController implements ModuleManagerSpi {
+//@Component
+public class ModuleManagerController  {
   private static final Logger log = LoggerFactory.getLogger(ModuleManagerController.class);
 
-  @javax.annotation.Resource
+  //@javax.annotation.Resource
   private ModuleManager moduleManager;
   
-  @PostConstruct
+  //@PostConstruct
   public void init() {
     // FIXME: change to debug
     log.info("Module manager Endpoint is ready.");
   }
   
-  /* (non-Javadoc)
-   * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#install(org.springframework.web.multipart.MultipartFile, java.lang.String[])
-   */
-  @Override
-  public ResponseEntity<OperationResult> install(MultipartFile file, String[] nodes)
+  /*public ResponseEntity<OperationResult> install(MultipartFile file, String[] nodes)
       throws ModuleDeploymentException {
     // TODO: language translation for messages
     if(file == null) {
@@ -66,7 +62,7 @@ public class ModuleManagerController implements ModuleManagerSpi {
       log.error("Error occured while installing a bundle file.", ioe);
       throw new ModuleDeploymentException(HttpStatus.INTERNAL_SERVER_ERROR, ioe.getMessage());
     }
-  }
+  }*/
 
   private Resource getUploadedFileAsResource(MultipartFile uploaded) throws IOException {
     File bundleFile = new File(uploaded.getOriginalFilename());
@@ -75,11 +71,7 @@ public class ModuleManagerController implements ModuleManagerSpi {
     return bundleResource;
   }
 
-  /* (non-Javadoc)
-   * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#uninstall(java.lang.String, java.lang.String[])
-   */
-  @Override
-  public ResponseEntity<OperationResult> uninstall(String bundleKey, String[] nodes)
+  /*public ResponseEntity<OperationResult> uninstall(String bundleKey, String[] nodes)
       throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "uninstall");
     log.debug("Uninstall bundle " + bundleKey + " on nodes " + StringUtils.defaultIfBlank(StringUtils.join(nodes, ","), "all"));
@@ -93,10 +85,6 @@ public class ModuleManagerController implements ModuleManagerSpi {
     }
   }
 
-  /* (non-Javadoc)
-   * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#start(java.lang.String, java.lang.String[])
-   */
-  @Override
   public ResponseEntity<OperationResult> start(String bundleKey, String[] nodes)
       throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "start");
@@ -111,10 +99,6 @@ public class ModuleManagerController implements ModuleManagerSpi {
     }
   }
 
-  /* (non-Javadoc)
-   * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#stop(java.lang.String, java.lang.String[])
-   */
-  @Override
   public ResponseEntity<OperationResult> stop(String bundleKey, String[] nodes)
       throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "stop");
@@ -129,12 +113,11 @@ public class ModuleManagerController implements ModuleManagerSpi {
     }
   }
 
-  @Override
   public ResponseEntity<OperationResult> check() throws ModuleDeploymentException {
     log.info("Test done !");
     OperationResult result = OperationResultImpl.SUCCESS;
     return new ResponseEntity<OperationResult>(result, HttpStatus.OK);
-  }
+  }*/
   
   private void validateBundleOperation(String bundleKey, String operationName) throws MissingBundleKeyValueException {
     if(StringUtils.isBlank(bundleKey)) {
