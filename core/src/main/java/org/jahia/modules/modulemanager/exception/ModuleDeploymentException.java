@@ -4,10 +4,7 @@
 package org.jahia.modules.modulemanager.exception;
 
 import javax.ws.rs.core.Response;
-
-import org.springframework.http.HttpStatus;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * The Exception raised when a deployment failed. 
@@ -16,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * @author bdjiba
  *
  */
-@JsonIgnoreProperties(value={ "cause", "stackTrace", "localizedMessage", "suppressed" }, ignoreUnknown=true)
+@XmlRootElement
 public class ModuleDeploymentException extends Exception {
   private static final long serialVersionUID = -1886713186574565575L;
   
