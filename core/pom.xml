@@ -245,7 +245,7 @@
                             *
                         </Import-Package>
                         <!-- -->  
-                        <JAX-RS-Alias>/bundles</JAX-RS-Alias>
+                        <JAX-RS-Alias>/api/bundles</JAX-RS-Alias>
                         <JAX-RS-Application>org.jahia.modules.modulemanager.endpoint.ModuleManagerApplicationConfig</JAX-RS-Application>
                         <!---->
                     </instructions>
