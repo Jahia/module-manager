@@ -98,7 +98,7 @@ public class NodeOperationEventListener extends DefaultEventListener {
     public void onEvent(EventIterator events) {
         while (events.hasNext()) {
             Event evt = events.nextEvent();
-            logger.info("Got node-level event: {}", evt);
+            logger.debug("Got node-level event: {}", evt);
             try {
                 operationProcessor.process();
             } catch (Exception e) {
