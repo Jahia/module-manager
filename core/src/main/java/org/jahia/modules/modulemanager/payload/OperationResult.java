@@ -5,15 +5,10 @@ package org.jahia.modules.modulemanager.payload;
 
 import java.io.Serializable;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
 /**
  * @author bdjiba
  *
  */
-@JsonTypeInfo(use=JsonTypeInfo.Id.NONE)
-@JsonSubTypes.Type(value = OperationResult.class)
 public interface OperationResult extends Serializable {
 
   /**

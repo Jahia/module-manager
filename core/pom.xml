@@ -85,10 +85,11 @@
     <description>DX Module Management module</description>
 
     <properties>
-        <jahia-depends>default,serverSettings</jahia-depends>
+        <jahia-depends>default,serverSettings,jaxrs-osgi-extender</jahia-depends>
         <jahia-module-type>system</jahia-module-type>
         <jahia-deploy-on-site>system</jahia-deploy-on-site>
         <export-package>org.jahia.modules.modulemanager.forge</export-package>
+        <jersey.version>2.6</jersey.version>
     </properties>
 
     <repositories>
@@ -179,6 +180,48 @@
 	           	</exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+	      <groupId>org.glassfish.jersey.bundles</groupId>
+	      <artifactId>jaxrs-ri</artifactId>
+	      <version>${jersey.version}</version>
+	      <scope>provided</scope>
+	    </dependency>
+	    <dependency>
+	      <groupId>org.glassfish.jersey.media</groupId>
+	      <artifactId>jersey-media-multipart</artifactId>
+	      <version>${jersey.version}</version>
+	      <scope>provided</scope>
+	      <exclusions>
+	      	<!-- exclude JSR-311 since we're using Jersey 2 -->
+             <exclusion>
+                 <groupId>javax.ws.rs</groupId>
+                 <artifactId>jsr311-api</artifactId>
+             </exclusion>
+	      </exclusions>
+	    </dependency>
+	    <dependency>
+		    <groupId>org.glassfish.jersey.media</groupId>
+		    <artifactId>jersey-media-json-jackson</artifactId>
+		    <version>${jersey.version}</version>
+		    <!-- 
+		    <scope>provided</scope>
+		     -->
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-mapper-asl</artifactId>
+			<version>1.9.13</version>
+			<!-- 
+		    <scope>provided</scope>
+		     -->
+		</dependency>
+	    <!--dependency>
+		    <groupId>org.glassfish.jersey.ext</groupId>
+		    <artifactId>jersey-spring3</artifactId>
+		    <version>${jersey.version}</version>
+		    <scope>provided</scope>
+		</dependency-->
+		
     </dependencies>
 	
 	<build>
@@ -196,6 +239,10 @@
                             ${jahia.plugin.projectPackageImport},
                             *
                         </Import-Package>
+                        <!-- -->  
+                        <JAX-RS-Alias>/bundles</JAX-RS-Alias>
+                        <JAX-RS-Application>org.jahia.modules.modulemanager.endpoint.ModuleManagerApplicationConfig</JAX-RS-Application>
+                        <!---->
                     </instructions>
                 </configuration>
             </plugin>            

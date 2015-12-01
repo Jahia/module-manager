@@ -69,6 +69,8 @@
  */
 package org.jahia.modules.modulemanager.payload;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 /**
@@ -76,6 +78,7 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
  * 
  * @author Sergiy Shyrkov
  */
+@XmlRootElement
 public class OperationResultImpl implements OperationResult {
 
     /**

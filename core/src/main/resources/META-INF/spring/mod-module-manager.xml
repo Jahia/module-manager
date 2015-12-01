@@ -8,7 +8,6 @@
     <context:component-scan base-package="org.jahia.modules.modulemanager" />
     
     <context:annotation-config />
-    <mvc:annotation-driven />
     
     <bean id="messageSource" class="org.jahia.utils.i18n.ModuleMessageSource"/>
     
@@ -61,4 +60,5 @@
         <property name="requiredPermission" value="adminTemplates" />
         <property name="jahiaTemplateManagerService" ref="JahiaTemplateManagerService" />
     </bean>
+    <bean class="org.jahia.modules.modulemanager.endpoint.ModuleManagerApplicationContext"></bean>
 </beans>

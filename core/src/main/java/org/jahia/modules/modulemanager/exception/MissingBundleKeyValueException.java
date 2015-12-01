@@ -3,7 +3,7 @@
  */
 package org.jahia.modules.modulemanager.exception;
 
-import org.springframework.http.HttpStatus;
+import javax.ws.rs.core.Response.Status;
 
 /**
  * @author bdjiba
@@ -19,7 +19,7 @@ public class MissingBundleKeyValueException extends ModuleDeploymentException {
    * @param err
    */
   public MissingBundleKeyValueException(String msg, Throwable err) {
-    super(HttpStatus.BAD_REQUEST, msg, err);
+    super(Status.BAD_REQUEST, msg, err);
   }
 
   /**
@@ -27,7 +27,7 @@ public class MissingBundleKeyValueException extends ModuleDeploymentException {
    * @param msg
    */
   public MissingBundleKeyValueException(String msg) {
-    super(HttpStatus.BAD_REQUEST, msg);
+    super(Status.BAD_REQUEST, msg);
   }
 
 }
