@@ -6,7 +6,6 @@ package org.jahia.modules.modulemanager.spi;
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -18,8 +17,6 @@ import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.jahia.modules.modulemanager.exception.ModuleDeploymentException;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
  * The Module manager Service Provider Interface
@@ -29,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
  * @author bdjiba
  *
  */
-@Path("/bundles")
+@Path("/api/bundles")
 @Produces({"application/hal+json"})
 public interface ModuleManagerSpi {
   
@@ -44,7 +41,7 @@ public interface ModuleManagerSpi {
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path("{v:(^$|_install)}")
-  Response install(@FormDataParam("bundleFile") InputStream bundleFileInputStream, @FormDataParam("bundleFile") FormDataContentDisposition fileDisposition, @FormDataParam("bundleFile") FormDataBodyPart fileBodyPart, @FormDataParam("nodes") String nodes) throws ModuleDeploymentException;
+  Response install(@FormDataParam("bundleFile") InputStream bundleFileInputStream, @FormDataParam("bundleFile") FormDataContentDisposition fileDisposition, @FormDataParam("bundleFile") FormDataBodyPart fileBodyPart, @FormDataParam("nodes") String[] nodes) throws ModuleDeploymentException;
   
   /**
    * Uninstall the bundle on the target nodes or all the nodes if nodes param is missing
@@ -81,7 +78,4 @@ public interface ModuleManagerSpi {
   @Path("{bundleKey}/_stop{nodes : (/nodes)?}")
   Response stop(@PathParam(value="bundleKey") String bundleKey, @PathParam(value = "nodes") String nodes) throws ModuleDeploymentException;
   
-  @GET
-  @Path("test")
-  Response check() throws ModuleDeploymentException;
 }
