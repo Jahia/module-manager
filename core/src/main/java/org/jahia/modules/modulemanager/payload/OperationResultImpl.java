@@ -99,7 +99,7 @@ public class OperationResultImpl implements OperationResult {
     /**
      * Represents a successfully fulfilled or submitted operation.
      */
-    public static final OperationResultImpl SUCCESS = new OperationResultImpl(true, null);
+    public static final OperationResultImpl SUCCESS = new OperationResultImpl(true, "Operation successfully performed");
 
 
     private String message;

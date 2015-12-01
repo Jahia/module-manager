@@ -8,13 +8,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -23,27 +16,23 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.jahia.modules.modulemanager.ModuleManagementException;
 import org.jahia.modules.modulemanager.ModuleManager;
 import org.jahia.modules.modulemanager.exception.MissingBundleKeyValueException;
 import org.jahia.modules.modulemanager.exception.ModuleDeploymentException;
 import org.jahia.modules.modulemanager.payload.OperationResult;
 import org.jahia.modules.modulemanager.payload.OperationResultImpl;
+import org.jahia.modules.modulemanager.spi.ModuleManagerSpi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
 
 /**
  * @author bdjiba
  *
  */
-@Component
-@Path("/bundles")
-@Produces({"application/json"})
-public class ModuleManagerResource {
+public class ModuleManagerResource implements ModuleManagerSpi{
 
     private static final Logger log = LoggerFactory.getLogger(ModuleManagerResource.class);
   
@@ -79,14 +68,12 @@ public class ModuleManagerResource {
   }
 
   ///
+  
   /* (non-Javadoc)
    * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#install(java.io.InputStream, org.glassfish.jersey.media.multipart.FormDataContentDisposition, org.glassfish.jersey.media.multipart.FormDataBodyPart, java.lang.String[])
    */
-  //@Override
-  @POST
-  @Consumes(MediaType.MULTIPART_FORM_DATA)
-  @Path("{v:(^$|_install)}")
-  public Response install(@FormDataParam("bundleFile") InputStream bundleFileInputStream, @FormDataParam("bundleFile") FormDataContentDisposition fileDisposition, @FormDataParam("bundleFile") FormDataBodyPart fileBodyPart, @FormDataParam("nodes") String[] nodes) throws ModuleDeploymentException {
+  @Override
+  public Response install(InputStream bundleFileInputStream, FormDataContentDisposition fileDisposition, FormDataBodyPart fileBodyPart, String[] nodes) throws ModuleDeploymentException {
     if(bundleFileInputStream == null || fileDisposition == null || StringUtils.isEmpty(fileDisposition.getFileName())) {
       throw new ModuleDeploymentException(Response.Status.BAD_REQUEST, "The bundle file could not be null");
     }
@@ -102,23 +89,20 @@ public class ModuleManagerResource {
     Resource bundleResource = getUploadedFileAsResource(bundleFileInputStream, fileDisposition.getFileName());
     getModuleManager().install(bundleResource, nodes);
     OperationResult result = OperationResultImpl.SUCCESS;
-    return Response.ok().build();
+    return Response.ok(result).build();
   }
 
   /* (non-Javadoc)
    * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#uninstall(java.lang.String, java.lang.String[])
    */
-  //@Override
-  @POST
-  @Path("{bundleKey}/_uninstall{nodes : (/nodes)?}")
-  public Response uninstall(@PathParam(value="bundleKey") String bundleKey/*, @PathParam(value = "nodes")String[] nodes*/) throws ModuleDeploymentException {
-    String [] nodes = null;
+  @Override
+  public Response uninstall(String bundleKey, String nodes) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "uninstall");
-    log.debug("Uninstall bundle " + bundleKey + " on nodes " + StringUtils.defaultIfBlank(StringUtils.join(nodes, ","), "all"));
+    log.debug("Uninstall bundle " + bundleKey + " on nodes " + StringUtils.defaultString(nodes, "all"));
     try{
-        getModuleManager().uninstall(bundleKey, nodes);
+        getModuleManager().uninstall(bundleKey, null);
       OperationResult result = OperationResultImpl.SUCCESS;
-      return Response.ok().build();      
+      return Response.ok(result).build();      
     } catch(ModuleManagementException mmEx){
       log.error("Error while uninstalling module " + bundleKey, mmEx);
       throw new ModuleDeploymentException(Status.INTERNAL_SERVER_ERROR, mmEx.getMessage(), mmEx);
@@ -128,17 +112,14 @@ public class ModuleManagerResource {
   /* (non-Javadoc)
    * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#start(java.lang.String, java.lang.String[])
    */
-  //@Override
-  @POST
-  @Path("{bundleKey}/_start{nodes : (/nodes)?}")
-  public Response start(@PathParam(value="bundleKey") String bundleKey /*, @PathParam(value = "nodes")String[] nodes*/) throws ModuleDeploymentException {
-    String [] nodes = null;
+  @Override
+  public Response start(String bundleKey, String nodes) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "start");
-    log.debug("Start bundle " + bundleKey + " on nodes " + StringUtils.defaultIfBlank(StringUtils.join(nodes, ","), "all"));
+    log.debug("Start bundle " + bundleKey + " on nodes " + StringUtils.defaultIfBlank(nodes,"all"));
     try{
-        getModuleManager().start(bundleKey, nodes);
+        getModuleManager().start(bundleKey, null);
       OperationResult result = OperationResultImpl.SUCCESS;
-      return Response.ok().build();      
+      return Response.ok(result).build();      
     } catch(ModuleManagementException mmEx){
       log.error("Error while starting bundle " + bundleKey, mmEx);
       throw new ModuleDeploymentException(Status.INTERNAL_SERVER_ERROR, mmEx.getMessage());
@@ -148,37 +129,27 @@ public class ModuleManagerResource {
   /* (non-Javadoc)
    * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#stop(java.lang.String, java.lang.String[])
    */
-  //@Override
-  @POST
-  @Path("{bundleKey}/_stop{nodes : (/nodes)?}")
-  public Response stop(@PathParam(value="bundleKey") String bundleKey/*, @PathParam(value = "nodes")String[] nodes*/) throws ModuleDeploymentException {
-    String [] nodes = null;
-    log.debug("Stop bundle " + bundleKey + " on nodes " + StringUtils.defaultIfBlank(StringUtils.join(nodes, ","), "all"));
+  @Override
+  public Response stop(String bundleKey, String nodes) throws ModuleDeploymentException {
+    log.debug("Stop bundle " + bundleKey + " on nodes " + StringUtils.defaultIfBlank(nodes, "all"));
     try{
-      getModuleManager().stop(bundleKey, nodes);
+      getModuleManager().stop(bundleKey, null);
       OperationResult result = OperationResultImpl.SUCCESS;
-      return Response.ok().build();      
+      return Response.ok(result).build();      
     } catch(ModuleManagementException mmEx){
       log.error("Error while stoping module.", mmEx);
       throw new ModuleDeploymentException(Status.INTERNAL_SERVER_ERROR, mmEx.getMessage());
     }
   }
 
-  /* (non-Javadoc)
-   * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#check()
+  /**
+   * Spring bridge method to access to the module manager bean
+   * @return
    */
-  //@Override
-  @GET
-  @Path("test")
-  public Response check() throws ModuleDeploymentException {
-    log.info("[AFAC] Test done !");
-    return Response.ok().build();
+  private ModuleManager getModuleManager() {
+      if (moduleManager == null) {
+          moduleManager = ModuleManagerApplicationContext.getBean("ModuleManager", ModuleManager.class);
+      }
+      return moduleManager;
   }
-
-    public ModuleManager getModuleManager() {
-        if (moduleManager == null) {
-            moduleManager = ModuleManagerApplicationContext.getBean("ModuleManager", ModuleManager.class);
-        }
-        return moduleManager;
-    }
 }
