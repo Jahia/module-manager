@@ -47,7 +47,7 @@
   + operations (jmm:nodeOperations) = jmm:nodeOperations
   + operationLog (jmm:nodeOperations) = jmm:nodeOperations
 
-[jmm:nodeBundles] > nt:base, jmix:observable
+[jmm:nodeBundles] > nt:base, jmix:observable, jmix:nolive
   + * (jmm:nodeBundle) = jmm:nodeBundle
 
 [jmm:nodeBundle] > nt:base, jmix:observable, mix:created, mix:lastModified, jmix:nolive
@@ -55,7 +55,7 @@
 //  - j:state (string) nofulltext < 'installed', 'uninstalled', 'resolved', 'starting', 'stopping', 'active'
   - j:state (string) nofulltext
 
-[jmm:nodeOperations] > nt:base, jmix:observable
+[jmm:nodeOperations] > nt:base, jmix:observable, jmix:nolive
   + * (jmm:nodeOperation) = jmm:nodeOperation
   + * (jmm:nodeOperations) = jmm:nodeOperations
 
