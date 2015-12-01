@@ -4,7 +4,7 @@
 package org.jahia.modules.modulemanager.exception;
 
 import javax.ws.rs.core.Response;
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 /**
  * The Exception raised when a deployment failed. 
@@ -13,7 +13,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author bdjiba
  *
  */
-@XmlRootElement
+@XmlType(propOrder = {"responseStatus", "message", "reason"})
 public class ModuleDeploymentException extends Exception {
   private static final long serialVersionUID = -1886713186574565575L;
   

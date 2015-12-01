@@ -78,12 +78,10 @@ public class ModuleManagerResource implements ModuleManagerSpi{
       throw new ModuleDeploymentException(Response.Status.BAD_REQUEST, "The bundle file could not be null");
     }
     
-    
-    log.info("[AFAC] - media type " + fileBodyPart.getMediaType().getType());
-    // FIXME: fileBodyPart.getMediaType().getType() is always null !!!
-    /*if(!StringUtils.equalsIgnoreCase("application/java-archive", fileBodyPart.getMediaType().getType())) {
+    // FIXME: fileBodyPart.getMediaType().getType() is always null use toSring() !!!
+    if(!StringUtils.equalsIgnoreCase("application/java-archive", fileBodyPart.getMediaType().toString())) {
       throw new ModuleDeploymentException(Response.Status.BAD_REQUEST, "Expected bundle file should be java archive. Current is " + fileBodyPart.getMediaType().getType());
-    }*/
+    }
     
     log.debug("Install bundle " + fileDisposition.getName() + " filename: " + fileDisposition.getFileName() + " content-type: " + fileBodyPart.getMediaType().getType());
     Resource bundleResource = getUploadedFileAsResource(bundleFileInputStream, fileDisposition.getFileName());
