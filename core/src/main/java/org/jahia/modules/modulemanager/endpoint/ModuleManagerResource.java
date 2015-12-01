@@ -8,16 +8,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -34,15 +30,11 @@ import org.jahia.modules.modulemanager.exception.MissingBundleKeyValueException;
 import org.jahia.modules.modulemanager.exception.ModuleDeploymentException;
 import org.jahia.modules.modulemanager.payload.OperationResult;
 import org.jahia.modules.modulemanager.payload.OperationResultImpl;
-import org.jahia.modules.modulemanager.spi.ModuleManagerSpi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.support.WebApplicationContextUtils;
 
 /**
  * @author bdjiba
@@ -52,13 +44,11 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 @Path("/bundles")
 @Produces({"application/json"})
 public class ModuleManagerResource {
-  private static final Logger log = LoggerFactory.getLogger(ModuleManagerResource.class);
 
+    private static final Logger log = LoggerFactory.getLogger(ModuleManagerResource.class);
   
-  private ModuleManager moduleManager;
+    private ModuleManager moduleManager;
   
-  
-
   /// internal
   private Resource getUploadedFileAsResource(InputStream uploadedFileIs, String filename) throws ModuleDeploymentException {
     // create internal temp file
@@ -110,8 +100,7 @@ public class ModuleManagerResource {
     
     log.debug("Install bundle " + fileDisposition.getName() + " filename: " + fileDisposition.getFileName() + " content-type: " + fileBodyPart.getMediaType().getType());
     Resource bundleResource = getUploadedFileAsResource(bundleFileInputStream, fileDisposition.getFileName());
-    moduleManager = ModuleManagerApplicationContext.getBean("ModuleManager", ModuleManager.class);
-    moduleManager.install(bundleResource, nodes);
+    getModuleManager().install(bundleResource, nodes);
     OperationResult result = OperationResultImpl.SUCCESS;
     return Response.ok().build();
   }
@@ -127,7 +116,7 @@ public class ModuleManagerResource {
     validateBundleOperation(bundleKey, "uninstall");
     log.debug("Uninstall bundle " + bundleKey + " on nodes " + StringUtils.defaultIfBlank(StringUtils.join(nodes, ","), "all"));
     try{
-      moduleManager.uninstall(bundleKey, nodes);
+        getModuleManager().uninstall(bundleKey, nodes);
       OperationResult result = OperationResultImpl.SUCCESS;
       return Response.ok().build();      
     } catch(ModuleManagementException mmEx){
@@ -147,7 +136,7 @@ public class ModuleManagerResource {
     validateBundleOperation(bundleKey, "start");
     log.debug("Start bundle " + bundleKey + " on nodes " + StringUtils.defaultIfBlank(StringUtils.join(nodes, ","), "all"));
     try{
-      moduleManager.start(bundleKey, nodes);
+        getModuleManager().start(bundleKey, nodes);
       OperationResult result = OperationResultImpl.SUCCESS;
       return Response.ok().build();      
     } catch(ModuleManagementException mmEx){
@@ -166,7 +155,7 @@ public class ModuleManagerResource {
     String [] nodes = null;
     log.debug("Stop bundle " + bundleKey + " on nodes " + StringUtils.defaultIfBlank(StringUtils.join(nodes, ","), "all"));
     try{
-      moduleManager.stop(bundleKey, nodes);
+      getModuleManager().stop(bundleKey, nodes);
       OperationResult result = OperationResultImpl.SUCCESS;
       return Response.ok().build();      
     } catch(ModuleManagementException mmEx){
@@ -185,4 +174,11 @@ public class ModuleManagerResource {
     log.info("[AFAC] Test done !");
     return Response.ok().build();
   }
+
+    public ModuleManager getModuleManager() {
+        if (moduleManager == null) {
+            moduleManager = ModuleManagerApplicationContext.getBean("ModuleManager", ModuleManager.class);
+        }
+        return moduleManager;
+    }
 }

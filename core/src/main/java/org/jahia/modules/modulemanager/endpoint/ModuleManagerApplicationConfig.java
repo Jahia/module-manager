@@ -5,9 +5,10 @@ package org.jahia.modules.modulemanager.endpoint;
 
 import java.util.Set;
 
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
+
+import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 
 /**
  * @author bdjiba
@@ -29,8 +30,8 @@ public class ModuleManagerApplicationConfig extends ResourceConfig {
     register(MultiPartFeature.class);
     register(ModuleManagerResource.class);
     //register(ModuleManagerExceptionMapper.class);
-    register(JacksonFeature.class);
-    //register(JacksonJaxbJsonProvider.class);
+    //register(JacksonFeature.class);
+    register(JacksonJaxbJsonProvider.class);
     //packages("org.jahia.modules.modulemanager");
   }
 
