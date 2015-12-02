@@ -95,7 +95,7 @@ public interface ModuleManager {
 
     OperationResult uninstall(String bundleKey, String[] targetNodes) throws ModuleManagementException;
 
-    BundleStateReport getBundleState(String bundleKey, String[] targetNodes) throws ModuleDeploymentException;
+    BundleStateReport getBundleState(String bundleKey, Set<String> targetNodes) throws ModuleDeploymentException;
 
-    Set<NodeStateReport> getNodesBundleStates(String[] targetNodes)  throws ModuleDeploymentException;
+    Set<NodeStateReport> getNodesBundleStates(Set<String> targetNodes)  throws ModuleDeploymentException;
 }

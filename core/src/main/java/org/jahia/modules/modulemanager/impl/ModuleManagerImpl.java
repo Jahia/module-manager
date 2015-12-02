@@ -341,10 +341,11 @@ public class ModuleManagerImpl implements ModuleManager {
     }
 
     @Override
-    public BundleStateReport getBundleState(String bundleKey, String[] targetNodes) throws ModuleDeploymentException {
-        if(targetNodes == null || targetNodes.length == 0)
+    public BundleStateReport getBundleState(String bundleKey, Set<String> targetNodes) throws ModuleDeploymentException {
+        if(targetNodes == null || targetNodes.isEmpty())
         {
-            targetNodes = new String[]{clusterNodeInfo.getId()};
+            targetNodes = new HashSet<>();
+            targetNodes.add(clusterNodeInfo.getId());
         }
         try {
             NodeBundle bundle = null;
@@ -367,14 +368,16 @@ public class ModuleManagerImpl implements ModuleManager {
     }
 
     @Override
-    public Set<NodeStateReport> getNodesBundleStates(String[] targetNodes) throws ModuleDeploymentException {
+    public Set<NodeStateReport> getNodesBundleStates(Set<String> targetNodes) throws ModuleDeploymentException {
 
-        if(targetNodes == null || targetNodes.length == 0)
+        if(targetNodes == null || targetNodes.isEmpty())
         {
-            targetNodes = new String[]{clusterNodeInfo.getId()};
+            targetNodes = new HashSet<>();
+            targetNodes.add(clusterNodeInfo.getId());
         }
         Set<NodeStateReport> result = new HashSet<NodeStateReport>();
         try {
+            final Set<String> finalTargetNodes = targetNodes;
             result = persister.doExecute(new OCMCallback<Set<NodeStateReport>>() {
                 @Override
                 public Set<NodeStateReport> doInOCM(ObjectContentManager ocm) throws RepositoryException {
@@ -383,7 +386,10 @@ public class ModuleManagerImpl implements ModuleManager {
                     Node node = ocm.getSession().getNode("/module-management/nodes");
                     NodeIterator ops = node.getNodes();
                     if (ops.hasNext()) {
-                        nodes.add((ClusterNode) ocm.getObject(ClusterNode.class, ops.nextNode().getPath()));
+                        String nodePath = ops.nextNode().getPath();
+                        if(finalTargetNodes.contains(nodePath.substring("/module-management/nodes/".length()))) {
+                            nodes.add((ClusterNode) ocm.getObject(ClusterNode.class, nodePath));
+                        }
                     }
                     for (ClusterNode clusterNode : nodes)
                     {
