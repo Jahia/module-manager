@@ -341,26 +341,31 @@ public class ModuleManagerImpl implements ModuleManager {
     }
 
     @Override
-    public BundleStateReport getBundleState(String bundleKey, Set<String> targetNodes) throws ModuleDeploymentException {
+    public BundleStateReport getBundleState(final String bundleKey, Set<String> targetNodes) throws ModuleDeploymentException {
         if(targetNodes == null || targetNodes.isEmpty())
         {
             targetNodes = new HashSet<>();
             targetNodes.add(clusterNodeInfo.getId());
         }
+        Map<String, String> map = new HashMap<String,String>();
         try {
-            NodeBundle bundle = null;
-            final String path = "/module-management/nodes/" +clusterNodeInfo.getId() + "/bundles/" + bundleKey;
-            bundle = persister.doExecute(new OCMCallback<NodeBundle>() {
+            final Set<String> finalTargetNodes = targetNodes;
+            map = persister.doExecute(new OCMCallback<Map<String, String>>() {
                 @Override
-                public NodeBundle doInOCM(ObjectContentManager ocm) {
-                    return (NodeBundle) ocm.getObject(NodeBundle.class, path);
+                public Map<String, String>  doInOCM(ObjectContentManager ocm) {
+                    Map<String, String> result = new HashMap<String,String>();
+                    Map<String, String> map = new HashMap<String,String>();
+                    for (String targetNode : finalTargetNodes)
+                    {
+                        String path = "/module-management/nodes/" +targetNode+ "/bundles/" + bundleKey;
+                        NodeBundle nodeBundle = (NodeBundle) ocm.getObject(NodeBundle.class, path);
+                        result.put(targetNode, nodeBundle.getState());
+                    }
+                    return result;
                 }
             });
 
-
-            Map<String, String> map = new HashMap<String,String>();
-            map.put(clusterNodeInfo.getId(),bundle.getState());
-            BundleStateReport bundleStateReport = new BundleStateReport(bundle.getBundle(),map);
+            BundleStateReport bundleStateReport = new BundleStateReport(bundleKey,map);
             return  bundleStateReport;
         } catch (RepositoryException e) {
             throw new ModuleManagementException(e);
@@ -398,7 +403,7 @@ public class ModuleManagerImpl implements ModuleManager {
                             Map<String,String> map = new HashMap<String, String>();
                             NodeBundle nodeBundle = clusterNode.getBundles().get(key);
                             map.put(nodeBundle.getBundle().getIdentifier(),nodeBundle.getState());
-                            BundleStateReport bundleStateReport = new BundleStateReport(nodeBundle.getBundle(),map);
+                            BundleStateReport bundleStateReport = new BundleStateReport(nodeBundle.getBundle().getName(),map);
                             bundleStateReports.add(bundleStateReport);
                         }
                         NodeStateReport nodeStateReport = new NodeStateReport(clusterNode.getIdentifier(),bundleStateReports);
