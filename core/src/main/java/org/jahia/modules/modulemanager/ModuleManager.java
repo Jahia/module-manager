@@ -77,6 +77,7 @@ import org.springframework.core.io.Resource;
 
 import javax.jcr.RepositoryException;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Entry point interface for the module management service, providing functionality for module deployment, undeployment, start and stop
@@ -96,5 +97,5 @@ public interface ModuleManager {
 
     BundleStateReport getBundleState(String bundleKey, String[] targetNodes) throws ModuleDeploymentException;
 
-    List<NodeStateReport> getNodesBundleStates(String[] targetNodes)  throws ModuleDeploymentException;
+    Set<NodeStateReport> getNodesBundleStates(String[] targetNodes)  throws ModuleDeploymentException;
 }

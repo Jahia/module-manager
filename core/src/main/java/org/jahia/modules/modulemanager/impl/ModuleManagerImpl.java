@@ -90,6 +90,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.jackrabbit.core.state.NodeState;
 import org.apache.jackrabbit.ocm.manager.ObjectContentManager;
 import org.jahia.modules.modulemanager.ModuleManagementException;
 import org.jahia.modules.modulemanager.ModuleManager;
@@ -366,57 +367,44 @@ public class ModuleManagerImpl implements ModuleManager {
     }
 
     @Override
-    public List<NodeStateReport> getNodesBundleStates(String[] targetNodes) throws ModuleDeploymentException {
+    public Set<NodeStateReport> getNodesBundleStates(String[] targetNodes) throws ModuleDeploymentException {
 
         if(targetNodes == null || targetNodes.length == 0)
         {
             targetNodes = new String[]{clusterNodeInfo.getId()};
         }
-        List<NodeStateReport> result = new ArrayList<NodeStateReport>();
-        List<ClusterNode> clusterNodes = new ArrayList<ClusterNode>();
+        Set<NodeStateReport> result = new HashSet<NodeStateReport>();
         try {
-            clusterNodes = persister.doExecute(new OCMCallback<List<ClusterNode>>() {
+            result = persister.doExecute(new OCMCallback<Set<NodeStateReport>>() {
                 @Override
-                public List<ClusterNode> doInOCM(ObjectContentManager ocm) throws RepositoryException {
+                public Set<NodeStateReport> doInOCM(ObjectContentManager ocm) throws RepositoryException {
                     List<ClusterNode> nodes = new ArrayList<ClusterNode>();
+                    Set<NodeStateReport> result = new HashSet<NodeStateReport>();
                     Node node = ocm.getSession().getNode("/module-management/nodes");
                     NodeIterator ops = node.getNodes();
                     if (ops.hasNext()) {
                         nodes.add((ClusterNode) ocm.getObject(ClusterNode.class, ops.nextNode().getPath()));
                     }
-                    return nodes;
+                    for (ClusterNode clusterNode : nodes)
+                    {
+                        Set<BundleStateReport> bundleStateReports = new HashSet<BundleStateReport>();
+                        for (String key : clusterNode.getBundles().keySet()) {
+                            Map<String,String> map = new HashMap<String, String>();
+                            NodeBundle nodeBundle = clusterNode.getBundles().get(key);
+                            map.put(nodeBundle.getBundle().getIdentifier(),nodeBundle.getState());
+                            BundleStateReport bundleStateReport = new BundleStateReport(nodeBundle.getBundle(),map);
+                            bundleStateReports.add(bundleStateReport);
+                        }
+                        NodeStateReport nodeStateReport = new NodeStateReport(clusterNode.getIdentifier(),bundleStateReports);
+                        result.add(nodeStateReport);
+                    }
+                    return result;
                 }
             });
-            for(final ClusterNode clusterNode : clusterNodes)
-            {
-                Set<BundleStateReport> bundleStateReports = new HashSet<BundleStateReport>();
-                bundleStateReports = persister.doExecute(new OCMCallback<Set<BundleStateReport>>() {
-                    @Override
-                    public Set<BundleStateReport> doInOCM(ObjectContentManager ocm) throws RepositoryException {
-
-                            Set<BundleStateReport> reports = new HashSet<BundleStateReport>();
-                            Node node = null;
-
-                            node = ocm.getSession().getNode("/module-management/nodes");
-
-                        NodeIterator ops = node.getNodes();
-                        if (ops.hasNext()) {
-                            NodeBundle nodeBundle = (NodeBundle) ocm.getObject(NodeBundle.class, ops.nextNode().getPath());
-                            try {
-                                reports.add(getBundleState(nodeBundle.getIdentifier(), new String[]{clusterNode.getIdentifier()}));
-                            } catch (ModuleDeploymentException e) {
-                            }
-                        }
-                        return reports;
-                    }
-                });
-                NodeStateReport nodeStateReport = new NodeStateReport(clusterNode.getIdentifier(), bundleStateReports);
-                result.add(nodeStateReport);
-            }
-            return result;
         } catch (RepositoryException e) {
             throw new ModuleManagementException(e);
         }
+        return result;
     }
 
 
