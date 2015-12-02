@@ -82,7 +82,7 @@ public interface ModuleManagerSpi {
    * @return  the state report of the bundle in the target nodes
    * @throws ModuleDeploymentException thrown exception
    */
-  @POST
+  @GET
   @Path("{bundleUniqueKey}/_state{nodes : (/nodes)?}")
   @Produces(MediaType.APPLICATION_JSON)
   Response getBundleState(@PathParam("bundleUniqueKey") String bundleUniqueKey, @PathParam(value = "nodes") String nodes) throws ModuleDeploymentException;
@@ -93,7 +93,7 @@ public interface ModuleManagerSpi {
    * @return  the state report of the bundle in the target nodes
    * @throws ModuleDeploymentException thrown exception
    */
-  @POST
+  @GET
   @Path("_states{nodes : (/nodes)?}")
   @Produces(MediaType.APPLICATION_JSON)
   Response getNodesBundleStates(@PathParam(value = "nodes") String nodes) throws ModuleDeploymentException;
