@@ -12,6 +12,7 @@ import org.jahia.modules.modulemanager.model.ClusterNode;
 import org.jahia.modules.modulemanager.model.ModuleManagement;
 import org.jahia.modules.modulemanager.model.NodeBundle;
 import org.jahia.osgi.BundleUtils;
+import org.jahia.services.SpringContextSingleton;
 import org.jahia.settings.SettingsBean;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -164,7 +165,8 @@ public class BundleServiceImpl implements BundleContextAware {
     private static BundleArchive[] getBundleArchives() throws Exception {
         BundleArchive[] result = null;
         Map<String, String> configMap = new HashMap<String, String>();
-        configMap.put(Constants.FRAMEWORK_STORAGE, SettingsBean.getInstance().getJahiaVarDiskPath() + "/bundles-deployed");
+        Map<String,String> felixProperties = (Map<String,String>) SpringContextSingleton.getBean("felixProperties");
+        configMap.put(Constants.FRAMEWORK_STORAGE, felixProperties.get(Constants.FRAMEWORK_STORAGE));
         configMap.put(BundleCache.CACHE_LOCKING_PROP, "false");
         BundleCache bundleCache = new BundleCache(new org.apache.felix.framework.Logger(), configMap);
         result = bundleCache.getArchives();
