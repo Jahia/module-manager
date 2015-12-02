@@ -8,23 +8,22 @@ import java.util.Map;
 @XmlRootElement
 public class BundleStateReport {
 
-    Bundle clusterBundle;
+    String clusterBundle;
     Map<String, String> nodeStates;
 
     public BundleStateReport() {
     }
 
-    public BundleStateReport(Bundle clusterBundle, Map<String, String> nodeStates) {
+    public BundleStateReport(String clusterBundle, Map<String, String> nodeStates) {
         this.clusterBundle = clusterBundle;
         this.nodeStates = nodeStates;
-
     }
 
-    public Bundle getClusterBundle() {
+    public String getClusterBundle() {
         return clusterBundle;
     }
 
-    public void setClusterBundle(Bundle clusterBundle) {
+    public void setClusterBundle(String clusterBundle) {
         this.clusterBundle = clusterBundle;
     }
 
