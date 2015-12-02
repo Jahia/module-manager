@@ -72,6 +72,7 @@ package org.jahia.modules.modulemanager.payload;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.jahia.modules.modulemanager.OperationResult;
 
 /**
  * Represents the result of a module operation.

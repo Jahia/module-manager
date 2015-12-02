@@ -4,15 +4,16 @@
 package org.jahia.modules.modulemanager.endpoint;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.jahia.modules.modulemanager.ModuleManagementException;
 import org.jahia.modules.modulemanager.ModuleManager;
+import org.jahia.modules.modulemanager.OperationResult;
 import org.jahia.modules.modulemanager.exception.MissingBundleKeyValueException;
 import org.jahia.modules.modulemanager.exception.ModuleDeploymentException;
-import org.jahia.modules.modulemanager.payload.OperationResult;
 import org.jahia.modules.modulemanager.payload.OperationResultImpl;
 import org.jahia.modules.modulemanager.spi.ModuleManagerSpi;
 import org.slf4j.Logger;
@@ -40,16 +41,14 @@ public class ModuleManagerResource implements ModuleManagerSpi{
   /// internal
   private Resource getUploadedFileAsResource(InputStream uploadedFileIs, String filename) throws ModuleDeploymentException {
     // create internal temp file
-    File tempFile = new File(FileUtils.getTempDirectory(), filename);
-    while (tempFile.exists()) {
-        tempFile = new File(FileUtils.getTempDirectory(), tempFile.getName() + "-1");
-    }
     FileOutputStream fileOutputStream = null;
+    File tempFile = null;
     try {
+        tempFile = File.createTempFile(FilenameUtils.getBaseName(filename), FilenameUtils.getExtension(filename), FileUtils.getTempDirectory());
         fileOutputStream = new FileOutputStream(tempFile);
         IOUtils.copy(uploadedFileIs, fileOutputStream);
     } catch (IOException ioex) {
-        log.error("Error copying stream to file " + tempFile, ioex);
+        log.error("Error copy uploaded stream to local temp file for " + filename, ioex);
         throw new ModuleDeploymentException(Response.Status.INTERNAL_SERVER_ERROR, "Error while deploying bundle " + filename, ioex);
     } finally {
         IOUtils.closeQuietly(fileOutputStream);
@@ -81,12 +80,25 @@ public class ModuleManagerResource implements ModuleManagerSpi{
     if(!StringUtils.equalsIgnoreCase("application/java-archive", fileBodyPart.getMediaType().toString())) {
       throw new ModuleDeploymentException(Response.Status.BAD_REQUEST, "Expected bundle file should be java archive. Current is " + fileBodyPart.getMediaType().getType());
     }
-    
-    log.debug("Install bundle " + fileDisposition.getName() + " filename: " + fileDisposition.getFileName() + " content-type: " + fileBodyPart.getMediaType().getType());
-    Resource bundleResource = getUploadedFileAsResource(bundleFileInputStream, fileDisposition.getFileName());
-    getModuleManager().install(bundleResource, nodes);
-    OperationResult result = OperationResultImpl.SUCCESS;
-    return Response.ok(result).build();
+    Resource bundleResource = null;
+    try{
+      log.debug("Installing bundle {}", fileDisposition.getFileName());
+      bundleResource = getUploadedFileAsResource(bundleFileInputStream, fileDisposition.getFileName());
+      getModuleManager().install(bundleResource, nodes);
+      OperationResult result = OperationResultImpl.SUCCESS;
+      return Response.ok(result).build();
+    }finally {
+      if(bundleResource != null) {
+        try{
+          File bundleFile = bundleResource.getFile();
+          FileUtils.deleteQuietly(bundleFile);
+        } catch(IOException ioex){
+          log.trace("Unable to clean installed bundle file", ioex);
+        }
+        // FIXME: 
+        bundleResource = null;
+      }
+    }
   }
 
   /* (non-Javadoc)
@@ -95,7 +107,7 @@ public class ModuleManagerResource implements ModuleManagerSpi{
   @Override
   public Response uninstall(String bundleKey, String nodes) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "uninstall");
-    log.debug("Uninstall bundle " + bundleKey + " on nodes " + StringUtils.defaultString(nodes, "all"));
+    log.debug("Uninstall bundle {}  on nodes {}", new Object[] {bundleKey, StringUtils.defaultString(nodes, "all")});
     try{
         getModuleManager().uninstall(bundleKey, null);
       OperationResult result = OperationResultImpl.SUCCESS;
@@ -112,7 +124,7 @@ public class ModuleManagerResource implements ModuleManagerSpi{
   @Override
   public Response start(String bundleKey, String nodes) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "start");
-    log.debug("Start bundle " + bundleKey + " on nodes " + StringUtils.defaultIfBlank(nodes,"all"));
+    log.debug("Start bundle {} on nodes {}", new Object[] {bundleKey, StringUtils.defaultIfBlank(nodes,"all")});
     try{
         getModuleManager().start(bundleKey, null);
       OperationResult result = OperationResultImpl.SUCCESS;
@@ -128,7 +140,8 @@ public class ModuleManagerResource implements ModuleManagerSpi{
    */
   @Override
   public Response stop(String bundleKey, String nodes) throws ModuleDeploymentException {
-    log.debug("Stop bundle " + bundleKey + " on nodes " + StringUtils.defaultIfBlank(nodes, "all"));
+    validateBundleOperation(bundleKey, "stop");
+    log.debug("Stoping bundle {} on nodes {}", new Object[] {bundleKey, StringUtils.defaultIfBlank(nodes, "all")});
     try{
       getModuleManager().stop(bundleKey, null);
       OperationResult result = OperationResultImpl.SUCCESS;
