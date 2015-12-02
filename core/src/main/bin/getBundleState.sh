@@ -3,9 +3,5 @@
 source ./common.sh
 #start bundle REST call
 echo Getting state for  bundle $1...
-STATE_OUTPUT=`curl $CURL_OPTIONS --request POST $DF_SERVER_BASE_URL/$DF_MODULE_MANAGER_REST_PREFIX/$1/_state`
-echo "Start result=STATE_OUTPUT"
-if [[ STATE_OUTPUT == *"{\"successful\":true"* ]]
- then
-waitForTransactions
-fi
+STATE_OUTPUT=`curl $CURL_OPTIONS --request GET $DX_SERVER_BASE_URL/$DX_MM_REST_PREFIX/$1/_state`
+echo "Start result=$STATE_OUTPUT"
