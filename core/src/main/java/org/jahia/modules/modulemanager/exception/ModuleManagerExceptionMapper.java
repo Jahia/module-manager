@@ -7,6 +7,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 
 /**
+ * Provide a mapping of the module exception to display as the response to the client. 
  * @author bdjiba
  *
  */

@@ -72,7 +72,6 @@ package org.jahia.modules.modulemanager;
 import org.jahia.modules.modulemanager.exception.ModuleDeploymentException;
 import org.jahia.modules.modulemanager.payload.BundleStateReport;
 import org.jahia.modules.modulemanager.payload.NodeStateReport;
-import org.jahia.modules.modulemanager.payload.OperationResult;
 import org.springframework.core.io.Resource;
 
 import javax.jcr.RepositoryException;

@@ -6,6 +6,8 @@ package org.jahia.modules.modulemanager.exception;
 import javax.ws.rs.core.Response.Status;
 
 /**
+ * A specific Exception used for service operation validation.
+ * It is thrown when the bundle key is missing during a call for start or stop a bundle.  
  * @author bdjiba
  *
  */

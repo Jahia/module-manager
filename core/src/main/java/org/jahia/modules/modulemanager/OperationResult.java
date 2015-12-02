@@ -1,11 +1,16 @@
 /**
  * 
  */
-package org.jahia.modules.modulemanager.payload;
+package org.jahia.modules.modulemanager;
 
 import java.io.Serializable;
 
+import org.jahia.modules.modulemanager.payload.OperationResultImpl;
+
 /**
+ * An interface that represent the processed operation result.<br />
+ * It is sent to the service client in the response payload.
+ * @see {@link OperationResultImpl}
  * @author bdjiba
  *
  */
