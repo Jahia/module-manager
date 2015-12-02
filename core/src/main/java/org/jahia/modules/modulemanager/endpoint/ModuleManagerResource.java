@@ -3,6 +3,15 @@
  */
 package org.jahia.modules.modulemanager.endpoint;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Set;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -20,13 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * @author bdjiba
@@ -71,20 +73,20 @@ public class ModuleManagerResource implements ModuleManagerSpi{
    * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#install(java.io.InputStream, org.glassfish.jersey.media.multipart.FormDataContentDisposition, org.glassfish.jersey.media.multipart.FormDataBodyPart, java.lang.String[])
    */
   @Override
-  public Response install(InputStream bundleFileInputStream, FormDataContentDisposition fileDisposition, FormDataBodyPart fileBodyPart, String[] nodes) throws ModuleDeploymentException {
+  public Response install(InputStream bundleFileInputStream, FormDataContentDisposition fileDisposition, FormDataBodyPart fileBodyPart, Set<String> nodeSet) throws ModuleDeploymentException {
     if(bundleFileInputStream == null || fileDisposition == null || StringUtils.isEmpty(fileDisposition.getFileName())) {
       throw new ModuleDeploymentException(Response.Status.BAD_REQUEST, "The bundle file could not be null");
     }
     
-    // FIXME: fileBodyPart.getMediaType().getType() is always null use toSring() !!!
+    // INFO: fileBodyPart.getMediaType().getType() is always null use toSring() !!!
     if(!StringUtils.equalsIgnoreCase("application/java-archive", fileBodyPart.getMediaType().toString())) {
       throw new ModuleDeploymentException(Response.Status.BAD_REQUEST, "Expected bundle file should be java archive. Current is " + fileBodyPart.getMediaType().getType());
     }
     Resource bundleResource = null;
     try{
-      log.debug("Installing bundle {}", fileDisposition.getFileName());
+      log.debug("Installing bundle {} on nodes {}", new Object[] {fileDisposition.getFileName(), nodeSet});
       bundleResource = getUploadedFileAsResource(bundleFileInputStream, fileDisposition.getFileName());
-      getModuleManager().install(bundleResource, nodes);
+      getModuleManager().install(bundleResource, nodeSet);
       OperationResult result = OperationResultImpl.SUCCESS;
       return Response.ok(result).build();
     }finally {
@@ -105,11 +107,13 @@ public class ModuleManagerResource implements ModuleManagerSpi{
    * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#uninstall(java.lang.String, java.lang.String[])
    */
   @Override
-  public Response uninstall(String bundleKey, String nodes) throws ModuleDeploymentException {
+  public Response uninstall(String bundleKey, Set<String> nodeSet) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "uninstall");
-    log.debug("Uninstall bundle {}  on nodes {}", new Object[] {bundleKey, StringUtils.defaultString(nodes, "all")});
+    log.debug("Uninstall bundle {}  on nodes {}", new Object[] {bundleKey, nodeSet});
+    if(log.isDebugEnabled()) {
+    }
     try{
-        getModuleManager().uninstall(bundleKey, null);
+        getModuleManager().uninstall(bundleKey, nodeSet);
       OperationResult result = OperationResultImpl.SUCCESS;
       return Response.ok(result).build();      
     } catch(ModuleManagementException mmEx){
@@ -122,11 +126,11 @@ public class ModuleManagerResource implements ModuleManagerSpi{
    * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#start(java.lang.String, java.lang.String[])
    */
   @Override
-  public Response start(String bundleKey, String nodes) throws ModuleDeploymentException {
+  public Response start(String bundleKey, Set<String> nodeSet) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "start");
-    log.debug("Start bundle {} on nodes {}", new Object[] {bundleKey, StringUtils.defaultIfBlank(nodes,"all")});
+    log.debug("Start bundle {} on nodes {}", new Object[] {bundleKey, nodeSet});
     try{
-        getModuleManager().start(bundleKey, null);
+        getModuleManager().start(bundleKey, nodeSet);
       OperationResult result = OperationResultImpl.SUCCESS;
       return Response.ok(result).build();      
     } catch(ModuleManagementException mmEx){
@@ -139,11 +143,12 @@ public class ModuleManagerResource implements ModuleManagerSpi{
    * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#stop(java.lang.String, java.lang.String[])
    */
   @Override
-  public Response stop(String bundleKey, String nodes) throws ModuleDeploymentException {
+  public Response stop(String bundleKey, Set<String> nodeSet) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "stop");
-    log.debug("Stoping bundle {} on nodes {}", new Object[] {bundleKey, StringUtils.defaultIfBlank(nodes, "all")});
+    
+    log.debug("Stoping bundle {} on nodes {}", new Object[] {bundleKey, nodeSet});
     try{
-      getModuleManager().stop(bundleKey, null);
+      getModuleManager().stop(bundleKey, nodeSet);
       OperationResult result = OperationResultImpl.SUCCESS;
       return Response.ok(result).build();      
     } catch(ModuleManagementException mmEx){
@@ -153,15 +158,15 @@ public class ModuleManagerResource implements ModuleManagerSpi{
   }
 
   @Override
-  public Response getBundleState(String bundleUniqueKey, String nodes) throws ModuleDeploymentException {
-    log.debug("Get bundle state " + bundleUniqueKey);
+  public Response getBundleState(String bundleUniqueKey, Set<String> nodeSet) throws ModuleDeploymentException {
+    log.debug("Get bundle state {}",  bundleUniqueKey);
     return Response.ok(getModuleManager().getBundleState(bundleUniqueKey, null)).build();
   }
 
   @Override
-  public Response getNodesBundleStates(String nodes) throws ModuleDeploymentException {
-    log.debug("Get bundle states  for nodes " + nodes);
-    return Response.ok(getModuleManager().getNodesBundleStates(null)).build();
+  public Response getNodesBundleStates(Set<String> nodeSet) throws ModuleDeploymentException {
+    log.debug("Get bundle states for nodes {}", nodeSet);
+    return Response.ok(getModuleManager().getNodesBundleStates(nodeSet)).build();
   }
 
   /**

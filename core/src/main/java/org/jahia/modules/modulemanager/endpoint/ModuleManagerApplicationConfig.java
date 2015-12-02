@@ -25,7 +25,6 @@ public class ModuleManagerApplicationConfig extends ResourceConfig {
     register(ModuleManagerResource.class);
     register(JacksonJaxbJsonProvider.class);
     register(ModuleManagerExceptionMapper.class);
-    //packages("org.jahia.modules.modulemanager");
   }
 
   /**

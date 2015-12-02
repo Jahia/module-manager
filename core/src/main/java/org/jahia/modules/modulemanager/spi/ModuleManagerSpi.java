@@ -4,8 +4,16 @@
 package org.jahia.modules.modulemanager.spi;
 
 import java.io.InputStream;
+import java.util.Set;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -29,72 +37,74 @@ public interface ModuleManagerSpi {
   /**
    * Install the given bundle on the specified nodes.
    * If nodes parameter is empty then deploy on all available nodes
-   * @param bundleFile the bundle file to deploy
-   * @param targetNodes the target node
+   * @param bundleFileInputStream the bundle to deploy file input stream
+   * @param fileDisposition the file content disposition
+   * @param fileBodyPart the file body part
+   * @param nodeSet the target node 
    * @return the operation result
-   * @throws ModuleDeploymentException
+   * @throws ModuleDeploymentException when the operation fails
    */
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path("{v:(^$|_install)}")
-  Response install(@FormDataParam("bundleFile") InputStream bundleFileInputStream, @FormDataParam("bundleFile") FormDataContentDisposition fileDisposition, @FormDataParam("bundleFile") FormDataBodyPart fileBodyPart, @FormDataParam("nodes") String[] nodes) throws ModuleDeploymentException;
+  Response install(@FormDataParam("bundleFile") InputStream bundleFileInputStream, @FormDataParam("bundleFile") FormDataContentDisposition fileDisposition, @FormDataParam("bundleFile") FormDataBodyPart fileBodyPart, @FormDataParam("nodes") Set<String> nodeSet) throws ModuleDeploymentException;
   
   /**
    * Uninstall the bundle on the target nodes or all the nodes if nodes param is missing
    * @param bundleKey the target bundle
-   * @param nodes the target nodes
+   * @param nodeSet the list of the nodes to uninstall the bundle
    * @return the operation result
    * @throws ModuleDeploymentException
    */
   @POST
-  @Path("{bundleKey}/_uninstall{nodes : (/nodes)?}")
-  Response uninstall(@PathParam(value="bundleKey") String bundleKey, @PathParam(value = "nodes")String nodes) throws ModuleDeploymentException;
+  @Path("{bundleKey}/_uninstall")
+  Response uninstall(@PathParam(value="bundleKey") String bundleKey, @FormParam("nodes") Set<String> nodeSet) throws ModuleDeploymentException;
   
   /**
    * Starts the bundle which key is specified in the URL.
    * If the nodes part is missing, start it on all nodes
    * @param bundleKey the bundle key
-   * @param nodes the target nodes
+   * @param nodeSet the target node list
    * @return the operation status
    * @throws ModuleDeploymentException
    */
   @POST
-  @Path("{bundleKey}/_start{nodes : (/nodes)?}")
-  Response start(@PathParam(value="bundleKey") String bundleKey, @PathParam(value = "nodes") String nodes) throws ModuleDeploymentException;
+  @Path("{bundleKey}/_start")
+  Response start(@PathParam(value="bundleKey") String bundleKey,  @FormParam("nodes")  Set<String> nodeSet) throws ModuleDeploymentException;
   
   /**
    * Stops the bundle that key is given in parameters on the specified nodes.
    * If the node's ids are missing then will stop it on all existing nodes 
    * @param bundleKey the bundle key
-   * @param nodes the target nodes
+   * @param nodeSet the target nodes set
    * @return the operation result or an error in case when the bundle is missing
    * @throws ModuleDeploymentException
    */
   @POST
-  @Path("{bundleKey}/_stop{nodes : (/nodes)?}")
-  Response stop(@PathParam(value="bundleKey") String bundleKey, @PathParam(value = "nodes") String nodes) throws ModuleDeploymentException;
+  @Path("{bundleKey}/_stop")
+  Response stop(@PathParam(value="bundleKey") String bundleKey,  @FormParam("nodes") Set<String> nodeSet) throws ModuleDeploymentException;
 
 
   /**
    * Get the state report of a bundle in a list of target nodes
    * @param bundleUniqueKey bundle key
-   * @param nodes list of target nodes
+   * @param nodeSet set of target nodes
    * @return  the state report of the bundle in the target nodes
    * @throws ModuleDeploymentException thrown exception
    */
-  @POST
-  @Path("{bundleUniqueKey}/_state{nodes : (/nodes)?}")
+  @GET
+  @Path("{bundleUniqueKey}/_state")
   @Produces(MediaType.APPLICATION_JSON)
-  Response getBundleState(@PathParam("bundleUniqueKey") String bundleUniqueKey, @PathParam(value = "nodes") String nodes) throws ModuleDeploymentException;
+  Response getBundleState(@PathParam("bundleUniqueKey") String bundleUniqueKey, @QueryParam("nodes") Set<String> nodeSet) throws ModuleDeploymentException;
 
   /**
    * Get the state report of a list of nodes including their own bundles
-   * @param nodes list of target nodes
+   * @param nodeSet set of target nodes
    * @return  the state report of the bundle in the target nodes
    * @throws ModuleDeploymentException thrown exception
    */
-  @POST
-  @Path("_states{nodes : (/nodes)?}")
+  @GET
+  @Path("_states")
   @Produces(MediaType.APPLICATION_JSON)
-  Response getNodesBundleStates(@PathParam(value = "nodes") String nodes) throws ModuleDeploymentException;
+  Response getNodesBundleStates(@QueryParam("nodes") Set<String> nodeSet) throws ModuleDeploymentException;
 }

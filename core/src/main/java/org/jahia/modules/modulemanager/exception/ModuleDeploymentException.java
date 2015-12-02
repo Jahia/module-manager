@@ -75,6 +75,6 @@ public class ModuleDeploymentException extends Exception {
 
   @Override
   public String toString() {
-    return java.text.MessageFormat.format("ModuleDeploymentException'{'status:{0},message:''{1}'',reason:{2}'}'", responseStatus, getMessage(), getCause()) ;
+    return java.text.MessageFormat.format("Error '{'status:{0},message:''{1}'',reason:{2}'}'", responseStatus, getMessage(), getCause()) ;
   }
 }

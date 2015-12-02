@@ -76,7 +76,12 @@ import java.io.InputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 
@@ -86,17 +91,22 @@ import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.jackrabbit.core.state.NodeState;
 import org.apache.jackrabbit.ocm.manager.ObjectContentManager;
 import org.jahia.modules.modulemanager.ModuleManagementException;
 import org.jahia.modules.modulemanager.ModuleManager;
 import org.jahia.modules.modulemanager.OperationResult;
 import org.jahia.modules.modulemanager.exception.ModuleDeploymentException;
-import org.jahia.modules.modulemanager.model.*;
+import org.jahia.modules.modulemanager.model.BinaryFile;
+import org.jahia.modules.modulemanager.model.Bundle;
+import org.jahia.modules.modulemanager.model.ClusterNode;
+import org.jahia.modules.modulemanager.model.ClusterNodeInfo;
+import org.jahia.modules.modulemanager.model.NodeBundle;
+import org.jahia.modules.modulemanager.model.Operation;
 import org.jahia.modules.modulemanager.payload.BundleStateReport;
 import org.jahia.modules.modulemanager.payload.NodeStateReport;
 import org.jahia.modules.modulemanager.payload.OperationResultImpl;
@@ -232,7 +242,7 @@ public class ModuleManagerImpl implements ModuleManager {
     }
 
     @Override
-    public OperationResult install(Resource bundleResource, String[] nodeIds) throws ModuleManagementException {
+    public OperationResult install(Resource bundleResource, Set<String> nodeSet) throws ModuleManagementException {
 
         // save to a temporary file and create Bundle data object
         File tmp = null;
@@ -251,6 +261,7 @@ public class ModuleManagerImpl implements ModuleManager {
             }
 
             // store bundle in JCR and create operation node
+            String[] nodeIds = CollectionUtils.isEmpty(nodeSet) ? null : nodeSet.toArray(new String[0]);
             doInstall(bundle, nodeIds);
 
             // notify the processor
@@ -282,7 +293,7 @@ public class ModuleManagerImpl implements ModuleManager {
     }
 
     @Override
-    public OperationResult start(String bundleKey, String[] nodeIds) {
+    public OperationResult start(String bundleKey, Set<String> nodeSet) {
         try {
             doOperation(bundleKey, "start");
 
@@ -300,7 +311,7 @@ public class ModuleManagerImpl implements ModuleManager {
     }
 
     @Override
-    public OperationResult stop(String bundleKey, String[] nodeIds) {
+    public OperationResult stop(String bundleKey, Set<String> nodeSet) {
         try {
             doOperation(bundleKey, "stop");
 
@@ -319,7 +330,7 @@ public class ModuleManagerImpl implements ModuleManager {
     }
 
     @Override
-    public OperationResult uninstall(String bundleKey, String[] nodeIds) {
+    public OperationResult uninstall(String bundleKey, Set<String> nodeSet) {
         try {
             doOperation(bundleKey, "uninstall");
 

@@ -1,5 +1,18 @@
 package org.jahia.modules.modulemanager.impl;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.DigestInputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
+
+import javax.jcr.RepositoryException;
+
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.felix.framework.cache.BundleArchive;
@@ -13,24 +26,10 @@ import org.jahia.modules.modulemanager.model.ModuleManagement;
 import org.jahia.modules.modulemanager.model.NodeBundle;
 import org.jahia.osgi.BundleUtils;
 import org.jahia.services.SpringContextSingleton;
-import org.jahia.settings.SettingsBean;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.jcr.RepositoryException;
-
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.security.DigestInputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * Bundle Service Implementation to manage the cluster nodes bundles.

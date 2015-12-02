@@ -69,14 +69,12 @@
  */
 package org.jahia.modules.modulemanager;
 
+import java.util.Set;
+
 import org.jahia.modules.modulemanager.exception.ModuleDeploymentException;
 import org.jahia.modules.modulemanager.payload.BundleStateReport;
 import org.jahia.modules.modulemanager.payload.NodeStateReport;
 import org.springframework.core.io.Resource;
-
-import javax.jcr.RepositoryException;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Entry point interface for the module management service, providing functionality for module deployment, undeployment, start and stop
@@ -89,38 +87,38 @@ public interface ModuleManager {
     /**
      * Uninstall a bundle in a list of cluster nodes
      * @param bundleResource bundll key to uninstall
-     * @param targetNodes list of cluster nodes targeted by the install operation
+     * @param nodeSet set of cluster nodes id targeted by the install operation
      * @return the result of the install operation
      * @throws ModuleManagementException thrown exception is case of problems
      */
-    OperationResult install(Resource bundleResource, String[] targetNodes) throws ModuleManagementException;
+    OperationResult install(Resource bundleResource, Set<String> nodeSet) throws ModuleManagementException;
 
     /**
      * Start a bundle on a list of cluster nodes
      * @param bundleKey bundle key to start
-     * @param targetNodes list of cluster nodes targeted by the start operation
+     * @param nodeSet list of cluster nodes targeted by the start operation
      * @return the result of the install operation
      * @throws ModuleManagementException thrown exception is case of problems
      */
-    OperationResult start(String bundleKey, String[] targetNodes) throws ModuleManagementException;
+    OperationResult start(String bundleKey, Set<String> nodeSet) throws ModuleManagementException;
 
     /**
      * Stop a bundle on a list of cluster nodes
      * @param bundleKey bundle key to stop
-     * @param targetNodes list of cluster nodes targeted by the uninstall operation
+     * @param nodeSet a set of cluster node id targeted by the uninstall operation
      * @return the result of the install operation
      * @throws ModuleManagementException thrown exception is case of problems
      */
-    OperationResult stop(String bundleKey, String[] targetNodes) throws ModuleManagementException;
+    OperationResult stop(String bundleKey, Set<String> nodeSet) throws ModuleManagementException;
 
     /**
      * Uninstall a bundle on a list of cluster nodes
      * @param bundleKey bunde key to uninstall
-     * @param targetNodes list of cluster nodes targeted by the uninstall operation
+     * @param nodeSet set of cluster nodes id targeted by the uninstall operation
      * @return the result of the uninstall operation
      * @throws ModuleManagementException thrown exception is case of problems
      */
-    OperationResult uninstall(String bundleKey, String[] targetNodes) throws ModuleManagementException;
+    OperationResult uninstall(String bundleKey, Set<String> nodeSet) throws ModuleManagementException;
 
     /**
      * Get the state report of a bundle in a list of target nodes
