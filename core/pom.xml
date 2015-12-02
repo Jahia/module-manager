@@ -244,10 +244,8 @@
                             ${jahia.plugin.projectPackageImport},
                             *
                         </Import-Package>
-                        <!-- -->  
                         <JAX-RS-Alias>/api/bundles</JAX-RS-Alias>
                         <JAX-RS-Application>org.jahia.modules.modulemanager.endpoint.ModuleManagerApplicationConfig</JAX-RS-Application>
-                        <!---->
                     </instructions>
                 </configuration>
             </plugin>            

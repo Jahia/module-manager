@@ -76,7 +76,8 @@ import org.apache.jackrabbit.ocm.mapper.impl.annotation.Collection;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
 
 /**
- * TODO comment me
+ * Represents the root of the JCR tree structure for module management, including list of available bundles, list of operations, list of
+ * cluster nodes with their corresponding structure (node bundles and operations).
  * 
  * @author Sergiy Shyrkov
  */
@@ -93,9 +94,6 @@ public class ModuleManagement extends BasePersistentObject {
 
     @Collection(jcrName = "operations", proxy = true)
     private LinkedHashMap<String, Operation> operations = new LinkedHashMap<>();
-
-    // @Collection(proxy=true)
-    // private List<Operation> operationLog;
 
     /**
      * Initializes an instance of this class.

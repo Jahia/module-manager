@@ -84,12 +84,17 @@ import org.apache.jackrabbit.ocm.exception.IncorrectAtomicTypeException;
 import org.apache.jackrabbit.ocm.manager.atomictypeconverter.impl.BinaryTypeConverterImpl;
 
 /**
- * TODO comment me
+ * Custom type converter for URL to JCR Binary values and back.
  * 
  * @author Sergiy Shyrkov
  */
 public class UrlBinaryTypeConverterImpl extends BinaryTypeConverterImpl {
 
+    /**
+     * URL stream handler for a binary JCR value.
+     * 
+     * @author Sergiy Shyrkov
+     */
     private class JCRURLStreamHandler extends URLStreamHandler {
 
         private Value jcrValue;

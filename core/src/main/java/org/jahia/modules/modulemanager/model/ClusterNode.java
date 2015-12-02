@@ -77,7 +77,7 @@ import org.apache.jackrabbit.ocm.mapper.impl.annotation.Field;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
 
 /**
- * TODO comment me
+ * This object represents a cluster node. 
  * 
  * @author Sergiy Shyrkov
  */
@@ -111,8 +111,8 @@ public class ClusterNode extends BasePersistentObject {
     /**
      * Initializes an instance of this class.
      * 
-     * @param name
-     * @param processingServer
+     * @param name the cluster node identifier
+     * @param processingServer <code>true</code> for processing node; <code>false</code> otherwise
      */
     public ClusterNode(String name, boolean processingServer) {
         super(name);
