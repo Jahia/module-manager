@@ -70,7 +70,7 @@ public class ModuleManagerResource implements ModuleManagerSpi{
   ///
   
   /* (non-Javadoc)
-   * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#install(java.io.InputStream, org.glassfish.jersey.media.multipart.FormDataContentDisposition, org.glassfish.jersey.media.multipart.FormDataBodyPart, java.lang.String[])
+   * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#install(java.io.InputStream, org.glassfish.jersey.media.multipart.FormDataContentDisposition, org.glassfish.jersey.media.multipart.FormDataBodyPart, java.util.Set<java.lang.String>)
    */
   @Override
   public Response install(InputStream bundleFileInputStream, FormDataContentDisposition fileDisposition, FormDataBodyPart fileBodyPart, Set<String> nodeSet) throws ModuleDeploymentException {
@@ -86,8 +86,7 @@ public class ModuleManagerResource implements ModuleManagerSpi{
     try{
       log.debug("Installing bundle {} on nodes {}", new Object[] {fileDisposition.getFileName(), nodeSet});
       bundleResource = getUploadedFileAsResource(bundleFileInputStream, fileDisposition.getFileName());
-      getModuleManager().install(bundleResource, nodeSet);
-      OperationResult result = OperationResultImpl.SUCCESS;
+      OperationResult result = getModuleManager().install(bundleResource, nodeSet);
       return Response.ok(result).build();
     }finally {
       if(bundleResource != null) {
@@ -104,7 +103,7 @@ public class ModuleManagerResource implements ModuleManagerSpi{
   }
 
   /* (non-Javadoc)
-   * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#uninstall(java.lang.String, java.lang.String[])
+   * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#uninstall(java.lang.String, java.util.Set<java.lang.String>)
    */
   @Override
   public Response uninstall(String bundleKey, Set<String> nodeSet) throws ModuleDeploymentException {
@@ -113,8 +112,7 @@ public class ModuleManagerResource implements ModuleManagerSpi{
     if(log.isDebugEnabled()) {
     }
     try{
-        getModuleManager().uninstall(bundleKey, nodeSet);
-      OperationResult result = OperationResultImpl.SUCCESS;
+      OperationResult result = getModuleManager().uninstall(bundleKey, nodeSet);
       return Response.ok(result).build();      
     } catch(ModuleManagementException mmEx){
       log.error("Error while uninstalling module " + bundleKey, mmEx);
@@ -123,15 +121,14 @@ public class ModuleManagerResource implements ModuleManagerSpi{
   }
 
   /* (non-Javadoc)
-   * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#start(java.lang.String, java.lang.String[])
+   * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#start(java.lang.String, java.util.Set<java.lang.String>)
    */
   @Override
   public Response start(String bundleKey, Set<String> nodeSet) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "start");
     log.debug("Start bundle {} on nodes {}", new Object[] {bundleKey, nodeSet});
     try{
-        getModuleManager().start(bundleKey, nodeSet);
-      OperationResult result = OperationResultImpl.SUCCESS;
+      OperationResult result = getModuleManager().start(bundleKey, nodeSet);
       return Response.ok(result).build();      
     } catch(ModuleManagementException mmEx){
       log.error("Error while starting bundle " + bundleKey, mmEx);
@@ -140,7 +137,7 @@ public class ModuleManagerResource implements ModuleManagerSpi{
   }
 
   /* (non-Javadoc)
-   * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#stop(java.lang.String, java.lang.String[])
+   * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#stop(java.lang.String, java.util.Set<java.lang.String>)
    */
   @Override
   public Response stop(String bundleKey, Set<String> nodeSet) throws ModuleDeploymentException {
