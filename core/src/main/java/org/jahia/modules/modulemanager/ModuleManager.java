@@ -69,8 +69,14 @@
  */
 package org.jahia.modules.modulemanager;
 
+import org.jahia.modules.modulemanager.exception.ModuleDeploymentException;
+import org.jahia.modules.modulemanager.payload.BundleStateReport;
+import org.jahia.modules.modulemanager.payload.NodeStateReport;
 import org.jahia.modules.modulemanager.payload.OperationResult;
 import org.springframework.core.io.Resource;
+
+import javax.jcr.RepositoryException;
+import java.util.List;
 
 /**
  * Entry point interface for the module management service, providing functionality for module deployment, undeployment, start and stop
@@ -88,4 +94,7 @@ public interface ModuleManager {
 
     OperationResult uninstall(String bundleKey, String[] targetNodes) throws ModuleManagementException;
 
+    BundleStateReport getBundleState(String bundleKey, String[] targetNodes) throws ModuleDeploymentException;
+
+    List<NodeStateReport> getNodesBundleStates(String[] targetNodes)  throws ModuleDeploymentException;
 }

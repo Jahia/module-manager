@@ -5,11 +5,7 @@ package org.jahia.modules.modulemanager.spi;
 
 import java.io.InputStream;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -77,5 +73,15 @@ public interface ModuleManagerSpi {
   @POST
   @Path("{bundleKey}/_stop{nodes : (/nodes)?}")
   Response stop(@PathParam(value="bundleKey") String bundleKey, @PathParam(value = "nodes") String nodes) throws ModuleDeploymentException;
-  
+
+
+  @POST
+  @Path("{bundleUniqueKey}/_state{nodes : (/nodes)?}")
+  @Produces(MediaType.APPLICATION_JSON)
+  Response getBundleState(@PathParam("bundleUniqueKey") String bundleUniqueKey, @PathParam(value = "nodes") String nodes) throws ModuleDeploymentException;
+
+  @POST
+  @Path("_states{nodes : (/nodes)?}")
+  @Produces(MediaType.APPLICATION_JSON)
+  Response getNodesBundleStates(@PathParam(value = "nodes") String nodes) throws ModuleDeploymentException;
 }

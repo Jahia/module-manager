@@ -28,6 +28,7 @@
     <bean id="ModuleManager" class="org.jahia.modules.modulemanager.impl.ModuleManagerImpl">
         <property name="persister" ref="ModuleInfoPersister"/>
         <property name="operationProcessor" ref="OperationProcessor"/>
+        <property name="clusterNodeInfo" ref="ClusterNodeInfo"/>
     </bean>
 
     <bean id="OperationProcessor" class="org.jahia.modules.modulemanager.impl.OperationProcessor">

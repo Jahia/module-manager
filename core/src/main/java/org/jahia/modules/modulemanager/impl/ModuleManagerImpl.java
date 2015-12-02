@@ -76,9 +76,12 @@ import java.io.InputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.*;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 
+import javax.jcr.Node;
+import javax.jcr.NodeIterator;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 
@@ -90,9 +93,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.jackrabbit.ocm.manager.ObjectContentManager;
 import org.jahia.modules.modulemanager.ModuleManagementException;
 import org.jahia.modules.modulemanager.ModuleManager;
-import org.jahia.modules.modulemanager.model.BinaryFile;
-import org.jahia.modules.modulemanager.model.Bundle;
-import org.jahia.modules.modulemanager.model.Operation;
+import org.jahia.modules.modulemanager.exception.ModuleDeploymentException;
+import org.jahia.modules.modulemanager.model.*;
+import org.jahia.modules.modulemanager.payload.BundleStateReport;
+import org.jahia.modules.modulemanager.payload.NodeStateReport;
 import org.jahia.modules.modulemanager.payload.OperationResult;
 import org.jahia.modules.modulemanager.payload.OperationResultImpl;
 import org.jahia.modules.modulemanager.persistence.ModuleInfoPersister;
@@ -111,6 +115,7 @@ import org.springframework.core.io.Resource;
 public class ModuleManagerImpl implements ModuleManager {
 
     private static final Logger logger = LoggerFactory.getLogger(ModuleManagerImpl.class);
+    private ClusterNodeInfo clusterNodeInfo;
 
     private static void populateFromManifest(Bundle bundle, File bundleFile) throws IOException {
         JarInputStream jarIs = new JarInputStream(new FileInputStream(bundleFile));
@@ -329,4 +334,90 @@ public class ModuleManagerImpl implements ModuleManager {
 
         return OperationResultImpl.SUCCESS;
     }
+
+    public void setClusterNodeInfo(ClusterNodeInfo clusterNodeInfo) {
+        this.clusterNodeInfo = clusterNodeInfo;
+    }
+
+    @Override
+    public BundleStateReport getBundleState(String bundleKey, String[] targetNodes) throws ModuleDeploymentException {
+        if(targetNodes == null || targetNodes.length == 0)
+        {
+            targetNodes = new String[]{clusterNodeInfo.getId()};
+        }
+        try {
+            NodeBundle bundle = null;
+            final String path = "/module-management/nodes/" +clusterNodeInfo.getId() + "/bundles/" + bundleKey;
+            bundle = persister.doExecute(new OCMCallback<NodeBundle>() {
+                @Override
+                public NodeBundle doInOCM(ObjectContentManager ocm) {
+                    return (NodeBundle) ocm.getObject(NodeBundle.class, path);
+                }
+            });
+
+
+            Map<String, String> map = new HashMap<String,String>();
+            map.put(clusterNodeInfo.getId(),bundle.getState());
+            BundleStateReport bundleStateReport = new BundleStateReport(bundle.getBundle(),map);
+            return  bundleStateReport;
+        } catch (RepositoryException e) {
+            throw new ModuleManagementException(e);
+        }
+    }
+
+    @Override
+    public List<NodeStateReport> getNodesBundleStates(String[] targetNodes) throws ModuleDeploymentException {
+
+        if(targetNodes == null || targetNodes.length == 0)
+        {
+            targetNodes = new String[]{clusterNodeInfo.getId()};
+        }
+        List<NodeStateReport> result = new ArrayList<NodeStateReport>();
+        List<ClusterNode> clusterNodes = new ArrayList<ClusterNode>();
+        try {
+            clusterNodes = persister.doExecute(new OCMCallback<List<ClusterNode>>() {
+                @Override
+                public List<ClusterNode> doInOCM(ObjectContentManager ocm) throws RepositoryException {
+                    List<ClusterNode> nodes = new ArrayList<ClusterNode>();
+                    Node node = ocm.getSession().getNode("/module-management/nodes");
+                    NodeIterator ops = node.getNodes();
+                    if (ops.hasNext()) {
+                        nodes.add((ClusterNode) ocm.getObject(ClusterNode.class, ops.nextNode().getPath()));
+                    }
+                    return nodes;
+                }
+            });
+            for(final ClusterNode clusterNode : clusterNodes)
+            {
+                Set<BundleStateReport> bundleStateReports = new HashSet<BundleStateReport>();
+                bundleStateReports = persister.doExecute(new OCMCallback<Set<BundleStateReport>>() {
+                    @Override
+                    public Set<BundleStateReport> doInOCM(ObjectContentManager ocm) throws RepositoryException {
+
+                            Set<BundleStateReport> reports = new HashSet<BundleStateReport>();
+                            Node node = null;
+
+                            node = ocm.getSession().getNode("/module-management/nodes");
+
+                        NodeIterator ops = node.getNodes();
+                        if (ops.hasNext()) {
+                            NodeBundle nodeBundle = (NodeBundle) ocm.getObject(NodeBundle.class, ops.nextNode().getPath());
+                            try {
+                                reports.add(getBundleState(nodeBundle.getIdentifier(), new String[]{clusterNode.getIdentifier()}));
+                            } catch (ModuleDeploymentException e) {
+                            }
+                        }
+                        return reports;
+                    }
+                });
+                NodeStateReport nodeStateReport = new NodeStateReport(clusterNode.getIdentifier(), bundleStateReports);
+                result.add(nodeStateReport);
+            }
+            return result;
+        } catch (RepositoryException e) {
+            throw new ModuleManagementException(e);
+        }
+    }
+
+
 }

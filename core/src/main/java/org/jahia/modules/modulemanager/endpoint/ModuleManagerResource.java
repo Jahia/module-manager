@@ -3,14 +3,6 @@
  */
 package org.jahia.modules.modulemanager.endpoint;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -27,6 +19,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * @author bdjiba
@@ -142,6 +141,18 @@ public class ModuleManagerResource implements ModuleManagerSpi{
     }
   }
 
+  @Override
+  public Response getBundleState(String bundleUniqueKey, String nodes) throws ModuleDeploymentException {
+    log.debug("Get bundle state " + bundleUniqueKey);
+    return Response.ok(getModuleManager().getBundleState(bundleUniqueKey, null)).build();
+  }
+
+  @Override
+  public Response getNodesBundleStates(String nodes) throws ModuleDeploymentException {
+    log.debug("Get bundle states  for nodes " + nodes);
+    return Response.ok(getModuleManager().getNodesBundleStates(null)).build();
+  }
+
   /**
    * Spring bridge method to access to the module manager bean
    * @return
@@ -152,4 +163,5 @@ public class ModuleManagerResource implements ModuleManagerSpi{
       }
       return moduleManager;
   }
+
 }
