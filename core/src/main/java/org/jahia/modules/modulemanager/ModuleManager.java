@@ -87,15 +87,56 @@ import java.util.Set;
  */
 public interface ModuleManager {
 
+    /**
+     * Uninstall a bundle in a list of cluster nodes
+     * @param bundleResource bundll key to uninstall
+     * @param targetNodes list of cluster nodes targeted by the install operation
+     * @return the result of the install operation
+     * @throws ModuleManagementException thrown exception is case of problems
+     */
     OperationResult install(Resource bundleResource, String[] targetNodes) throws ModuleManagementException;
 
+    /**
+     * Start a bundle on a list of cluster nodes
+     * @param bundleKey bundle key to start
+     * @param targetNodes list of cluster nodes targeted by the start operation
+     * @return the result of the install operation
+     * @throws ModuleManagementException thrown exception is case of problems
+     */
     OperationResult start(String bundleKey, String[] targetNodes) throws ModuleManagementException;
 
+    /**
+     * Stop a bundle on a list of cluster nodes
+     * @param bundleKey bundle key to stop
+     * @param targetNodes list of cluster nodes targeted by the uninstall operation
+     * @return the result of the install operation
+     * @throws ModuleManagementException thrown exception is case of problems
+     */
     OperationResult stop(String bundleKey, String[] targetNodes) throws ModuleManagementException;
 
+    /**
+     * Uninstall a bundle on a list of cluster nodes
+     * @param bundleKey bunde key to uninstall
+     * @param targetNodes list of cluster nodes targeted by the uninstall operation
+     * @return the result of the uninstall operation
+     * @throws ModuleManagementException thrown exception is case of problems
+     */
     OperationResult uninstall(String bundleKey, String[] targetNodes) throws ModuleManagementException;
 
+    /**
+     * Get the state report of a bundle in a list of target nodes
+     * @param bundleKey bundle key
+     * @param targetNodes list of target nodes
+     * @return  the state report of the bundle in the target nodes
+     * @throws ModuleDeploymentException thrown exception
+     */
     BundleStateReport getBundleState(String bundleKey, Set<String> targetNodes) throws ModuleDeploymentException;
 
+    /**
+     * Get the state report of a list of Nodes including their own bundles
+     * @param targetNodes list of target nodes
+     * @return  the state report of the bundle in the target nodes
+     * @throws ModuleDeploymentException thrown exception
+     */
     Set<NodeStateReport> getNodesBundleStates(Set<String> targetNodes)  throws ModuleDeploymentException;
 }

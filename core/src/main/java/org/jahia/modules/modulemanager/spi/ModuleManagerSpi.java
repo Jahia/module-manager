@@ -75,11 +75,24 @@ public interface ModuleManagerSpi {
   Response stop(@PathParam(value="bundleKey") String bundleKey, @PathParam(value = "nodes") String nodes) throws ModuleDeploymentException;
 
 
+  /**
+   * Get the state report of a bundle in a list of target nodes
+   * @param bundleUniqueKey bundle key
+   * @param nodes list of target nodes
+   * @return  the state report of the bundle in the target nodes
+   * @throws ModuleDeploymentException thrown exception
+   */
   @POST
   @Path("{bundleUniqueKey}/_state{nodes : (/nodes)?}")
   @Produces(MediaType.APPLICATION_JSON)
   Response getBundleState(@PathParam("bundleUniqueKey") String bundleUniqueKey, @PathParam(value = "nodes") String nodes) throws ModuleDeploymentException;
 
+  /**
+   * Get the state report of a list of nodes including their own bundles
+   * @param nodes list of target nodes
+   * @return  the state report of the bundle in the target nodes
+   * @throws ModuleDeploymentException thrown exception
+   */
   @POST
   @Path("_states{nodes : (/nodes)?}")
   @Produces(MediaType.APPLICATION_JSON)
