@@ -78,7 +78,7 @@ import org.apache.jackrabbit.ocm.mapper.impl.annotation.Collection;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
 
 /**
- * TODO comment me
+ * A node-level operation, which corresponds to the global operation for a bundle (install, start, stop, uninstall).
  * 
  * @author Sergiy Shyrkov
  */
@@ -104,9 +104,11 @@ public class NodeOperation extends BaseOperation {
      * Initializes an instance of this class.
      * 
      * @param name
-     * @param action
+     *            the node operation name
      * @param state
-     * @param bundle
+     *            the current operation state
+     * @param operation
+     *            the corresponding global operation
      */
     public NodeOperation(String name, String state, Operation operation) {
         super(name);

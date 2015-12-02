@@ -75,7 +75,8 @@ import org.apache.jackrabbit.ocm.mapper.impl.annotation.Field;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
 
 /**
- * TODO comment me
+ * Represents a node-level bundle, which has a reference to one of the available bundles in the global storage and the state of this bundle
+ * on the current cluster node.
  * 
  * @author Sergiy Shyrkov
  */
@@ -89,7 +90,7 @@ public class NodeBundle extends BasePersistentObject {
 
     @Field(jcrName = "j:state")
     private String state;
-    
+
     /**
      * Initializes an instance of this class.
      */

@@ -202,7 +202,6 @@ public class ModuleInfoPersister {
     }
 
     private Mapper getMapper() {
-        // TODO replace annotations with XML descriptor to eliminate dependency of object model to jackrabbit-ocm?
         if (mapper == null) {
             ReflectionUtils.setClassLoader(getClass().getClassLoader());
 
@@ -288,18 +287,40 @@ public class ModuleInfoPersister {
         });
     }
 
+    /**
+     * Injects an instance of the service, which populates the JCR tree structure with module information.
+     * 
+     * @param bundleService
+     *            an instance of the service, which populates the JCR tree structure with module information
+     */
     public void setBundleService(BundleServiceImpl bundleService) {
         this.bundleService = bundleService;
     }
 
+    /**
+     * Injects the information for the current cluster node.
+     * 
+     * @param clusterNodeInfo
+     *            the information for the current cluster node
+     */
     public void setClusterNodeInfo(ClusterNodeInfo clusterNodeInfo) {
         this.clusterNodeInfo = clusterNodeInfo;
     }
 
+    /**
+     * Injects the auto split configuration for the operation log entries.
+     * 
+     * @param operationLogAutoSplitConfig
+     *            the auto split configuration for the operation log entries
+     */
     public void setOperationLogAutoSplitConfig(String operationLogAutoSplitConfig) {
         this.operationLogAutoSplitConfig = operationLogAutoSplitConfig;
     }
 
+    /**
+     * Initialization method that is called by Spring container and aims to validate the JCR tree structure, related to the module
+     * management.
+     */
     protected void start() {
         try {
             doExecute(new OCMCallback<Object>() {

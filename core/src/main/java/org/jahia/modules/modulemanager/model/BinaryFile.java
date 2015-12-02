@@ -77,7 +77,7 @@ import org.apache.jackrabbit.ocm.mapper.impl.annotation.Field;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
 
 /**
- * TODO comment me
+ * Represents the binary file with the file URL itself and a mime type.
  * 
  * @author Sergiy Shyrkov
  */
@@ -100,16 +100,6 @@ public class BinaryFile {
     /**
      * Initializes an instance of this class.
      * 
-     * @param url
-     */
-    public BinaryFile(URL url) {
-        this();
-        this.url = url;
-    }
-
-    /**
-     * Initializes an instance of this class.
-     * 
      * @param bundleJarFile
      *            the bundle JAR file
      */
@@ -120,6 +110,17 @@ public class BinaryFile {
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException(e);
         }
+    }
+
+    /**
+     * Initializes an instance of this class.
+     * 
+     * @param url
+     *            the URL for the target file
+     */
+    public BinaryFile(URL url) {
+        this();
+        this.url = url;
     }
 
     /**

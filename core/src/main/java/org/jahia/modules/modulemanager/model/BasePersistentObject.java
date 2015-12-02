@@ -97,7 +97,7 @@ public abstract class BasePersistentObject implements Serializable {
     /**
      * Initializes an instance of this class.
      * 
-     * @param name
+     * @param name the object (node) name
      */
     public BasePersistentObject(String name) {
         this();

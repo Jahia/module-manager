@@ -75,7 +75,7 @@ import org.apache.jackrabbit.ocm.mapper.impl.annotation.Field;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
 
 /**
- * TODO comment me
+ * Global level bundle operation that defines an action to be executed on a particular bundle.
  * 
  * @author Sergiy Shyrkov
  */
@@ -101,9 +101,13 @@ public class Operation extends BaseOperation {
      * Initializes an instance of this class.
      * 
      * @param name
+     *            the operation name
      * @param action
+     *            the action type to be executed
      * @param state
+     *            current operation state
      * @param bundle
+     *            the corresponding bundle
      */
     public Operation(String name, String action, String state, Bundle bundle) {
         super(name);

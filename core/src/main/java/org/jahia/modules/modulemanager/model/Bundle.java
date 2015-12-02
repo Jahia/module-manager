@@ -76,7 +76,7 @@ import org.apache.jackrabbit.ocm.mapper.impl.annotation.Field;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Node;
 
 /**
- * TODO comment me
+ * The data object for the bundle entry.
  * 
  * @author Sergiy Shyrkov
  */
@@ -113,7 +113,7 @@ public class Bundle extends BasePersistentObject {
     /**
      * Initializes an instance of this class.
      * 
-     * @param name
+     * @param name the bundle entry name
      */
     public Bundle(String name) {
         super(name);
