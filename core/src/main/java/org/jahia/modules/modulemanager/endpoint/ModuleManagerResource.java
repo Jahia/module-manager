@@ -31,15 +31,13 @@ import org.springframework.core.io.Resource;
 
 /**
  * @author bdjiba
- *
  */
-public class ModuleManagerResource implements ModuleManagerSpi{
+public class ModuleManagerResource implements ModuleManagerSpi {
 
     private static final Logger log = LoggerFactory.getLogger(ModuleManagerResource.class);
   
     private ModuleManager moduleManager;
   
-  /// internal
   private Resource getUploadedFileAsResource(InputStream uploadedFileIs, String filename) throws ModuleDeploymentException {
     // create internal temp file
     FileOutputStream fileOutputStream = null;

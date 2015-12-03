@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.jahia.modules.modulemanager.endpoint;
 
 import java.io.InputStream;
@@ -23,12 +20,10 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.jahia.modules.modulemanager.exception.ModuleDeploymentException;
 
 /**
- * The Module manager Service Provider Interface
- * Accepted headers: all or only application/json ??
- * Produce json string result
+ * The Module manager Service Provider Interface.
+ * Produces json string result.
  * 
  * @author bdjiba
- *
  */
 @Path("/api/bundles")
 @Produces({"application/hal+json"})
@@ -36,7 +31,7 @@ public interface ModuleManagerSpi {
   
   /**
    * Install the given bundle on the specified nodes.
-   * If nodes parameter is empty then deploy on all available nodes
+   * If nodes parameter is empty then deploy on all available nodes.
    * @param bundleFileInputStream the bundle to deploy file input stream
    * @param fileDisposition the file content disposition
    * @param fileBodyPart the file body part
@@ -50,7 +45,7 @@ public interface ModuleManagerSpi {
   Response install(@FormDataParam("bundleFile") InputStream bundleFileInputStream, @FormDataParam("bundleFile") FormDataContentDisposition fileDisposition, @FormDataParam("bundleFile") FormDataBodyPart fileBodyPart, @FormDataParam("nodes") Set<String> nodeSet) throws ModuleDeploymentException;
   
   /**
-   * Uninstall the bundle on the target nodes or all the nodes if nodes param is missing
+   * Uninstall the bundle on the target nodes or all the nodes if nodes param is missing.
    * @param bundleKey the target bundle
    * @param nodeSet the list of the nodes to uninstall the bundle
    * @return the operation result
@@ -62,7 +57,7 @@ public interface ModuleManagerSpi {
   
   /**
    * Starts the bundle which key is specified in the URL.
-   * If the nodes part is missing, start it on all nodes
+   * If the nodes part is missing, start it on all nodes.
    * @param bundleKey the bundle key
    * @param nodeSet the target node list
    * @return the operation status
@@ -74,7 +69,7 @@ public interface ModuleManagerSpi {
   
   /**
    * Stops the bundle that key is given in parameters on the specified nodes.
-   * If the node's ids are missing then will stop it on all existing nodes 
+   * If the node's ids are missing then will stop it on all existing nodes. 
    * @param bundleKey the bundle key
    * @param nodeSet the target nodes set
    * @return the operation result or an error in case when the bundle is missing
@@ -86,7 +81,7 @@ public interface ModuleManagerSpi {
 
 
   /**
-   * Get the state report of a bundle in a list of target nodes
+   * Get the state report of a bundle in a list of target nodes.
    * @param bundleUniqueKey bundle key
    * @param nodeSet set of target nodes
    * @return  the state report of the bundle in the target nodes
@@ -98,7 +93,7 @@ public interface ModuleManagerSpi {
   Response getBundleState(@PathParam("bundleUniqueKey") String bundleUniqueKey, @QueryParam("nodes") Set<String> nodeSet) throws ModuleDeploymentException;
 
   /**
-   * Get the state report of a list of nodes including their own bundles
+   * Get the state report of a list of nodes including their own bundles.
    * @param nodeSet set of target nodes
    * @return  the state report of the bundle in the target nodes
    * @throws ModuleDeploymentException thrown exception

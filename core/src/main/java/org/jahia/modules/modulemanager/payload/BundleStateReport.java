@@ -1,17 +1,17 @@
 package org.jahia.modules.modulemanager.payload;
 
-import org.jahia.modules.modulemanager.model.Bundle;
-
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Map;
 
 @XmlRootElement
 public class BundleStateReport {
 
-    String clusterBundle;
-    Map<String, String> nodeStates;
+    private String clusterBundle;
+    
+    private Map<String, String> nodeStates;
 
     public BundleStateReport() {
+        super();
     }
 
     public BundleStateReport(String clusterBundle, Map<String, String> nodeStates) {

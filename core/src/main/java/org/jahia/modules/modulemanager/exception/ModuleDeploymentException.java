@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.jahia.modules.modulemanager.exception;
 
 import javax.ws.rs.core.Response;
@@ -12,7 +9,6 @@ import javax.xml.bind.annotation.XmlType;
  * Contains the underlying error and a HTTP status code to send to the client. 
  * 
  * @author bdjiba
- *
  */
 @XmlType(propOrder = {"responseStatus", "message", "cause"})
 public class ModuleDeploymentException extends Exception {
@@ -21,21 +17,12 @@ public class ModuleDeploymentException extends Exception {
   private final Response.Status responseStatus;
 
   /**
-   * 
-   
-  public ModuleDeploymentException() {
-    // TODO Auto-generated constructor stub
-  }*/
-
-  /**
    * @param message
    */
   public ModuleDeploymentException(Response.Status httpStatus, String msg, Throwable err) {
     super(msg, err);
     this.responseStatus = httpStatus;
   }
-
-
 
   /**
    * @param httpStatus

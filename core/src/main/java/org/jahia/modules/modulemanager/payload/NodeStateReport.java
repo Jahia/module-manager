@@ -1,11 +1,9 @@
 package org.jahia.modules.modulemanager.payload;
 
-
-
 import java.util.Set;
 
 /**
- * Created by achaabni on 01/12/15.
+ * @author achaabni
  */
 public class NodeStateReport {
 

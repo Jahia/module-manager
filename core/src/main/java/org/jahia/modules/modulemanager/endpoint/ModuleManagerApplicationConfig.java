@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.jahia.modules.modulemanager.endpoint;
 
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -11,19 +8,17 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 
 /**
  * Application configuration component.
- * Register jersey components
+ * Register jersey components.
+ * 
  * @author bdjiba
- *
  */
 public class ModuleManagerApplicationConfig extends ResourceConfig {
 
-  /**
-   * Constructor
-   */
-  public ModuleManagerApplicationConfig() {
-    register(MultiPartFeature.class);
-    register(ModuleManagerResource.class);
-    register(JacksonJaxbJsonProvider.class);
-    register(ModuleManagerExceptionMapper.class);
-  }
+    /**
+     * Initializes an instance of this class providing a list of classes to be registered.
+     */
+    public ModuleManagerApplicationConfig() {
+        super(MultiPartFeature.class, ModuleManagerResource.class, JacksonJaxbJsonProvider.class,
+                ModuleManagerExceptionMapper.class);
+    }
 }
