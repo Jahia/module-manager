@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.jahia.modules.modulemanager.spi;
+package org.jahia.modules.modulemanager.endpoint;
 
 import java.io.InputStream;
 import java.util.Set;
