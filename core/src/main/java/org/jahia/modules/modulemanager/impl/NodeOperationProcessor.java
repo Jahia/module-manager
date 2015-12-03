@@ -92,27 +92,50 @@ import org.jahia.osgi.FrameworkService;
 import org.jahia.services.templates.JahiaTemplateManagerService;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 
 /**
  * Cluster node level operation processor, that is responsible for executing module operations on the current cluster node.
  * 
  * @author Sergiy Shyrkov
  */
-public class NodeOperationProcessor {
+public class NodeOperationProcessor implements InitializingBean {
 
     private static final Logger logger = LoggerFactory.getLogger(NodeOperationProcessor.class);
 
     private ClusterNodeInfo clusterNodeInfo;
 
+    private String clusterNodePath;
+
+    private long jobDelay = 2000;
+
+    private JobDetail jobDetail;
+
     private String operationLogPath;
 
     private ModuleInfoPersister persister;
 
-    private String clusterNodePath;
-    
+    private Scheduler scheduler;
+
     private JahiaTemplateManagerService templateManagerService;
+    
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        jobDetail.getJobDataMap().put("nodeOperationProcessor", this);
+
+        logger.info("Scheduling node-level module operation processing job");
+        try {
+            scheduler.deleteJob(jobDetail.getName(), jobDetail.getGroup());
+            scheduler.scheduleJob(jobDetail, OperationProcessor.createJobTrigger(jobDetail, 0));
+        } catch (SchedulerException e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
 
     /**
      * Performs the check if the operation can be started or not, which is based on the dependencies of it.
@@ -163,47 +186,6 @@ public class NodeOperationProcessor {
         ocm.move(globalOp.getPath(), "/module-management/operationLog/" + globalOp.getName());
     }
 
-    protected boolean performAction(NodeOperation op, ObjectContentManager ocm)
-            throws PathNotFoundException, ModuleManagementException {
-        boolean success = true;
-        long startTime = System.currentTimeMillis();
-        logger.info("Start performing node operation {}", logger.isDebugEnabled() ? op : op.getPath());
-
-        String action = op.getOperation().getAction();
-
-        if (action.equals("install")) {
-            performActionInstall(op, ocm);
-        } else {
-            ensureNodeBundlePresent(op, ocm);
-
-            org.jahia.modules.modulemanager.model.Bundle b = op.getOperation().getBundle();
-            
-            Bundle osgiBundle = BundleUtils.getBundle(b.getSymbolicName(), b.getVersion());
-            if (osgiBundle == null) {
-                throw new ModuleManagementException(
-                        "Bundle " + op.getOperation().getBundle().getName() + " is not installed on the current node.");
-            }
-
-            performAction(osgiBundle, action);
-            String clusterBundlePath = clusterNodePath + "/bundles/" + b.getName();
-            if ("uninstall".equals(action)) {
-                ocm.remove(clusterBundlePath);
-            } else {
-                NodeBundle nodeBundle = new NodeBundle(b.getName());
-                nodeBundle.setPath(clusterBundlePath);
-                nodeBundle.setBundle(b);
-                ModuleState moduleState = templateManagerService.getModuleStates().get(osgiBundle);
-                nodeBundle.setState(moduleState != null ? moduleState.getState().toString().toLowerCase() : "failed");
-                ocm.update(nodeBundle);
-            }
-        }
-
-        logger.info("Done performing node operation {} with status {} in {} ms",
-                new Object[] { logger.isDebugEnabled() ? op : op.getPath(), success ? "success" : "failure",
-                        System.currentTimeMillis() - startTime });
-        return success;
-    }
-
     private void ensureNodeBundlePresent(NodeOperation op, ObjectContentManager ocm) throws PathNotFoundException {
         String bundleKey = op.getOperation().getBundle().getName();
         String path = clusterNodePath + "/bundles/" + bundleKey;
@@ -234,6 +216,47 @@ public class NodeOperationProcessor {
             throw new ModuleManagementException("Error performing action " + action + " on a bundle "
                     + osgiBundle.getSymbolicName() + "-" + osgiBundle.getVersion() + ". Cause: " + e.getMessage(), e);
         }
+    }
+
+    protected boolean performAction(NodeOperation op, ObjectContentManager ocm)
+            throws PathNotFoundException, ModuleManagementException {
+        boolean success = true;
+        long startTime = System.currentTimeMillis();
+        logger.info("Start performing node operation {}", logger.isDebugEnabled() ? op : op.getPath());
+
+        String action = op.getOperation().getAction();
+
+        if (action.equals("install")) {
+            performActionInstall(op, ocm);
+        } else {
+            ensureNodeBundlePresent(op, ocm);
+
+            org.jahia.modules.modulemanager.model.Bundle b = op.getOperation().getBundle();
+
+            Bundle osgiBundle = BundleUtils.getBundle(b.getSymbolicName(), b.getVersion());
+            if (osgiBundle == null) {
+                throw new ModuleManagementException(
+                        "Bundle " + op.getOperation().getBundle().getName() + " is not installed on the current node.");
+            }
+
+            performAction(osgiBundle, action);
+            String clusterBundlePath = clusterNodePath + "/bundles/" + b.getName();
+            if ("uninstall".equals(action)) {
+                ocm.remove(clusterBundlePath);
+            } else {
+                NodeBundle nodeBundle = new NodeBundle(b.getName());
+                nodeBundle.setPath(clusterBundlePath);
+                nodeBundle.setBundle(b);
+                ModuleState moduleState = templateManagerService.getModuleStates().get(osgiBundle);
+                nodeBundle.setState(moduleState != null ? moduleState.getState().toString().toLowerCase() : "failed");
+                ocm.update(nodeBundle);
+            }
+        }
+
+        logger.info("Done performing node operation {} with status {} in {} ms",
+                new Object[] { logger.isDebugEnabled() ? op : op.getPath(), success ? "success" : "failure",
+                        System.currentTimeMillis() - startTime });
+        return success;
     }
 
     private boolean performActionInstall(NodeOperation op, ObjectContentManager ocm) {
@@ -276,33 +299,14 @@ public class NodeOperationProcessor {
     }
 
     /**
-     * Checks for the next open operation and processes it.
+     * Processes all available open node-level operations.
      * 
      * @throws ModuleManagementException
      *             in case of an error
      */
-    public void process() throws ModuleManagementException {
-        logger.debug("Checking for available node-level module operations");
-        try {
-            NodeOperation op = persister.getNextNodeOperation(clusterNodeInfo.getId());
-            if (op == null) {
-                // no operations to be processed found -> return
-                logger.debug("No node-levelmodule operations to be processed found");
-                return;
-            }
-            if ("open".equals(op.getState())) {
-                // we can start the operation now
-                logger.info("Found open node-level module operation to be started: {}",
-                        logger.isDebugEnabled() ? op : op.getPath());
-                long startTime = System.currentTimeMillis();
-                if (canStart(op)) {
-                    processOperation(op);
-                    logger.info("Node-level module operation {} processed in {} ms", op.getPath(),
-                            System.currentTimeMillis() - startTime);
-                }
-            }
-        } catch (RepositoryException e) {
-            throw new ModuleManagementException(e);
+    public void process() {
+        while (processSingleOperation()) {
+            // perform processing of all available open operations
         }
     }
 
@@ -360,10 +364,54 @@ public class NodeOperationProcessor {
         });
     }
 
+    /**
+     * Checks for the next open operation and processes it.
+     * 
+     * @throws ModuleManagementException
+     *             in case of an error
+     */
+    public boolean processSingleOperation() throws ModuleManagementException {
+        boolean processed = false;
+        logger.debug("Checking for available node-level module operations");
+        try {
+            NodeOperation op = persister.getNextNodeOperation(clusterNodeInfo.getId());
+            if (op == null) {
+                // no operations to be processed found -> return
+                logger.debug("No node-level module operations to be processed found");
+            } else if ("open".equals(op.getState())) {
+                // we can start the operation now
+                logger.info("Found open node-level module operation to be started: {}",
+                        logger.isDebugEnabled() ? op : op.getPath());
+                long startTime = System.currentTimeMillis();
+                if (canStart(op)) {
+                    processOperation(op);
+                    logger.info("Node-level module operation {} processed in {} ms", op.getPath(),
+                            System.currentTimeMillis() - startTime);
+                    processed = true;
+                }
+            } else {
+                // schedule processing
+                tryLater();
+            }
+        } catch (RepositoryException e) {
+            throw new ModuleManagementException(e);
+        }
+
+        return processed;
+    }
+
     public void setClusterNodeInfo(ClusterNodeInfo clusterNodeInfo) {
         this.clusterNodeInfo = clusterNodeInfo;
         clusterNodePath = clusterNodeInfo != null ? "/module-management/nodes/" + clusterNodeInfo.getId() : null;
         operationLogPath = clusterNodeInfo != null ? clusterNodePath + "/operationLog/" : null;
+    }
+
+    public void setJobDelay(long jobDelay) {
+        this.jobDelay = jobDelay;
+    }
+
+    public void setJobDetail(JobDetail jobDetail) {
+        this.jobDetail = jobDetail;
     }
 
     /**
@@ -376,7 +424,28 @@ public class NodeOperationProcessor {
         this.persister = persister;
     }
 
+    public void setScheduler(Scheduler scheduler) {
+        this.scheduler = scheduler;
+    }
+
+    /**
+     * Injects an instance of the template management service.
+     * 
+     * @param templateManagerService
+     *            an instance of the corresponding service
+     */
     public void setTemplateManagerService(JahiaTemplateManagerService templateManagerService) {
         this.templateManagerService = templateManagerService;
+    }
+
+    /**
+     * Schedule a background task for operation processing.
+     */
+    private void tryLater() {
+        try {
+            scheduler.scheduleJob(OperationProcessor.createJobTrigger(jobDetail, jobDelay));
+        } catch (SchedulerException e) {
+            throw new ModuleManagementException(e);
+        }
     }
 }

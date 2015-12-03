@@ -69,6 +69,7 @@
  */
 package org.jahia.modules.modulemanager.impl;
 
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -84,8 +85,14 @@ import org.jahia.modules.modulemanager.model.Operation;
 import org.jahia.modules.modulemanager.persistence.ModuleInfoPersister;
 import org.jahia.modules.modulemanager.persistence.ModuleInfoPersister.OCMCallback;
 import org.jahia.services.content.JCRContentUtils;
+import org.jahia.services.scheduler.BackgroundJob;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.SimpleTrigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 
 /**
  * Module global operation processor, that is responsible for controlling the operation lifecycle and creating corresponding cluster-node
@@ -93,19 +100,56 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Sergiy Shyrkov
  */
-public class OperationProcessor {
+public class OperationProcessor implements InitializingBean {
 
     private static final Logger logger = LoggerFactory.getLogger(OperationProcessor.class);
 
+    /**
+     * Creates an instance of the job trigger with the specified fire delay.
+     * 
+     * @param jobDetail the job details object
+     * @param delay
+     *            the delay in milliseconds to fire the job
+     * @return an instance of the job trigger with the specified fire delay
+     */
+    static SimpleTrigger createJobTrigger(JobDetail jobDetail, long delay) {
+        SimpleTrigger trigger = new SimpleTrigger(jobDetail.getName() + "Trigger-" + BackgroundJob.idGen.nextIdentifier(), jobDetail.getGroup(),
+                delay > 0 ? new Date(System.currentTimeMillis() + delay) : new Date(), null, 0, 0);
+        trigger.setJobName(jobDetail.getName());
+        trigger.setJobGroup(jobDetail.getGroup());
+        
+        return trigger;
+    }
+
+    private long jobDelay = 2000;
+
+    private JobDetail jobDetail;
+
     private ModuleInfoPersister persister;
+
+    private Scheduler scheduler;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        jobDetail.getJobDataMap().put("operationProcessor", this);
+
+        logger.info("Scheduling module operation processing job");
+        try {
+            scheduler.deleteJob(jobDetail.getName(), jobDetail.getGroup());
+            scheduler.scheduleJob(jobDetail, createJobTrigger(jobDetail, 0));
+        } catch (SchedulerException e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
 
     private NodeOperation createNodeOperation(Operation op, ClusterNode cn, ObjectContentManager ocm)
             throws PathNotFoundException, RepositoryException {
         NodeOperation nodeOp = new NodeOperation();
-        nodeOp.setName(JCRContentUtils.findAvailableNodeName(ocm.getSession().getNode(cn.getPath() + "/operations"), op.getName()));
+        nodeOp.setName(JCRContentUtils.findAvailableNodeName(ocm.getSession().getNode(cn.getPath() + "/operations"),
+                op.getName()));
         nodeOp.setPath(cn.getPath() + "/operations/" + nodeOp.getName());
         nodeOp.setOperation(op);
-        
+
         return nodeOp;
     }
 
@@ -149,31 +193,64 @@ public class OperationProcessor {
     }
 
     /**
-     * Checks for the next open operation and starts it by changing its state and creating corresponding cluster node level operations.
+     * Processes all available open operations.
      * 
      * @throws ModuleManagementException
      *             in case of an error
      */
-    public void process() throws ModuleManagementException {
+    public void process() {
+        while (processSingleOperation()) {
+            // perform processing of all available open operations
+        }
+    }
+
+    /**
+     * Checks for the next open operation and starts it by changing its state and creating corresponding cluster node level operations.
+     * 
+     * @return <code>true</code> in case an open operation was started; <code>false</code> if no open operation are found or if there is
+     *         another operation in progress already
+     * @throws ModuleManagementException
+     *             in case of an error
+     */
+    private boolean processSingleOperation() throws ModuleManagementException {
+        boolean processed = false;
         logger.debug("Checking for available module operations");
         try {
             Operation op = persister.getNextOperation();
             if (op == null) {
                 // no operations to be processed found -> return
                 logger.debug("No module operations to be processed found");
-                return;
-            }
-            if ("open".equals(op.getState())) {
+            } else if ("open".equals(op.getState())) {
                 // we can start the operation now
                 logger.info("Found open module operation to be started: {}", op);
                 long startTime = System.currentTimeMillis();
                 startOperation(op);
                 logger.info("Module operation {} processed in {} ms", op.getName(),
                         System.currentTimeMillis() - startTime);
+                processed = true;
+            } else {
+                // schedule processing
+                tryLater();
             }
         } catch (RepositoryException e) {
             throw new ModuleManagementException(e);
         }
+
+        return processed;
+    }
+
+    /**
+     * Sets the background job delay interval in milliseconds.
+     * 
+     * @param jobDelay
+     *            the background job delay interval in milliseconds
+     */
+    public void setJobDelay(long jobDelay) {
+        this.jobDelay = jobDelay;
+    }
+
+    public void setJobDetail(JobDetail jobDetail) {
+        this.jobDetail = jobDetail;
     }
 
     /**
@@ -184,6 +261,10 @@ public class OperationProcessor {
      */
     public void setPersister(ModuleInfoPersister persister) {
         this.persister = persister;
+    }
+
+    public void setScheduler(Scheduler scheduler) {
+        this.scheduler = scheduler;
     }
 
     /**
@@ -231,5 +312,16 @@ public class OperationProcessor {
             }
 
         });
+    }
+
+    /**
+     * Schedule a background task for operation processing.
+     */
+    private void tryLater() {
+        try {
+            scheduler.scheduleJob(createJobTrigger(jobDetail, jobDelay));
+        } catch (SchedulerException e) {
+            throw new ModuleManagementException(e);
+        }
     }
 }

@@ -33,12 +33,32 @@
 
     <bean id="OperationProcessor" class="org.jahia.modules.modulemanager.impl.OperationProcessor">
         <property name="persister" ref="ModuleInfoPersister"/>
+        <property name="scheduler" ref="ramScheduler"/>
+        <property name="jobDetail">
+            <bean class="org.springframework.scheduling.quartz.JobDetailBean">
+                <property name="name" value="OperationProcessorJob" />
+                <property name="jobClass" value="org.jahia.modules.modulemanager.impl.OperationProcessorJob" />
+                <property name="group" value="Modules" />
+                <property name="description" value="Processes open operations for module management" />
+            </bean>
+        </property>
+        <property name="jobDelay" value="${jahia.moduleManager.operationProcessor.delay:2000}"/>
     </bean>
     
     <bean id="NodeOperationProcessor" class="org.jahia.modules.modulemanager.impl.NodeOperationProcessor">
         <property name="clusterNodeInfo" ref="ClusterNodeInfo"/>
         <property name="persister" ref="ModuleInfoPersister"/>
         <property name="templateManagerService" ref="JahiaTemplateManagerService" />
+        <property name="scheduler" ref="ramScheduler"/>
+        <property name="jobDetail">
+            <bean class="org.springframework.scheduling.quartz.JobDetailBean">
+                <property name="name" value="NodeOperationProcessorJob" />
+                <property name="jobClass" value="org.jahia.modules.modulemanager.impl.NodeOperationProcessorJob" />
+                <property name="group" value="Modules" />
+                <property name="description" value="Processes node-level open operations for module management" />
+            </bean>
+        </property>
+        <property name="jobDelay" value="${jahia.moduleManager.nodeOperationProcessor.delay:2000}"/>
     </bean>
     
     <bean id="NodeOperationEventListener" class="org.jahia.modules.modulemanager.impl.NodeOperationEventListener">
@@ -61,5 +81,6 @@
         <property name="requiredPermission" value="adminTemplates" />
         <property name="jahiaTemplateManagerService" ref="JahiaTemplateManagerService" />
     </bean>
-    <bean class="org.jahia.modules.modulemanager.endpoint.ModuleManagerApplicationContext"></bean>
+    
+    <bean class="org.jahia.modules.modulemanager.endpoint.ModuleManagerApplicationContext"/>
 </beans>
