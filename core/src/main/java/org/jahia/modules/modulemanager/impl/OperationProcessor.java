@@ -69,7 +69,6 @@
  */
 package org.jahia.modules.modulemanager.impl;
 
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -82,17 +81,10 @@ import org.jahia.modules.modulemanager.ModuleManagementException;
 import org.jahia.modules.modulemanager.model.ClusterNode;
 import org.jahia.modules.modulemanager.model.NodeOperation;
 import org.jahia.modules.modulemanager.model.Operation;
-import org.jahia.modules.modulemanager.persistence.ModuleInfoPersister;
 import org.jahia.modules.modulemanager.persistence.ModuleInfoPersister.OCMCallback;
 import org.jahia.services.content.JCRContentUtils;
-import org.jahia.services.scheduler.BackgroundJob;
-import org.quartz.JobDetail;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.SimpleTrigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 
 /**
  * Module global operation processor, that is responsible for controlling the operation lifecycle and creating corresponding cluster-node
@@ -100,47 +92,9 @@ import org.springframework.beans.factory.InitializingBean;
  * 
  * @author Sergiy Shyrkov
  */
-public class OperationProcessor implements InitializingBean {
+public class OperationProcessor extends BaseOperationProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(OperationProcessor.class);
-
-    /**
-     * Creates an instance of the job trigger with the specified fire delay.
-     * 
-     * @param jobDetail the job details object
-     * @param delay
-     *            the delay in milliseconds to fire the job
-     * @return an instance of the job trigger with the specified fire delay
-     */
-    static SimpleTrigger createJobTrigger(JobDetail jobDetail, long delay) {
-        SimpleTrigger trigger = new SimpleTrigger(jobDetail.getName() + "Trigger-" + BackgroundJob.idGen.nextIdentifier(), jobDetail.getGroup(),
-                delay > 0 ? new Date(System.currentTimeMillis() + delay) : new Date(), null, 0, 0);
-        trigger.setJobName(jobDetail.getName());
-        trigger.setJobGroup(jobDetail.getGroup());
-        
-        return trigger;
-    }
-
-    private long jobDelay = 2000;
-
-    private JobDetail jobDetail;
-
-    private ModuleInfoPersister persister;
-
-    private Scheduler scheduler;
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        jobDetail.getJobDataMap().put("operationProcessor", this);
-
-        logger.info("Scheduling module operation processing job");
-        try {
-            scheduler.deleteJob(jobDetail.getName(), jobDetail.getGroup());
-            scheduler.scheduleJob(jobDetail, createJobTrigger(jobDetail, 0));
-        } catch (SchedulerException e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
 
     private NodeOperation createNodeOperation(Operation op, ClusterNode cn, ObjectContentManager ocm)
             throws PathNotFoundException, RepositoryException {
@@ -193,18 +147,6 @@ public class OperationProcessor implements InitializingBean {
     }
 
     /**
-     * Processes all available open operations.
-     * 
-     * @throws ModuleManagementException
-     *             in case of an error
-     */
-    public void process() {
-        while (processSingleOperation()) {
-            // perform processing of all available open operations
-        }
-    }
-
-    /**
      * Checks for the next open operation and starts it by changing its state and creating corresponding cluster node level operations.
      * 
      * @return <code>true</code> in case an open operation was started; <code>false</code> if no open operation are found or if there is
@@ -212,7 +154,7 @@ public class OperationProcessor implements InitializingBean {
      * @throws ModuleManagementException
      *             in case of an error
      */
-    private boolean processSingleOperation() throws ModuleManagementException {
+    protected boolean processSingleOperation() throws ModuleManagementException {
         boolean processed = false;
         logger.debug("Checking for available module operations");
         try {
@@ -237,34 +179,6 @@ public class OperationProcessor implements InitializingBean {
         }
 
         return processed;
-    }
-
-    /**
-     * Sets the background job delay interval in milliseconds.
-     * 
-     * @param jobDelay
-     *            the background job delay interval in milliseconds
-     */
-    public void setJobDelay(long jobDelay) {
-        this.jobDelay = jobDelay;
-    }
-
-    public void setJobDetail(JobDetail jobDetail) {
-        this.jobDetail = jobDetail;
-    }
-
-    /**
-     * Injects an instance of the persistence service.
-     * 
-     * @param persister
-     *            an instance of the persistence service
-     */
-    public void setPersister(ModuleInfoPersister persister) {
-        this.persister = persister;
-    }
-
-    public void setScheduler(Scheduler scheduler) {
-        this.scheduler = scheduler;
     }
 
     /**
@@ -312,16 +226,5 @@ public class OperationProcessor implements InitializingBean {
             }
 
         });
-    }
-
-    /**
-     * Schedule a background task for operation processing.
-     */
-    private void tryLater() {
-        try {
-            scheduler.scheduleJob(createJobTrigger(jobDetail, jobDelay));
-        } catch (SchedulerException e) {
-            throw new ModuleManagementException(e);
-        }
     }
 }

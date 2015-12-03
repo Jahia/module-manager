@@ -85,26 +85,21 @@ import org.jahia.modules.modulemanager.model.ClusterNodeInfo;
 import org.jahia.modules.modulemanager.model.NodeBundle;
 import org.jahia.modules.modulemanager.model.NodeOperation;
 import org.jahia.modules.modulemanager.model.Operation;
-import org.jahia.modules.modulemanager.persistence.ModuleInfoPersister;
 import org.jahia.modules.modulemanager.persistence.ModuleInfoPersister.OCMCallback;
 import org.jahia.osgi.BundleUtils;
 import org.jahia.osgi.FrameworkService;
 import org.jahia.services.templates.JahiaTemplateManagerService;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
-import org.quartz.JobDetail;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 
 /**
  * Cluster node level operation processor, that is responsible for executing module operations on the current cluster node.
  * 
  * @author Sergiy Shyrkov
  */
-public class NodeOperationProcessor implements InitializingBean {
+public class NodeOperationProcessor extends BaseOperationProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(NodeOperationProcessor.class);
 
@@ -112,31 +107,10 @@ public class NodeOperationProcessor implements InitializingBean {
 
     private String clusterNodePath;
 
-    private long jobDelay = 2000;
-
-    private JobDetail jobDetail;
-
     private String operationLogPath;
-
-    private ModuleInfoPersister persister;
-
-    private Scheduler scheduler;
 
     private JahiaTemplateManagerService templateManagerService;
     
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        jobDetail.getJobDataMap().put("nodeOperationProcessor", this);
-
-        logger.info("Scheduling node-level module operation processing job");
-        try {
-            scheduler.deleteJob(jobDetail.getName(), jobDetail.getGroup());
-            scheduler.scheduleJob(jobDetail, OperationProcessor.createJobTrigger(jobDetail, 0));
-        } catch (SchedulerException e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
-
     /**
      * Performs the check if the operation can be started or not, which is based on the dependencies of it.
      * 
@@ -299,18 +273,6 @@ public class NodeOperationProcessor implements InitializingBean {
     }
 
     /**
-     * Processes all available open node-level operations.
-     * 
-     * @throws ModuleManagementException
-     *             in case of an error
-     */
-    public void process() {
-        while (processSingleOperation()) {
-            // perform processing of all available open operations
-        }
-    }
-
-    /**
      * Starts the operation by changing its state and processing the required action.
      * 
      * @param op
@@ -370,7 +332,7 @@ public class NodeOperationProcessor implements InitializingBean {
      * @throws ModuleManagementException
      *             in case of an error
      */
-    public boolean processSingleOperation() throws ModuleManagementException {
+    protected boolean processSingleOperation() throws ModuleManagementException {
         boolean processed = false;
         logger.debug("Checking for available node-level module operations");
         try {
@@ -406,28 +368,6 @@ public class NodeOperationProcessor implements InitializingBean {
         operationLogPath = clusterNodeInfo != null ? clusterNodePath + "/operationLog/" : null;
     }
 
-    public void setJobDelay(long jobDelay) {
-        this.jobDelay = jobDelay;
-    }
-
-    public void setJobDetail(JobDetail jobDetail) {
-        this.jobDetail = jobDetail;
-    }
-
-    /**
-     * Injects an instance of the persistence service.
-     * 
-     * @param persister
-     *            an instance of the persistence service
-     */
-    public void setPersister(ModuleInfoPersister persister) {
-        this.persister = persister;
-    }
-
-    public void setScheduler(Scheduler scheduler) {
-        this.scheduler = scheduler;
-    }
-
     /**
      * Injects an instance of the template management service.
      * 
@@ -436,16 +376,5 @@ public class NodeOperationProcessor implements InitializingBean {
      */
     public void setTemplateManagerService(JahiaTemplateManagerService templateManagerService) {
         this.templateManagerService = templateManagerService;
-    }
-
-    /**
-     * Schedule a background task for operation processing.
-     */
-    private void tryLater() {
-        try {
-            scheduler.scheduleJob(OperationProcessor.createJobTrigger(jobDetail, jobDelay));
-        } catch (SchedulerException e) {
-            throw new ModuleManagementException(e);
-        }
     }
 }

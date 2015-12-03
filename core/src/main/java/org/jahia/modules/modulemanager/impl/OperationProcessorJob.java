@@ -70,12 +70,13 @@
 package org.jahia.modules.modulemanager.impl;
 
 import org.jahia.services.scheduler.BackgroundJob;
+import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Background task that performs processing of the global bundle operations.
+ * Background task that performs processing of the module operations.
  * 
  * @author Sergiy Shyrkov
  */
@@ -85,11 +86,16 @@ public class OperationProcessorJob extends BackgroundJob {
 
     @Override
     public void executeJahiaJob(JobExecutionContext jobExecutionContext) throws Exception {
-        logger.info("Executing module operation processing job...");
         long start = System.currentTimeMillis();
 
-        ((OperationProcessor) jobExecutionContext.getJobDetail().getJobDataMap().get("operationProcessor")).process();
+        JobDetail jobDetail = jobExecutionContext.getJobDetail();
+        String jobName = jobDetail.getName();
 
-        logger.info("Done executing module operation processing job in {} ms", System.currentTimeMillis() - start);
+        logger.info("Executing module operation processing job {}...", jobName);
+
+        ((BaseOperationProcessor) jobDetail.getJobDataMap().get("operationProcessor")).process();
+
+        logger.info("Done executing module operation processing job {} in {} ms", jobName,
+                System.currentTimeMillis() - start);
     }
 }
