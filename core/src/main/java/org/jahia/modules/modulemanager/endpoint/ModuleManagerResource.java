@@ -20,7 +20,6 @@ import org.jahia.modules.modulemanager.ModuleManager;
 import org.jahia.modules.modulemanager.OperationResult;
 import org.jahia.modules.modulemanager.exception.MissingBundleKeyValueException;
 import org.jahia.modules.modulemanager.exception.ModuleDeploymentException;
-import org.jahia.modules.modulemanager.payload.OperationResultImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
@@ -125,8 +124,7 @@ public class ModuleManagerResource implements ModuleManagerSpi {
     
     log.debug("Stoping bundle {} on nodes {}", new Object[] {bundleKey, nodeSet});
     try{
-      getModuleManager().stop(bundleKey, nodeSet);
-      OperationResult result = OperationResultImpl.SUCCESS;
+      OperationResult result = getModuleManager().stop(bundleKey, nodeSet);
       return Response.ok(result).build();      
     } catch(ModuleManagementException mmEx){
       log.error("Error while stoping module.", mmEx);
