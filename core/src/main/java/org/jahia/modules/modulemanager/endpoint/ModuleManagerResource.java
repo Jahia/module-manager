@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.jahia.modules.modulemanager.endpoint;
 
 import java.io.File;
@@ -30,6 +27,8 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
 /**
+ * The REST service implementation for module manager API.
+ * 
  * @author bdjiba
  */
 public class ModuleManagerResource implements ModuleManagerSpi {
@@ -64,11 +63,6 @@ public class ModuleManagerResource implements ModuleManagerSpi {
     }
   }
 
-  ///
-  
-  /* (non-Javadoc)
-   * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#install(java.io.InputStream, org.glassfish.jersey.media.multipart.FormDataContentDisposition, org.glassfish.jersey.media.multipart.FormDataBodyPart, java.util.Set<java.lang.String>)
-   */
   @Override
   public Response install(InputStream bundleFileInputStream, FormDataContentDisposition fileDisposition, FormDataBodyPart fileBodyPart, Set<String> nodeSet) throws ModuleDeploymentException {
     if(bundleFileInputStream == null || fileDisposition == null || StringUtils.isEmpty(fileDisposition.getFileName())) {
@@ -93,15 +87,10 @@ public class ModuleManagerResource implements ModuleManagerSpi {
         } catch(IOException ioex){
           log.trace("Unable to clean installed bundle file", ioex);
         }
-        // FIXME: 
-        bundleResource = null;
       }
     }
   }
 
-  /* (non-Javadoc)
-   * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#uninstall(java.lang.String, java.util.Set<java.lang.String>)
-   */
   @Override
   public Response uninstall(String bundleKey, Set<String> nodeSet) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "uninstall");
@@ -117,9 +106,6 @@ public class ModuleManagerResource implements ModuleManagerSpi {
     }
   }
 
-  /* (non-Javadoc)
-   * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#start(java.lang.String, java.util.Set<java.lang.String>)
-   */
   @Override
   public Response start(String bundleKey, Set<String> nodeSet) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "start");
@@ -133,9 +119,6 @@ public class ModuleManagerResource implements ModuleManagerSpi {
     }
   }
 
-  /* (non-Javadoc)
-   * @see org.jahia.modules.modulemanager.spi.ModuleManagerSpi#stop(java.lang.String, java.util.Set<java.lang.String>)
-   */
   @Override
   public Response stop(String bundleKey, Set<String> nodeSet) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "stop");
@@ -164,8 +147,8 @@ public class ModuleManagerResource implements ModuleManagerSpi {
   }
 
   /**
-   * Spring bridge method to access to the module manager bean
-   * @return
+   * Spring bridge method to access to the module manager bean.
+   * @return an instance of the module manager service
    */
   private ModuleManager getModuleManager() {
       if (moduleManager == null) {
