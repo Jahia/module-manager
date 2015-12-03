@@ -81,7 +81,6 @@ import org.jahia.modules.modulemanager.ModuleManagementException;
 import org.jahia.modules.modulemanager.model.ClusterNode;
 import org.jahia.modules.modulemanager.model.NodeOperation;
 import org.jahia.modules.modulemanager.model.Operation;
-import org.jahia.modules.modulemanager.persistence.ModuleInfoPersister;
 import org.jahia.modules.modulemanager.persistence.ModuleInfoPersister.OCMCallback;
 import org.jahia.services.content.JCRContentUtils;
 import org.slf4j.Logger;
@@ -93,19 +92,18 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Sergiy Shyrkov
  */
-public class OperationProcessor {
+public class OperationProcessor extends BaseOperationProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(OperationProcessor.class);
-
-    private ModuleInfoPersister persister;
 
     private NodeOperation createNodeOperation(Operation op, ClusterNode cn, ObjectContentManager ocm)
             throws PathNotFoundException, RepositoryException {
         NodeOperation nodeOp = new NodeOperation();
-        nodeOp.setName(JCRContentUtils.findAvailableNodeName(ocm.getSession().getNode(cn.getPath() + "/operations"), op.getName()));
+        nodeOp.setName(JCRContentUtils.findAvailableNodeName(ocm.getSession().getNode(cn.getPath() + "/operations"),
+                op.getName()));
         nodeOp.setPath(cn.getPath() + "/operations/" + nodeOp.getName());
         nodeOp.setOperation(op);
-        
+
         return nodeOp;
     }
 
@@ -151,39 +149,36 @@ public class OperationProcessor {
     /**
      * Checks for the next open operation and starts it by changing its state and creating corresponding cluster node level operations.
      * 
+     * @return <code>true</code> in case an open operation was started; <code>false</code> if no open operation are found or if there is
+     *         another operation in progress already
      * @throws ModuleManagementException
      *             in case of an error
      */
-    public void process() throws ModuleManagementException {
+    protected boolean processSingleOperation() throws ModuleManagementException {
+        boolean processed = false;
         logger.debug("Checking for available module operations");
         try {
             Operation op = persister.getNextOperation();
             if (op == null) {
                 // no operations to be processed found -> return
                 logger.debug("No module operations to be processed found");
-                return;
-            }
-            if ("open".equals(op.getState())) {
+            } else if ("open".equals(op.getState())) {
                 // we can start the operation now
                 logger.info("Found open module operation to be started: {}", op);
                 long startTime = System.currentTimeMillis();
                 startOperation(op);
                 logger.info("Module operation {} processed in {} ms", op.getName(),
                         System.currentTimeMillis() - startTime);
+                processed = true;
+            } else {
+                // schedule processing
+                tryLater();
             }
         } catch (RepositoryException e) {
             throw new ModuleManagementException(e);
         }
-    }
 
-    /**
-     * Injects an instance of the persistence service.
-     * 
-     * @param persister
-     *            an instance of the persistence service
-     */
-    public void setPersister(ModuleInfoPersister persister) {
-        this.persister = persister;
+        return processed;
     }
 
     /**

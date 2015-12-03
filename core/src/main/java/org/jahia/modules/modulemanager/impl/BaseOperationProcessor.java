@@ -67,64 +67,119 @@
  *     If you are unsure which license is appropriate for your use,
  *     please contact the sales department at sales@jahia.com.
  */
-package org.jahia.modules.modulemanager.model;
+package org.jahia.modules.modulemanager.impl;
 
-import org.apache.jackrabbit.ocm.mapper.impl.annotation.Field;
+import java.util.Date;
+
+import org.jahia.modules.modulemanager.ModuleManagementException;
+import org.jahia.modules.modulemanager.persistence.ModuleInfoPersister;
+import org.jahia.services.scheduler.BackgroundJob;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.SimpleTrigger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Base class for operation data objects.
+ * Base class for module operation processors.
  * 
  * @author Sergiy Shyrkov
  */
-public abstract class BaseOperation extends BasePersistentObject {
+abstract class BaseOperationProcessor {
 
-    private static final long serialVersionUID = -4651648193497928439L;
+    private static final Logger logger = LoggerFactory.getLogger(BaseOperationProcessor.class);
 
-    private String info;
+    private long jobDelay = 2000;
 
-    private String state = "open";
+    private String jobGroup;
+
+    private String jobName;
+
+    protected ModuleInfoPersister persister;
+
+    private Scheduler scheduler;
 
     /**
-     * Initializes an instance of this class.
-     */
-    public BaseOperation() {
-        super();
-    }
-
-    /**
-     * Initializes an instance of this class.
+     * Creates an instance of the job trigger with the specified fire delay.
      * 
-     * @param name the name of the operation
+     * @param delay
+     *            the delay in milliseconds to fire the job
+     * @return an instance of the job trigger with the specified fire delay
      */
-    public BaseOperation(String name) {
-        super(name);
-    }
+    protected SimpleTrigger createJobTrigger(long delay) {
+        SimpleTrigger trigger = new SimpleTrigger(jobName + "Trigger-" + BackgroundJob.idGen.nextIdentifier(), jobGroup,
+                delay > 0 ? new Date(System.currentTimeMillis() + delay) : new Date(), null, 0, 0);
+        trigger.setJobName(jobName);
+        trigger.setJobGroup(jobGroup);
 
-    @Field(jcrName = "j:info")
-    public String getInfo() {
-        return info;
-    }
-
-    @Field(jcrName = "j:state")
-    public String getState() {
-        return state;
+        return trigger;
     }
 
     /**
-     * Returns <code>true</code> if the operation is completed; either successfully or failed, but there is no more processing possible.
+     * Processes all available open operations.
      * 
-     * @return <code>true</code> if the operation is completed; either successfully or failed, but there is no more processing possible
+     * @throws ModuleManagementException
+     *             in case of an error
      */
-    public boolean isCompleted() {
-        return state != null && ("successful".equals(state) || "failed".equals(state));
+    public void process() {
+        while (processSingleOperation()) {
+            // perform processing of all available open operations
+        }
     }
 
-    public void setInfo(String info) {
-        this.info = info;
+    /**
+     * Checks for the next open operation and processes it.
+     * 
+     * @return <code>true</code> in case an open operation was started or processed; <code>false</code> if no open operation are found or if
+     *         there is another operation in progress already
+     * @throws ModuleManagementException
+     *             in case of an error
+     */
+    protected abstract boolean processSingleOperation() throws ModuleManagementException;
+
+    /**
+     * Sets the background job delay interval in milliseconds.
+     * 
+     * @param jobDelay
+     *            the background job delay interval in milliseconds
+     */
+    public void setJobDelay(long jobDelay) {
+        this.jobDelay = jobDelay;
     }
 
-    public void setState(String state) {
-        this.state = state;
+    public void setJobGroup(String jobGroup) {
+        this.jobGroup = jobGroup;
     }
 
+    public void setJobName(String jobName) {
+        this.jobName = jobName;
+    }
+
+    /**
+     * Injects an instance of the persistence service.
+     * 
+     * @param persister
+     *            an instance of the persistence service
+     */
+    public void setPersister(ModuleInfoPersister persister) {
+        this.persister = persister;
+    }
+
+    public void setScheduler(Scheduler scheduler) {
+        this.scheduler = scheduler;
+    }
+
+    /**
+     * Schedule a background task for operation processing.
+     */
+    protected void tryLater() {
+        logger.debug("Scheduling background task for processing module operations in {}", jobDelay);
+        try {
+            if (scheduler.getTriggersOfJob(jobName, jobGroup).length <= 1) {
+                scheduler.scheduleJob(createJobTrigger(jobDelay));
+            }
+        } catch (SchedulerException e) {
+            throw new ModuleManagementException(e);
+        }
+    }
 }

@@ -67,64 +67,35 @@
  *     If you are unsure which license is appropriate for your use,
  *     please contact the sales department at sales@jahia.com.
  */
-package org.jahia.modules.modulemanager.model;
+package org.jahia.modules.modulemanager.impl;
 
-import org.apache.jackrabbit.ocm.mapper.impl.annotation.Field;
+import org.jahia.services.scheduler.BackgroundJob;
+import org.quartz.JobDetail;
+import org.quartz.JobExecutionContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Base class for operation data objects.
+ * Background task that performs processing of the module operations.
  * 
  * @author Sergiy Shyrkov
  */
-public abstract class BaseOperation extends BasePersistentObject {
+public class OperationProcessorJob extends BackgroundJob {
 
-    private static final long serialVersionUID = -4651648193497928439L;
+    private static final Logger logger = LoggerFactory.getLogger(OperationProcessorJob.class);
 
-    private String info;
+    @Override
+    public void executeJahiaJob(JobExecutionContext jobExecutionContext) throws Exception {
+        long start = System.currentTimeMillis();
 
-    private String state = "open";
+        JobDetail jobDetail = jobExecutionContext.getJobDetail();
+        String jobName = jobDetail.getName();
 
-    /**
-     * Initializes an instance of this class.
-     */
-    public BaseOperation() {
-        super();
+        logger.info("Executing module operation processing job {}...", jobName);
+
+        ((BaseOperationProcessor) jobDetail.getJobDataMap().get("operationProcessor")).process();
+
+        logger.info("Done executing module operation processing job {} in {} ms", jobName,
+                System.currentTimeMillis() - start);
     }
-
-    /**
-     * Initializes an instance of this class.
-     * 
-     * @param name the name of the operation
-     */
-    public BaseOperation(String name) {
-        super(name);
-    }
-
-    @Field(jcrName = "j:info")
-    public String getInfo() {
-        return info;
-    }
-
-    @Field(jcrName = "j:state")
-    public String getState() {
-        return state;
-    }
-
-    /**
-     * Returns <code>true</code> if the operation is completed; either successfully or failed, but there is no more processing possible.
-     * 
-     * @return <code>true</code> if the operation is completed; either successfully or failed, but there is no more processing possible
-     */
-    public boolean isCompleted() {
-        return state != null && ("successful".equals(state) || "failed".equals(state));
-    }
-
-    public void setInfo(String info) {
-        this.info = info;
-    }
-
-    public void setState(String state) {
-        this.state = state;
-    }
-
 }
