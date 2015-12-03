@@ -18,7 +18,9 @@
         <property name="bundleService" ref="BundleService"/>
     </bean>
     
-    <bean id="BundleService" class="org.jahia.modules.modulemanager.impl.BundleServiceImpl"/>
+    <bean id="BundleService" class="org.jahia.modules.modulemanager.impl.BundleServiceImpl">
+        <property name="felixProperties" ref="felixProperties"/>
+    </bean>
 
     <bean id="ModuleManager" class="org.jahia.modules.modulemanager.impl.ModuleManagerImpl">
         <property name="persister" ref="ModuleInfoPersister"/>

@@ -9,6 +9,7 @@ import java.net.URL;
 import java.security.DigestInputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.TreeMap;
 
 import javax.jcr.RepositoryException;
@@ -25,7 +26,6 @@ import org.jahia.modules.modulemanager.model.ClusterNode;
 import org.jahia.modules.modulemanager.model.ModuleManagement;
 import org.jahia.modules.modulemanager.model.NodeBundle;
 import org.jahia.osgi.BundleUtils;
-import org.jahia.services.SpringContextSingleton;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.slf4j.Logger;
@@ -47,6 +47,8 @@ public class BundleServiceImpl implements BundleContextAware {
      * bundle context
      */
     private BundleContext bundleContext;
+    
+    private Properties felixProperties; 
 
     /**
      * Get local bundles from Context
@@ -161,11 +163,10 @@ public class BundleServiceImpl implements BundleContextAware {
      *
      * @return list of archives
      */
-    private static BundleArchive[] getBundleArchives() throws Exception {
+    private BundleArchive[] getBundleArchives() throws Exception {
         BundleArchive[] result = null;
         Map<String, String> configMap = new HashMap<String, String>();
-        Map<String,String> felixProperties = (Map<String,String>) SpringContextSingleton.getBean("felixProperties");
-        configMap.put(Constants.FRAMEWORK_STORAGE, felixProperties.get(Constants.FRAMEWORK_STORAGE));
+        configMap.put(Constants.FRAMEWORK_STORAGE, felixProperties.getProperty(Constants.FRAMEWORK_STORAGE));
         configMap.put(BundleCache.CACHE_LOCKING_PROP, "false");
         BundleCache bundleCache = new BundleCache(new org.apache.felix.framework.Logger(), configMap);
         result = bundleCache.getArchives();
@@ -218,5 +219,9 @@ public class BundleServiceImpl implements BundleContextAware {
     @Override
     public void setBundleContext(BundleContext bundleContext) {
         this.bundleContext = bundleContext;
+    }
+
+    public void setFelixProperties(Properties felixProperties) {
+        this.felixProperties = felixProperties;
     }
 }
