@@ -24,7 +24,6 @@ import org.jahia.modules.modulemanager.OperationResult;
 import org.jahia.modules.modulemanager.exception.MissingBundleKeyValueException;
 import org.jahia.modules.modulemanager.exception.ModuleDeploymentException;
 import org.jahia.modules.modulemanager.payload.OperationResultImpl;
-import org.jahia.modules.modulemanager.spi.ModuleManagerSpi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
