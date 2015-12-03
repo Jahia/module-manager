@@ -72,7 +72,7 @@ package org.jahia.modules.modulemanager.model;
 import org.apache.jackrabbit.ocm.mapper.impl.annotation.Field;
 
 /**
- * TODO comment me
+ * Base class for operation data objects.
  * 
  * @author Sergiy Shyrkov
  */
@@ -94,7 +94,7 @@ public abstract class BaseOperation extends BasePersistentObject {
     /**
      * Initializes an instance of this class.
      * 
-     * @param name
+     * @param name the name of the operation
      */
     public BaseOperation(String name) {
         super(name);
