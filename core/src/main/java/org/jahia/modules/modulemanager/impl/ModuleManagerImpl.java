@@ -365,7 +365,6 @@ public class ModuleManagerImpl implements ModuleManager {
                 @Override
                 public Map<String, String>  doInOCM(ObjectContentManager ocm) {
                     Map<String, String> result = new HashMap<String,String>();
-                    Map<String, String> map = new HashMap<String,String>();
                     for (String targetNode : finalTargetNodes)
                     {
                         String path = "/module-management/nodes/" +targetNode+ "/bundles/" + bundleKey;
