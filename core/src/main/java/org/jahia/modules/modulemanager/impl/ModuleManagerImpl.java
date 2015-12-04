@@ -77,6 +77,7 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -91,7 +92,6 @@ import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -242,7 +242,7 @@ public class ModuleManagerImpl implements ModuleManager {
     }
 
     @Override
-    public OperationResult install(Resource bundleResource, Set<String> nodeSet) throws ModuleManagementException {
+    public OperationResult install(Resource bundleResource, String... nodes) throws ModuleManagementException {
 
         // save to a temporary file and create Bundle data object
         File tmp = null;
@@ -261,8 +261,7 @@ public class ModuleManagerImpl implements ModuleManager {
             }
 
             // store bundle in JCR and create operation node
-            String[] nodeIds = CollectionUtils.isEmpty(nodeSet) ? null : nodeSet.toArray(new String[0]);
-            doInstall(bundle, nodeIds);
+            doInstall(bundle, nodes);
 
             // notify the processor
             notifyOperationProcessor();
@@ -276,7 +275,6 @@ public class ModuleManagerImpl implements ModuleManager {
     }
 
     private void notifyOperationProcessor() {
-        // TODO move into a background job
         try {
             operationProcessor.process();
         } catch (ModuleManagementException e) {
@@ -293,7 +291,7 @@ public class ModuleManagerImpl implements ModuleManager {
     }
 
     @Override
-    public OperationResult start(String bundleKey, Set<String> nodeSet) {
+    public OperationResult start(String bundleKey, String... nodes) {
         try {
             doOperation(bundleKey, "start");
 
@@ -311,7 +309,7 @@ public class ModuleManagerImpl implements ModuleManager {
     }
 
     @Override
-    public OperationResult stop(String bundleKey, Set<String> nodeSet) {
+    public OperationResult stop(String bundleKey, String... nodes) {
         try {
             doOperation(bundleKey, "stop");
 
@@ -330,7 +328,7 @@ public class ModuleManagerImpl implements ModuleManager {
     }
 
     @Override
-    public OperationResult uninstall(String bundleKey, Set<String> nodeSet) {
+    public OperationResult uninstall(String bundleKey, String... nodes) {
         try {
             doOperation(bundleKey, "uninstall");
 
@@ -352,24 +350,22 @@ public class ModuleManagerImpl implements ModuleManager {
     }
 
     @Override
-    public BundleStateReport getBundleState(final String bundleKey, Set<String> targetNodes) throws ModuleDeploymentException {
-        if(targetNodes == null || targetNodes.isEmpty())
-        {
-            targetNodes = new HashSet<>();
-            targetNodes.add(clusterNodeInfo.getId());
-        }
+    public BundleStateReport getBundleState(final String bundleKey, String... targetNodes) throws ModuleDeploymentException {
+        final String[] finalTargetNodes = targetNodes == null || targetNodes.length == 0
+                ? new String[] { clusterNodeInfo.getId() } : targetNodes;
+
         Map<String, String> map = new HashMap<String,String>();
         try {
-            final Set<String> finalTargetNodes = targetNodes;
             map = persister.doExecute(new OCMCallback<Map<String, String>>() {
                 @Override
                 public Map<String, String>  doInOCM(ObjectContentManager ocm) {
                     Map<String, String> result = new HashMap<String,String>();
-                    for (String targetNode : finalTargetNodes)
-                    {
+                    for (String targetNode : finalTargetNodes) {
                         String path = "/module-management/nodes/" +targetNode+ "/bundles/" + bundleKey;
                         NodeBundle nodeBundle = (NodeBundle) ocm.getObject(NodeBundle.class, path);
-                        result.put(targetNode, nodeBundle.getState());
+                        if (nodeBundle != null) {
+                            result.put(targetNode, nodeBundle.getState());
+                        }
                     }
                     return result;
                 }
@@ -383,16 +379,15 @@ public class ModuleManagerImpl implements ModuleManager {
     }
 
     @Override
-    public Set<NodeStateReport> getNodesBundleStates(Set<String> targetNodes) throws ModuleDeploymentException {
-
-        if(targetNodes == null || targetNodes.isEmpty())
-        {
-            targetNodes = new HashSet<>();
-            targetNodes.add(clusterNodeInfo.getId());
+    public Set<NodeStateReport> getNodesBundleStates(String... targetNodes) throws ModuleDeploymentException {
+        final Set<String> finalTargetNodes = new HashSet<>();
+        if (targetNodes == null || targetNodes.length == 0) {
+            finalTargetNodes.add(clusterNodeInfo.getId());
+        } else {
+            finalTargetNodes.addAll(Arrays.asList(targetNodes));
         }
         Set<NodeStateReport> result = new HashSet<NodeStateReport>();
         try {
-            final Set<String> finalTargetNodes = targetNodes;
             result = persister.doExecute(new OCMCallback<Set<NodeStateReport>>() {
                 @Override
                 public Set<NodeStateReport> doInOCM(ObjectContentManager ocm) throws RepositoryException {

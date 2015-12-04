@@ -85,40 +85,40 @@ import org.springframework.core.io.Resource;
 public interface ModuleManager {
 
     /**
-     * Uninstall a bundle in a list of cluster nodes
-     * @param bundleResource bundll key to uninstall
-     * @param nodeSet set of cluster nodes id targeted by the install operation
+     * Install a bundle in a list of cluster nodes.
+     * @param bundleResource the resource, representing a bundle to install
+     * @param nodes set of cluster nodes id targeted by the install operation
      * @return the result of the install operation
      * @throws ModuleManagementException thrown exception is case of problems
      */
-    OperationResult install(Resource bundleResource, Set<String> nodeSet) throws ModuleManagementException;
+    OperationResult install(Resource bundleResource, String... nodes) throws ModuleManagementException;
 
     /**
-     * Start a bundle on a list of cluster nodes
+     * Start a bundle on a list of cluster nodes.
      * @param bundleKey bundle key to start
-     * @param nodeSet list of cluster nodes targeted by the start operation
-     * @return the result of the install operation
+     * @param nodes list of cluster nodes targeted by the start operation
+     * @return the result of the start operation
      * @throws ModuleManagementException thrown exception is case of problems
      */
-    OperationResult start(String bundleKey, Set<String> nodeSet) throws ModuleManagementException;
+    OperationResult start(String bundleKey, String... nodes) throws ModuleManagementException;
 
     /**
-     * Stop a bundle on a list of cluster nodes
+     * Stop a bundle on a list of cluster nodes.
      * @param bundleKey bundle key to stop
-     * @param nodeSet a set of cluster node id targeted by the uninstall operation
-     * @return the result of the install operation
+     * @param nodes a set of cluster node id targeted by the stop operation
+     * @return the result of the stop operation
      * @throws ModuleManagementException thrown exception is case of problems
      */
-    OperationResult stop(String bundleKey, Set<String> nodeSet) throws ModuleManagementException;
+    OperationResult stop(String bundleKey, String... nodes) throws ModuleManagementException;
 
     /**
-     * Uninstall a bundle on a list of cluster nodes
-     * @param bundleKey bunde key to uninstall
-     * @param nodeSet set of cluster nodes id targeted by the uninstall operation
+     * Uninstall a bundle on a list of cluster nodes.
+     * @param bundleKey bundle key to uninstall
+     * @param nodes set of cluster nodes id targeted by the uninstall operation
      * @return the result of the uninstall operation
      * @throws ModuleManagementException thrown exception is case of problems
      */
-    OperationResult uninstall(String bundleKey, Set<String> nodeSet) throws ModuleManagementException;
+    OperationResult uninstall(String bundleKey, String... nodes) throws ModuleManagementException;
 
     /**
      * Get the state report of a bundle in a list of target nodes
@@ -127,7 +127,7 @@ public interface ModuleManager {
      * @return  the state report of the bundle in the target nodes
      * @throws ModuleDeploymentException thrown exception
      */
-    BundleStateReport getBundleState(String bundleKey, Set<String> targetNodes) throws ModuleDeploymentException;
+    BundleStateReport getBundleState(String bundleKey, String... targetNodes) throws ModuleDeploymentException;
 
     /**
      * Get the state report of a list of Nodes including their own bundles
@@ -135,5 +135,5 @@ public interface ModuleManager {
      * @return  the state report of the bundle in the target nodes
      * @throws ModuleDeploymentException thrown exception
      */
-    Set<NodeStateReport> getNodesBundleStates(Set<String> targetNodes)  throws ModuleDeploymentException;
+    Set<NodeStateReport> getNodesBundleStates(String... targetNodes)  throws ModuleDeploymentException;
 }

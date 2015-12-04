@@ -3,5 +3,5 @@
 source ./common.sh
 #start bundle REST call
 echo Starting bundle $1...
-START_OUTPUT=`curl $CURL_OPTIONS --request POST $DX_SERVER_BASE_URL/$DX_MM_REST_PREFIX/$1/_start`
+START_OUTPUT=`curl $CURL_OPTIONS --data '$2' --request POST $DX_REST_URL/$1/_start`
 echo "Start result=$START_OUTPUT"

@@ -3,5 +3,5 @@
 source ./common.sh
 #get bundle state REST call
 echo Getting state for  bundle $1...
-STATE_OUTPUT=`curl $CURL_OPTIONS --request GET $DX_SERVER_BASE_URL/$DX_MM_REST_PREFIX/$1/_state`
+STATE_OUTPUT=`curl $CURL_OPTIONS --request GET $DX_REST_URL/$1/_state`
 echo "State result=$STATE_OUTPUT"

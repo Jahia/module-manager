@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Set;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -33,7 +32,11 @@ import org.springframework.core.io.Resource;
 public class ModuleManagerResource implements ModuleManagerSpi {
 
     private static final Logger log = LoggerFactory.getLogger(ModuleManagerResource.class);
-  
+    
+    private static String[] toArray(String nodes) {
+        return StringUtils.split(nodes, ", ");
+    }
+
     private ModuleManager moduleManager;
   
   private Resource getUploadedFileAsResource(InputStream uploadedFileIs, String filename) throws ModuleDeploymentException {
@@ -63,20 +66,16 @@ public class ModuleManagerResource implements ModuleManagerSpi {
   }
 
   @Override
-  public Response install(InputStream bundleFileInputStream, FormDataContentDisposition fileDisposition, FormDataBodyPart fileBodyPart, Set<String> nodeSet) throws ModuleDeploymentException {
+  public Response install(InputStream bundleFileInputStream, FormDataContentDisposition fileDisposition, FormDataBodyPart fileBodyPart, String nodes) throws ModuleDeploymentException {
     if(bundleFileInputStream == null || fileDisposition == null || StringUtils.isEmpty(fileDisposition.getFileName())) {
       throw new ModuleDeploymentException(Response.Status.BAD_REQUEST, "The bundle file could not be null");
     }
     
-    // INFO: fileBodyPart.getMediaType().getType() is always null use toSring() !!!
-    if(!StringUtils.equalsIgnoreCase("application/java-archive", fileBodyPart.getMediaType().toString())) {
-      throw new ModuleDeploymentException(Response.Status.BAD_REQUEST, "Expected bundle file should be java archive. Current is " + fileBodyPart.getMediaType().getType());
-    }
     Resource bundleResource = null;
     try{
-      log.debug("Installing bundle {} on nodes {}", new Object[] {fileDisposition.getFileName(), nodeSet});
+      log.debug("Installing bundle {} on nodes {}", fileDisposition.getFileName(), nodes);
       bundleResource = getUploadedFileAsResource(bundleFileInputStream, fileDisposition.getFileName());
-      OperationResult result = getModuleManager().install(bundleResource, nodeSet);
+      OperationResult result = getModuleManager().install(bundleResource, toArray(nodes));
       return Response.ok(result).build();
     }finally {
       if(bundleResource != null) {
@@ -91,13 +90,13 @@ public class ModuleManagerResource implements ModuleManagerSpi {
   }
 
   @Override
-  public Response uninstall(String bundleKey, Set<String> nodeSet) throws ModuleDeploymentException {
+  public Response uninstall(String bundleKey, String nodes) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "uninstall");
-    log.debug("Uninstall bundle {}  on nodes {}", new Object[] {bundleKey, nodeSet});
+    log.debug("Uninstall bundle {}  on nodes {}", bundleKey, nodes);
     if(log.isDebugEnabled()) {
     }
     try{
-      OperationResult result = getModuleManager().uninstall(bundleKey, nodeSet);
+      OperationResult result = getModuleManager().uninstall(bundleKey, toArray(nodes));
       return Response.ok(result).build();      
     } catch(ModuleManagementException mmEx){
       log.error("Error while uninstalling module " + bundleKey, mmEx);
@@ -106,11 +105,11 @@ public class ModuleManagerResource implements ModuleManagerSpi {
   }
 
   @Override
-  public Response start(String bundleKey, Set<String> nodeSet) throws ModuleDeploymentException {
+  public Response start(String bundleKey, String nodes) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "start");
-    log.debug("Start bundle {} on nodes {}", new Object[] {bundleKey, nodeSet});
+    log.debug("Start bundle {} on nodes {}", bundleKey, nodes);
     try{
-      OperationResult result = getModuleManager().start(bundleKey, nodeSet);
+      OperationResult result = getModuleManager().start(bundleKey, toArray(nodes));
       return Response.ok(result).build();      
     } catch(ModuleManagementException mmEx){
       log.error("Error while starting bundle " + bundleKey, mmEx);
@@ -119,12 +118,12 @@ public class ModuleManagerResource implements ModuleManagerSpi {
   }
 
   @Override
-  public Response stop(String bundleKey, Set<String> nodeSet) throws ModuleDeploymentException {
+  public Response stop(String bundleKey, String nodes) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "stop");
     
-    log.debug("Stoping bundle {} on nodes {}", new Object[] {bundleKey, nodeSet});
+    log.debug("Stoping bundle {} on nodes {}", bundleKey, nodes);
     try{
-      OperationResult result = getModuleManager().stop(bundleKey, nodeSet);
+      OperationResult result = getModuleManager().stop(bundleKey, toArray(nodes));
       return Response.ok(result).build();      
     } catch(ModuleManagementException mmEx){
       log.error("Error while stoping module.", mmEx);
@@ -133,15 +132,15 @@ public class ModuleManagerResource implements ModuleManagerSpi {
   }
 
   @Override
-  public Response getBundleState(String bundleUniqueKey, Set<String> nodeSet) throws ModuleDeploymentException {
+  public Response getBundleState(String bundleUniqueKey, String nodes) throws ModuleDeploymentException {
     log.debug("Get bundle state {}",  bundleUniqueKey);
-    return Response.ok(getModuleManager().getBundleState(bundleUniqueKey, null)).build();
+    return Response.ok(getModuleManager().getBundleState(bundleUniqueKey, toArray(nodes))).build();
   }
 
   @Override
-  public Response getNodesBundleStates(Set<String> nodeSet) throws ModuleDeploymentException {
-    log.debug("Get bundle states for nodes {}", nodeSet);
-    return Response.ok(getModuleManager().getNodesBundleStates(nodeSet)).build();
+  public Response getNodesBundleStates(String nodes) throws ModuleDeploymentException {
+    log.debug("Get bundle states for nodes {}", nodes);
+    return Response.ok(getModuleManager().getNodesBundleStates(toArray(nodes))).build();
   }
 
   /**
