@@ -5,3 +5,6 @@ source ./common.sh
 echo Deploying bundle file $1...
 DEPLOY_OUTPUT=`curl $CURL_OPTIONS --form bundleFile=@$1 $DX_REST_URL/_install`
 echo "Deploy result=$DEPLOY_OUTPUT"
+#check the operation status
+OPERATION_UUID=`echo $DEPLOY_OUTPUT | python -m json.tool | sed -n -e '/"operationId":/ s/^.*"\(.*\)".*/\1/p'`
+checkOperation $OPERATION_UUID
