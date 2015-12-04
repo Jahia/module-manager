@@ -72,8 +72,10 @@ public class ModuleManagerResource implements ModuleManagerSpi {
     }
     
     Resource bundleResource = null;
-    try{
+    if(log.isDebugEnabled()) {
       log.debug("Installing bundle {} on nodes {}", fileDisposition.getFileName(), nodes);
+    }
+    try{
       bundleResource = getUploadedFileAsResource(bundleFileInputStream, fileDisposition.getFileName());
       OperationResult result = getModuleManager().install(bundleResource, toArray(nodes));
       return Response.ok(result).build();
@@ -92,8 +94,8 @@ public class ModuleManagerResource implements ModuleManagerSpi {
   @Override
   public Response uninstall(String bundleKey, String nodes) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "uninstall");
-    log.debug("Uninstall bundle {}  on nodes {}", bundleKey, nodes);
     if(log.isDebugEnabled()) {
+      log.debug("Uninstall bundle {}  on nodes {}", bundleKey, nodes);
     }
     try{
       OperationResult result = getModuleManager().uninstall(bundleKey, toArray(nodes));
@@ -107,7 +109,9 @@ public class ModuleManagerResource implements ModuleManagerSpi {
   @Override
   public Response start(String bundleKey, String nodes) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "start");
-    log.debug("Start bundle {} on nodes {}", bundleKey, nodes);
+    if(log.isDebugEnabled()) {
+      log.debug("Start bundle {} on nodes {}", bundleKey, nodes);
+    }
     try{
       OperationResult result = getModuleManager().start(bundleKey, toArray(nodes));
       return Response.ok(result).build();      
@@ -120,8 +124,9 @@ public class ModuleManagerResource implements ModuleManagerSpi {
   @Override
   public Response stop(String bundleKey, String nodes) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "stop");
-    
-    log.debug("Stoping bundle {} on nodes {}", bundleKey, nodes);
+    if(log.isDebugEnabled()) {
+      log.debug("Stoping bundle {} on nodes {}", bundleKey, nodes);
+    }
     try{
       OperationResult result = getModuleManager().stop(bundleKey, toArray(nodes));
       return Response.ok(result).build();      
@@ -133,13 +138,17 @@ public class ModuleManagerResource implements ModuleManagerSpi {
 
   @Override
   public Response getBundleState(String bundleUniqueKey, String nodes) throws ModuleDeploymentException {
-    log.debug("Get bundle state {}",  bundleUniqueKey);
+    if(log.isDebugEnabled()) {
+      log.debug("Get bundle state {}", bundleUniqueKey);
+    }
     return Response.ok(getModuleManager().getBundleState(bundleUniqueKey, toArray(nodes))).build();
   }
 
   @Override
   public Response getNodesBundleStates(String nodes) throws ModuleDeploymentException {
-    log.debug("Get bundle states for nodes {}", nodes);
+    if(log.isDebugEnabled()) {
+      log.debug("Get bundle states for nodes {}", nodes);
+    }
     return Response.ok(getModuleManager().getNodesBundleStates(toArray(nodes))).build();
   }
 
