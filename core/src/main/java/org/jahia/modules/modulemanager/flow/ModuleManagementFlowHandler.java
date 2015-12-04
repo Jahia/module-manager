@@ -283,7 +283,7 @@ public class ModuleManagementFlowHandler implements Serializable {
             JahiaTemplatesPackage currentVersion = templateManagerService.getTemplatePackageRegistry().lookupById(bundle.getSymbolicName());
             if (allVersions.size() == 1 ||
                     ((settingsBean.isDevelopmentMode() && currentVersion != null && BundleUtils.getModule(bundle).getVersion().compareTo(currentVersion.getVersion()) > 0))) {
-                moduleManager.start(bundleKey[0] + "-" + bundleKey[1], null);
+                moduleManager.start(bundleKey[0] + "-" + bundleKey[1]);
                 context.addMessage(new MessageBuilder().source("moduleFile")
                         .code("serverSettings.manageModules.install.uploadedAndStarted")
                         .args(new String[]{bundle.getSymbolicName(), bundle.getVersion().toString()})
@@ -329,7 +329,7 @@ public class ModuleManagementFlowHandler implements Serializable {
 
             // TODO check for missing dependencies before installing?
             
-            moduleManager.install(new FileSystemResource(file), null);
+            moduleManager.install(new FileSystemResource(file));
             
             return new String[] { symbolicName, version };
             
@@ -753,7 +753,7 @@ public class ModuleManagementFlowHandler implements Serializable {
             }
         }
         if (missingDependencies.isEmpty()) {
-            moduleManager.start(moduleId + "-" + version, null);
+            moduleManager.start(moduleId + "-" + version);
             requestContext.getExternalContext().getSessionMap().put("moduleHasBeenStarted", moduleId);
         } else {
             requestContext.getExternalContext().getSessionMap().put("missingDependencies", missingDependencies);
@@ -762,13 +762,13 @@ public class ModuleManagementFlowHandler implements Serializable {
     }
 
     public void uninstallModule(String moduleId, String moduleVersion, RequestContext requestContext) throws RepositoryException, BundleException {
-        moduleManager.uninstall(moduleId + "-" + moduleVersion, null);
+        moduleManager.uninstall(moduleId + "-" + moduleVersion);
     }
     
     public void stopModule(String moduleId, RequestContext requestContext) throws RepositoryException, BundleException {
         // templateManagerService.stopModule(moduleId);
         JahiaTemplatesPackage module = templatePackageRegistry.lookupById(moduleId);
-        OperationResult opResult = moduleManager.stop(module.getId() + "-" + module.getVersion(), null);
+        OperationResult opResult = moduleManager.stop(module.getId() + "-" + module.getVersion());
         // TODO: check operation result
         if (!opResult.isSuccess()) {
             requestContext.getMessageContext()
