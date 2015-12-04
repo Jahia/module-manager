@@ -102,4 +102,15 @@ public interface ModuleManagerSpi {
   @Path("/_states")
   @Produces(MediaType.APPLICATION_JSON)
   Response getNodesBundleStates(@QueryParam("nodes") @DefaultValue("") String nodes) throws ModuleDeploymentException;
+
+  /**
+   * Get the state of a specific operation by its uuid
+   * @param operationUuid the uuid of the operation
+   * @return the operation infos
+   * @throws ModuleDeploymentException thrown exception
+   */
+  @GET
+  @Path("operation/{operationUuid}/_state")
+  @Produces(MediaType.APPLICATION_JSON)
+  Response getOperationState(@PathParam(value="operationUuid") String operationUuid)throws ModuleDeploymentException;
 }

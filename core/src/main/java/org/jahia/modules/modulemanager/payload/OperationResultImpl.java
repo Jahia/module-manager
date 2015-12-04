@@ -107,6 +107,8 @@ public class OperationResultImpl implements OperationResult {
 
     private boolean success;
 
+    private String operationId;
+
     /**
      * Initializes an instance of this class.
      * 
@@ -114,12 +116,25 @@ public class OperationResultImpl implements OperationResult {
      *            <code>true</code> if an operation was successful
      * @param message
      *            description of the operation result
-     * @param exception
-     *            an error cause in case of a failure
      */
     public OperationResultImpl(boolean success, String message) {
         this.success = success;
         this.message = message;
+    }
+
+    /**
+     * Initializes an instance of this class.
+     *
+     * @param success
+     *            <code>true</code> if an operation was successful
+     * @param message
+     *            description of the operation result
+     * @param operationId Operation Identifier
+     */
+    public OperationResultImpl(boolean success, String message,String operationId) {
+        this.success = success;
+        this.message = message;
+        this.operationId = operationId;
     }
 
 
@@ -137,6 +152,14 @@ public class OperationResultImpl implements OperationResult {
 
     public void setSuccess(boolean success) {
         this.success = success;
+    }
+
+    public String getOperationId() {
+        return operationId;
+    }
+
+    public void setOperationId(String operationId) {
+        this.operationId = operationId;
     }
 
     @Override

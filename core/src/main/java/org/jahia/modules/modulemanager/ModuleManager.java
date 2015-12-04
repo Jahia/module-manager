@@ -74,6 +74,7 @@ import java.util.Set;
 import org.jahia.modules.modulemanager.exception.ModuleDeploymentException;
 import org.jahia.modules.modulemanager.payload.BundleStateReport;
 import org.jahia.modules.modulemanager.payload.NodeStateReport;
+import org.jahia.modules.modulemanager.payload.OperationState;
 import org.springframework.core.io.Resource;
 
 /**
@@ -136,4 +137,6 @@ public interface ModuleManager {
      * @throws ModuleDeploymentException thrown exception
      */
     Set<NodeStateReport> getNodesBundleStates(String... targetNodes)  throws ModuleDeploymentException;
+
+    OperationState getOperationState(String operationUuid) throws ModuleDeploymentException ;
 }

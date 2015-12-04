@@ -110,6 +110,7 @@ import org.jahia.modules.modulemanager.model.Operation;
 import org.jahia.modules.modulemanager.payload.BundleStateReport;
 import org.jahia.modules.modulemanager.payload.NodeStateReport;
 import org.jahia.modules.modulemanager.payload.OperationResultImpl;
+import org.jahia.modules.modulemanager.payload.OperationState;
 import org.jahia.modules.modulemanager.persistence.ModuleInfoPersister;
 import org.jahia.modules.modulemanager.persistence.ModuleInfoPersister.OCMCallback;
 import org.jahia.services.content.JCRContentUtils;
@@ -187,10 +188,11 @@ public class ModuleManagerImpl implements ModuleManager {
 
     private ModuleInfoPersister persister;
 
-    private void doInstall(final Bundle bundle, final String[] nodeIds) throws RepositoryException {
-        persister.doExecute(new OCMCallback<Object>() {
+    private Operation doInstall(final Bundle bundle, final String[] nodeIds) throws RepositoryException {
+        Operation result = persister.doExecute(new OCMCallback<Operation>() {
             @Override
-            public Object doInOCM(ObjectContentManager ocm) throws RepositoryException {
+            public Operation doInOCM(ObjectContentManager ocm) throws RepositoryException {
+
                 // store the bundle in JCR
                 if (ocm.objectExists(bundle.getPath())) {
                     ocm.update(bundle);
@@ -199,29 +201,31 @@ public class ModuleManagerImpl implements ModuleManager {
                 }
 
                 // create the operation node
-                doOperation(bundle.getName(), "install", ocm);
+                Operation result = doOperation(bundle.getName(), "install", ocm);
 
                 ocm.save();
 
-                return null;
+                return result;
             }
         });
+        return result;
     }
 
-    private void doOperation(final String bundleKey, final String operationAction) throws RepositoryException {
-        persister.doExecute(new OCMCallback<Object>() {
+    private Operation doOperation(final String bundleKey, final String operationAction) throws RepositoryException {
+        Operation result = persister.doExecute(new OCMCallback<Operation>() {
             @Override
-            public Object doInOCM(ObjectContentManager ocm) throws RepositoryException {
-                doOperation(bundleKey, operationAction, ocm);
+            public Operation doInOCM(ObjectContentManager ocm) throws RepositoryException {
+                Operation result = doOperation(bundleKey, operationAction, ocm);
                 ocm.save();
 
-                return null;
+                return result;
             }
 
         });
+        return result;
     }
 
-    private void doOperation(final String bundleKey, final String operationAction, ObjectContentManager ocm)
+    private Operation doOperation(final String bundleKey, final String operationAction, ObjectContentManager ocm)
             throws RepositoryException {
         // store the bundle in JCR
         String path = "/module-management/bundles/" + bundleKey;
@@ -239,11 +243,12 @@ public class ModuleManagerImpl implements ModuleManager {
                 operationAction + "-" + bundle.getName()));
         op.setPath("/module-management/operations/" + op.getName());
         ocm.insert(op);
+        return op;
     }
 
     @Override
     public OperationResult install(Resource bundleResource, String... nodes) throws ModuleManagementException {
-
+        Operation operation = null;
         // save to a temporary file and create Bundle data object
         File tmp = null;
         try {
@@ -261,7 +266,7 @@ public class ModuleManagerImpl implements ModuleManager {
             }
 
             // store bundle in JCR and create operation node
-            doInstall(bundle, nodes);
+            operation = doInstall(bundle, nodes);
 
             // notify the processor
             notifyOperationProcessor();
@@ -271,7 +276,8 @@ public class ModuleManagerImpl implements ModuleManager {
             FileUtils.deleteQuietly(tmp);
         }
 
-        return OperationResultImpl.SUCCESS;
+        OperationResult result = new  OperationResultImpl(true, "Operation successfully performed",operation.getIdentifier());
+        return result;
     }
 
     private void notifyOperationProcessor() {
@@ -292,8 +298,9 @@ public class ModuleManagerImpl implements ModuleManager {
 
     @Override
     public OperationResult start(String bundleKey, String... nodes) {
+        Operation operation = null;
         try {
-            doOperation(bundleKey, "start");
+            operation = doOperation(bundleKey, "start");
 
             // notify the processor
             notifyOperationProcessor();
@@ -304,14 +311,15 @@ public class ModuleManagerImpl implements ModuleManager {
         } catch (RepositoryException e) {
             throw new ModuleManagementException(e);
         }
-
-        return OperationResultImpl.SUCCESS;
+        OperationResult result = new  OperationResultImpl(true, "Operation successfully performed",operation.getIdentifier());
+        return result;
     }
 
     @Override
     public OperationResult stop(String bundleKey, String... nodes) {
+        Operation operation = null;
         try {
-            doOperation(bundleKey, "stop");
+            operation = doOperation(bundleKey, "stop");
 
             // notify the processor
             notifyOperationProcessor();
@@ -324,13 +332,15 @@ public class ModuleManagerImpl implements ModuleManager {
             throw new ModuleManagementException(e);
         }
 
-        return OperationResultImpl.SUCCESS;
+        OperationResult result = new  OperationResultImpl(true, "Operation successfully performed",operation.getIdentifier());
+        return result;
     }
 
     @Override
     public OperationResult uninstall(String bundleKey, String... nodes) {
+        Operation operation = null;
         try {
-            doOperation(bundleKey, "uninstall");
+            operation =doOperation(bundleKey, "uninstall");
 
             // notify the processor
             notifyOperationProcessor();
@@ -342,7 +352,8 @@ public class ModuleManagerImpl implements ModuleManager {
             throw new ModuleManagementException(e);
         }
 
-        return OperationResultImpl.SUCCESS;
+        OperationResult result = new  OperationResultImpl(true, "Operation successfully performed",operation.getIdentifier());
+        return result;
     }
 
     public void setClusterNodeInfo(ClusterNodeInfo clusterNodeInfo) {
@@ -421,6 +432,22 @@ public class ModuleManagerImpl implements ModuleManager {
             throw new ModuleManagementException(e);
         }
         return result;
+    }
+
+    @Override
+    public OperationState getOperationState(final String operationId) throws ModuleDeploymentException {
+        try {
+            Operation operation = persister.doExecute(new OCMCallback<Operation>() {
+                @Override
+                public Operation doInOCM(ObjectContentManager ocm) throws RepositoryException {
+                    return (Operation) ocm.getObjectByUuid(operationId);
+                }
+            });
+            OperationState operationState = new OperationState(operation.getName(),operation.getAction(),operation.getInfo(),operation.getState(),operation.isCompleted());
+            return operationState;
+        } catch (RepositoryException e) {
+            throw new ModuleManagementException(e);
+        }
     }
 
 
