@@ -33,10 +33,6 @@ public class ModuleManagerResource implements ModuleManagerSpi {
 
     private static final Logger log = LoggerFactory.getLogger(ModuleManagerResource.class);
     
-    private static String[] toArray(String nodes) {
-        return StringUtils.split(nodes, ", ");
-    }
-
     private ModuleManager moduleManager;
   
   private Resource getUploadedFileAsResource(InputStream uploadedFileIs, String filename) throws ModuleDeploymentException {
@@ -66,7 +62,7 @@ public class ModuleManagerResource implements ModuleManagerSpi {
   }
 
   @Override
-  public Response install(InputStream bundleFileInputStream, FormDataContentDisposition fileDisposition, FormDataBodyPart fileBodyPart, String nodes) throws ModuleDeploymentException {
+  public Response install(InputStream bundleFileInputStream, FormDataContentDisposition fileDisposition, FormDataBodyPart fileBodyPart, ClusterNodesMultiPartParam nodes) throws ModuleDeploymentException {
     if(bundleFileInputStream == null || fileDisposition == null || StringUtils.isEmpty(fileDisposition.getFileName())) {
       throw new ModuleDeploymentException(Response.Status.BAD_REQUEST, "The bundle file could not be null");
     }
@@ -77,7 +73,7 @@ public class ModuleManagerResource implements ModuleManagerSpi {
     }
     try{
       bundleResource = getUploadedFileAsResource(bundleFileInputStream, fileDisposition.getFileName());
-      OperationResult result = getModuleManager().install(bundleResource, toArray(nodes));
+      OperationResult result = getModuleManager().install(bundleResource, nodes.getNodeIds());
       return Response.ok(result).build();
     }finally {
       if(bundleResource != null) {
@@ -92,13 +88,13 @@ public class ModuleManagerResource implements ModuleManagerSpi {
   }
 
   @Override
-  public Response uninstall(String bundleKey, String nodes) throws ModuleDeploymentException {
+  public Response uninstall(String bundleKey, ClusterNodesParam nodes) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "uninstall");
     if(log.isDebugEnabled()) {
       log.debug("Uninstall bundle {}  on nodes {}", bundleKey, nodes);
     }
     try{
-      OperationResult result = getModuleManager().uninstall(bundleKey, toArray(nodes));
+      OperationResult result = getModuleManager().uninstall(bundleKey, nodes.getNodeIds());
       return Response.ok(result).build();      
     } catch(ModuleManagementException mmEx){
       log.error("Error while uninstalling module " + bundleKey, mmEx);
@@ -107,13 +103,15 @@ public class ModuleManagerResource implements ModuleManagerSpi {
   }
 
   @Override
-  public Response start(String bundleKey, String nodes) throws ModuleDeploymentException {
+  public Response start(String bundleKey, ClusterNodesParam nodes) throws ModuleDeploymentException {
+    //public Response start(String bundleKey, String nodes) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "start");
     if(log.isDebugEnabled()) {
       log.debug("Start bundle {} on nodes {}", bundleKey, nodes);
     }
+    
     try{
-      OperationResult result = getModuleManager().start(bundleKey, toArray(nodes));
+      OperationResult result = getModuleManager().start(bundleKey, nodes.getNodeIds());
       return Response.ok(result).build();      
     } catch(ModuleManagementException mmEx){
       log.error("Error while starting bundle " + bundleKey, mmEx);
@@ -122,13 +120,13 @@ public class ModuleManagerResource implements ModuleManagerSpi {
   }
 
   @Override
-  public Response stop(String bundleKey, String nodes) throws ModuleDeploymentException {
+  public Response stop(String bundleKey, ClusterNodesParam nodes) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "stop");
     if(log.isDebugEnabled()) {
       log.debug("Stoping bundle {} on nodes {}", bundleKey, nodes);
     }
     try{
-      OperationResult result = getModuleManager().stop(bundleKey, toArray(nodes));
+      OperationResult result = getModuleManager().stop(bundleKey, nodes.getNodeIds());
       return Response.ok(result).build();      
     } catch(ModuleManagementException mmEx){
       log.error("Error while stoping module.", mmEx);
@@ -137,19 +135,19 @@ public class ModuleManagerResource implements ModuleManagerSpi {
   }
 
   @Override
-  public Response getBundleState(String bundleUniqueKey, String nodes) throws ModuleDeploymentException {
+  public Response getBundleState(String bundleUniqueKey, ClusterNodesParam nodes) throws ModuleDeploymentException {
     if(log.isDebugEnabled()) {
       log.debug("Get bundle state {}", bundleUniqueKey);
     }
-    return Response.ok(getModuleManager().getBundleState(bundleUniqueKey, toArray(nodes))).build();
+    return Response.ok(getModuleManager().getBundleState(bundleUniqueKey, nodes.getNodeIds())).build();
   }
 
   @Override
-  public Response getNodesBundleStates(String nodes) throws ModuleDeploymentException {
+  public Response getNodesBundleStates(ClusterNodesParam nodes) throws ModuleDeploymentException {
     if(log.isDebugEnabled()) {
       log.debug("Get bundle states for nodes {}", nodes);
     }
-    return Response.ok(getModuleManager().getNodesBundleStates(toArray(nodes))).build();
+    return Response.ok(getModuleManager().getNodesBundleStates(nodes.getNodeIds())).build();
   }
 
   @Override

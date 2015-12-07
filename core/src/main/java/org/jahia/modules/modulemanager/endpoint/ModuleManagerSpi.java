@@ -2,15 +2,14 @@ package org.jahia.modules.modulemanager.endpoint;
 
 import java.io.InputStream;
 
+import javax.inject.Inject;
+import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -41,8 +40,8 @@ public interface ModuleManagerSpi {
    */
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
-  @Path("/_install")
-  Response install(@FormDataParam("bundleFile") InputStream bundleFileInputStream, @FormDataParam("bundleFile") FormDataContentDisposition fileDisposition, @FormDataParam("bundleFile") FormDataBodyPart fileBodyPart, @FormDataParam("nodes") @DefaultValue("") String nodes) throws ModuleDeploymentException;
+  @Path("/_install{nodes : (/.*)?}")
+  Response install(@FormDataParam("bundleFile") InputStream bundleFileInputStream, @FormDataParam("bundleFile") FormDataContentDisposition fileDisposition, @FormDataParam("bundleFile") FormDataBodyPart fileBodyPart, @BeanParam ClusterNodesMultiPartParam nodes) throws ModuleDeploymentException;
   
   /**
    * Uninstall the bundle on the target nodes or all the nodes if nodes param is missing.
@@ -52,8 +51,8 @@ public interface ModuleManagerSpi {
    * @throws ModuleDeploymentException
    */
   @POST
-  @Path("/{bundleKey}/_uninstall")
-  Response uninstall(@PathParam(value="bundleKey") String bundleKey, @FormParam("nodes") @DefaultValue("") String nodes) throws ModuleDeploymentException;
+  @Path("/{bundleKey}/_uninstall{nodes : (/.*)?}")
+  Response uninstall(@PathParam(value="bundleKey") String bundleKey, @BeanParam ClusterNodesParam nodes) throws ModuleDeploymentException;
   
   /**
    * Starts the bundle which key is specified in the URL.
@@ -64,8 +63,9 @@ public interface ModuleManagerSpi {
    * @throws ModuleDeploymentException
    */
   @POST
-  @Path("/{bundleKey}/_start")
-  Response start(@PathParam(value="bundleKey") String bundleKey,  @FormParam("nodes") @DefaultValue("") String nodes) throws ModuleDeploymentException;
+  @Path("/{bundleKey}/_start{nodes : (/.*)?}")
+  @Inject
+  Response start(@PathParam(value="bundleKey") String bundleKey,  @BeanParam ClusterNodesParam nodes) throws ModuleDeploymentException;
   
   /**
    * Stops the bundle that key is given in parameters on the specified nodes.
@@ -76,8 +76,8 @@ public interface ModuleManagerSpi {
    * @throws ModuleDeploymentException
    */
   @POST
-  @Path("/{bundleKey}/_stop")
-  Response stop(@PathParam(value="bundleKey") String bundleKey,  @FormParam("nodes") @DefaultValue("") String nodes) throws ModuleDeploymentException;
+  @Path("/{bundleKey}/_stop{nodes : (/.*)?}")
+  Response stop(@PathParam(value="bundleKey") String bundleKey,  @BeanParam ClusterNodesParam nodes) throws ModuleDeploymentException;
 
 
   /**
@@ -88,9 +88,9 @@ public interface ModuleManagerSpi {
    * @throws ModuleDeploymentException thrown exception
    */
   @GET
-  @Path("/{bundleUniqueKey}/_state")
+  @Path("/{bundleUniqueKey}/_state{nodes : (/.*)?}")
   @Produces(MediaType.APPLICATION_JSON)
-  Response getBundleState(@PathParam("bundleUniqueKey") String bundleUniqueKey, @QueryParam("nodes") @DefaultValue("") String nodes) throws ModuleDeploymentException;
+  Response getBundleState(@PathParam("bundleUniqueKey") String bundleUniqueKey, @BeanParam ClusterNodesParam nodes) throws ModuleDeploymentException;
 
   /**
    * Get the state report of a list of nodes including their own bundles.
@@ -99,9 +99,9 @@ public interface ModuleManagerSpi {
    * @throws ModuleDeploymentException thrown exception
    */
   @GET
-  @Path("/_states")
+  @Path("/_states{nodes : (/.*)?}")
   @Produces(MediaType.APPLICATION_JSON)
-  Response getNodesBundleStates(@QueryParam("nodes") @DefaultValue("") String nodes) throws ModuleDeploymentException;
+  Response getNodesBundleStates(@BeanParam ClusterNodesParam nodes) throws ModuleDeploymentException;
 
   /**
    * Get the state of a specific operation by its uuid
