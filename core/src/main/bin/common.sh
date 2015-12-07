@@ -8,6 +8,7 @@ CURL_OPTIONS="-s --user $DX_USERNAME:$DX_PASSWORD"
 
 # check the operation status in JCR
 function checkOperation() {
+if [ $1 != "operationId" ]; then
 TRANSACTIONS_OUTPUT=
 TRIES=0
 echo "Waiting for transaction to end."
@@ -23,5 +24,8 @@ if [ "$TRIES" -eq "$WAIT_TRIES" ]; then
 echo Reached maximum number of wait tries, transaction did not complete successfully after elapsed time!
 else
 echo Transaction completed successfully after $TRIES trie"(s)"
+fi
+else
+echo Cannot get the operation Id
 fi
 }
