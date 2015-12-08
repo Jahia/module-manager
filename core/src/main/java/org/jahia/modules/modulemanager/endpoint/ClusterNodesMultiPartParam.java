@@ -13,11 +13,9 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 /**
  * Aggregate multipart request parameters to wrap multiple type of nodes parameter usage to call the service.
  * @author bdjiba
- *
  */
 @XmlType
 public class ClusterNodesMultiPartParam {
-  //private static final Logger log = LoggerFactory.getLogger(ClusterNodesMultiPartParam.class);
   @FormDataParam("nodes")
   private Set<String> nodesAsMultiPartParameterSet;
   
@@ -29,6 +27,7 @@ public class ClusterNodesMultiPartParam {
   }
 
   /**
+   * Gets the set of node ids from the the multipart form
    * @return the nodesAsMultiPartParameterSet
    */
   public Set<String> getNodesAsMultiPartParameterSet() {
@@ -36,6 +35,7 @@ public class ClusterNodesMultiPartParam {
   }
 
   /**
+   * Sets the node ids set
    * @param nodesAsMultiPartParameterSet the nodesAsMultiPartParameterSet to set
    */
   public void setNodesAsMultiPartParameterSet(Set<String> nodesAsMultiPartParameterSet) {
@@ -43,7 +43,8 @@ public class ClusterNodesMultiPartParam {
   }
 
   /**
-   * @return the nodesAsPathParameter
+   * Gets the node ids value with comma-separated
+   * @return the nodesAsPathParameter or null
    */
   public String getNodesAsPathParameter() {
     return nodesAsPathParameter;
@@ -51,6 +52,7 @@ public class ClusterNodesMultiPartParam {
 
 
   /**
+   * Sets the node ids value with comma-separated
    * @param v the nodesAsPathParameter to set
    */
   public void setNodesAsPathParameter(String v) {
@@ -59,8 +61,8 @@ public class ClusterNodesMultiPartParam {
 
 
   /**
-   * Get the node set value
-   * @return
+   * Gets the node set value
+   * @return the set of node or null
    */
   public Set<String> getNodesSet(){
     // 1 - resolve from path
@@ -72,8 +74,8 @@ public class ClusterNodesMultiPartParam {
   }
   
   /**
-   * Get the node ids
-   * @return
+   * Get the array of node ids
+   * @return the node ids or null
    */
   public String[] getNodeIds() {
     Set<String> nodeSet = getNodesSet();

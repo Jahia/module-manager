@@ -34,7 +34,7 @@ public interface ModuleManagerSpi {
    * @param bundleFileInputStream the bundle to deploy file input stream
    * @param fileDisposition the file content disposition
    * @param fileBodyPart the file body part
-   * @param nodes the comma-separated string with list of the target nodes
+   * @param nodes the cluster node identifiers the target nodes
    * @return the operation result
    * @throws ModuleDeploymentException when the operation fails
    */
@@ -46,7 +46,7 @@ public interface ModuleManagerSpi {
   /**
    * Uninstall the bundle on the target nodes or all the nodes if nodes param is missing.
    * @param bundleKey the target bundle
-   * @param nodes the comma-separated string with list of the nodes to uninstall the bundle
+   * @param nodes the list of the nodes to uninstall the bundle
    * @return the operation result
    * @throws ModuleDeploymentException
    */
@@ -58,7 +58,7 @@ public interface ModuleManagerSpi {
    * Starts the bundle which key is specified in the URL.
    * If the nodes part is missing, start it on all nodes.
    * @param bundleKey the bundle key
-   * @param nodes the comma-separated string with list of the target nodes
+   * @param nodes the list of cluster node identifier of the target nodes
    * @return the operation status
    * @throws ModuleDeploymentException
    */
@@ -71,7 +71,7 @@ public interface ModuleManagerSpi {
    * Stops the bundle that key is given in parameters on the specified nodes.
    * If the node's ids are missing then will stop it on all existing nodes. 
    * @param bundleKey the bundle key
-   * @param nodes the comma-separated string with list of the target nodes
+   * @param nodes the list of the target cluster nodes
    * @return the operation result or an error in case when the bundle is missing
    * @throws ModuleDeploymentException
    */
@@ -83,8 +83,8 @@ public interface ModuleManagerSpi {
   /**
    * Get the state report of a bundle in a list of target nodes.
    * @param bundleUniqueKey bundle key
-   * @param nodes the comma-separated string with list of the target nodes
-   * @return  the state report of the bundle in the target nodes
+   * @param nodes the list of the target cluster nodes
+   * @return the state report of the bundle in the target nodes
    * @throws ModuleDeploymentException thrown exception
    */
   @GET
@@ -94,8 +94,8 @@ public interface ModuleManagerSpi {
 
   /**
    * Get the state report of a list of nodes including their own bundles.
-   * @param nodes the comma-separated string with list of the target nodes
-   * @return  the state report of the bundle in the target nodes
+   * @param nodes the list of the target cluster nodes
+   * @return the state report of the bundle in the target nodes
    * @throws ModuleDeploymentException thrown exception
    */
   @GET

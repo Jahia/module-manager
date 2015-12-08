@@ -1,6 +1,5 @@
 package org.jahia.modules.modulemanager.endpoint;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import javax.ws.rs.DefaultValue;
@@ -34,6 +33,7 @@ public class ClusterNodesParam {
 
 
   /**
+   * Gets the node ids value from the URL path
    * @return the nodesAsPathParameter
    */
   public String getNodesAsPathParameter() {
@@ -41,6 +41,7 @@ public class ClusterNodesParam {
   }
 
   /**
+   * Sets the node ids specified in the path URL
    * @param nodesAsPathParameter the nodesAsPathParameter to set
    */
   public void setNodesAsPathParameter(String nodesAsPathParameter) {
@@ -49,6 +50,7 @@ public class ClusterNodesParam {
 
 
   /**
+   * Gets the set of node ids from the query parameter
    * @return the nodesAsQueryParameter
    */
   public Set<String> getNodesAsQueryParameter() {
@@ -58,6 +60,7 @@ public class ClusterNodesParam {
 
 
   /**
+   * Sets the set of node id from the query parameter.
    * @param nodesAsQueryParameter the nodesAsQueryParameter to set
    */
   public void setNodesAsQueryParameter(Set<String> nodesAsQueryParameter) {
@@ -67,6 +70,7 @@ public class ClusterNodesParam {
 
 
   /**
+   * Get the node id set
    * @return the nodesAsFormParameter
    */
   public Set<String> getNodesAsFormParameter() {
@@ -76,14 +80,19 @@ public class ClusterNodesParam {
 
 
   /**
+   * Set the set of the node ids from the form
    * @param nodesAsFormParameter the nodesAsFormParameter to set
    */
   public void setNodesAsFormParameter(Set<String> nodesAsFormParameter) {
     this.nodesAsFormParameter = nodesAsFormParameter;
   }
   
-  // FIXME: priority path, query and form
+  /**
+   * Get the set of the given node identifier.
+   * @return the node set otherwise returns null
+   */
   public Set<String> getNodesSet(){
+    // FIXME: priority path, query and form
     // 1 - resolve from path
     if(StringUtils.isNotBlank(nodesAsPathParameter)) {
       return new CommaSeparatedNodeIdValue(nodesAsPathParameter);
@@ -100,6 +109,10 @@ public class ClusterNodesParam {
     return null;
   }
   
+  /**
+   * Gets the node identifier array.
+   * @return the node ids or null if empty
+   */
   public String[] getNodeIds() {
     Set<String> nodeSet = getNodesSet();
     if(CollectionUtils.isEmpty(nodeSet)) {
