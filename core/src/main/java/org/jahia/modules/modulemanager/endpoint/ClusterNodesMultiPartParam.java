@@ -3,6 +3,7 @@ package org.jahia.modules.modulemanager.endpoint;
 import java.util.Set;
 
 import javax.ws.rs.DefaultValue;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.PathParam;
 import javax.xml.bind.annotation.XmlType;
 
@@ -20,6 +21,12 @@ public class ClusterNodesMultiPartParam {
   private Set<String> nodesAsMultiPartParameterSet;
   
   private String nodesAsPathParameter;
+  
+  // inject the request preferred language if provided
+  // otherwise use EN as default user language
+  @DefaultValue("en")
+  @HeaderParam("Accept-Language")
+  private String acceptedLanguage;
   
   
   public ClusterNodesMultiPartParam( @DefaultValue("") @PathParam("nodes") String v) {
@@ -86,6 +93,20 @@ public class ClusterNodesMultiPartParam {
   }
   
   
+  /**
+   * @return the acceptedLanguage
+   */
+  public String getAcceptedLanguage() {
+    return acceptedLanguage;
+  }
+
+  /**
+   * @param acceptedLanguage the acceptedLanguage to set
+   */
+  public void setAcceptedLanguage(String acceptedLanguage) {
+    this.acceptedLanguage = acceptedLanguage;
+  }
+
   @Override
   public String toString() {
     // for serialization

@@ -187,7 +187,7 @@ public class ModuleManagerImpl implements ModuleManager {
     private OperationProcessor operationProcessor;
 
     private ModuleInfoPersister persister;
-
+    
     private Operation doInstall(final Bundle bundle, final String[] nodeIds) throws RepositoryException {
         Operation result = persister.doExecute(new OCMCallback<Operation>() {
             @Override
@@ -260,11 +260,11 @@ public class ModuleManagerImpl implements ModuleManager {
             }
 
             // check, if we have this bundle already installed
+            // FIXME: and what about forceUpdate ??
             if (persister.alreadyInstalled(bundle.getName(), bundle.getChecksum())) {
                 // we have exactly same bundle installed already -> refuse
                 return OperationResultImpl.ALREADY_INSTALLED;
             }
-
             // store bundle in JCR and create operation node
             operation = doInstall(bundle, nodes);
 
@@ -449,6 +449,4 @@ public class ModuleManagerImpl implements ModuleManager {
             throw new ModuleManagementException(e);
         }
     }
-
-
 }

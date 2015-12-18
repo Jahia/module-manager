@@ -69,8 +69,13 @@
  */
 package org.jahia.modules.modulemanager.payload;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.jahia.modules.modulemanager.OperationResult;
 
@@ -85,13 +90,13 @@ public class OperationResultImpl implements OperationResult {
     /**
      * Indicates the fact that the same bundle is already installed.
      */
-    public static final OperationResultImpl ALREADY_INSTALLED = new OperationResultImpl(false,
+    public static final OperationResult ALREADY_INSTALLED = new OperationResultImpl(false,
             "The bundle is already installed");
 
     /**
      * Represents a successfully fulfilled or submitted operation.
      */
-    public static final OperationResultImpl NOT_VALID_BUNDLE = new OperationResultImpl(false,
+    public static final OperationResult NOT_VALID_BUNDLE = new OperationResultImpl(false,
             "Submitted bundle is either not a valid OSGi bundle or has no required manifest headers"
                     + " Bundle-SymbolicName and Implementation-Version/Bundle-Version");
 
@@ -100,14 +105,22 @@ public class OperationResultImpl implements OperationResult {
     /**
      * Represents a successfully fulfilled or submitted operation.
      */
-    public static final OperationResultImpl SUCCESS = new OperationResultImpl(true, "Operation successfully performed");
+    public static final OperationResult SUCCESS = new OperationResultImpl(true, "Operation successfully performed");
+    
+    /**
+     * Represents a default failed operation.
+     */
+    public static final OperationResult FAIL = new OperationResultImpl(false, "Operation failed");
 
 
-    private String message;
+    private String[] messages;
 
     private boolean success;
 
     private String operationId;
+    
+    @XmlAttribute(name="bundleInfos", required = false)
+    private List<BundleInfo> bundleInfoList;
 
     /**
      * Initializes an instance of this class.
@@ -119,7 +132,7 @@ public class OperationResultImpl implements OperationResult {
      */
     public OperationResultImpl(boolean success, String message) {
         this.success = success;
-        this.message = message;
+        this.messages = new String[] { message };
     }
 
     /**
@@ -132,22 +145,25 @@ public class OperationResultImpl implements OperationResult {
      * @param operationId Operation Identifier
      */
     public OperationResultImpl(boolean success, String message,String operationId) {
-        this.success = success;
-        this.message = message;
+        this(success, message);
         this.operationId = operationId;
     }
 
 
-    public String getMessage() {
-        return message;
+    public String[] getMessages() {
+        return messages;
     }
 
     public boolean isSuccess() {
         return success;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setMessages(String message) {
+        this.messages = new String[] { message };
+    }
+    
+    public void setMessages(String[] v) {
+      this.messages = v;
     }
 
     public void setSuccess(boolean success) {
@@ -162,9 +178,34 @@ public class OperationResultImpl implements OperationResult {
         this.operationId = operationId;
     }
 
+    /**
+     * Get the bundle info list
+     * @return the bundleInfoList the list of info
+     */
+    public List<BundleInfo> getBundleInfoList() {
+      if(bundleInfoList == null) {
+        bundleInfoList = new ArrayList<BundleInfo>();
+      }
+      return bundleInfoList;
+    }
+
+    /**
+     * Set the bundle info list
+     * @param bundleInfoList the bundleInfoList to set
+     */
+    public void setBundleInfoList(List<BundleInfo> bundleInfoList) {
+      this.bundleInfoList = bundleInfoList;
+    }
+
+    @Override
+    public void addMessage(String v) {
+      messages = (String[])ArrayUtils.add(messages, v);
+    }
+    
     @Override
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
     }
+
 
 }

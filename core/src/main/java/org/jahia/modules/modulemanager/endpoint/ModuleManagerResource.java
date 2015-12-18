@@ -16,11 +16,18 @@ import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.jahia.modules.modulemanager.ModuleManagementException;
 import org.jahia.modules.modulemanager.ModuleManager;
+import org.jahia.modules.modulemanager.ModuleManagerHelper;
 import org.jahia.modules.modulemanager.OperationResult;
 import org.jahia.modules.modulemanager.exception.MissingBundleKeyValueException;
 import org.jahia.modules.modulemanager.exception.ModuleDeploymentException;
+import org.jahia.services.templates.JahiaTemplateManagerService;
+import org.jahia.utils.i18n.ModuleMessageSource;
+import org.osgi.framework.BundleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.binding.message.DefaultMessageContext;
+import org.springframework.binding.message.MessageContext;
+import org.springframework.context.MessageSource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
@@ -30,17 +37,20 @@ import org.springframework.core.io.Resource;
  * @author bdjiba
  */
 public class ModuleManagerResource implements ModuleManagerSpi {
-
-    private static final Logger log = LoggerFactory.getLogger(ModuleManagerResource.class);
-    
-    private ModuleManager moduleManager;
+  
+  private static final Logger log = LoggerFactory.getLogger(ModuleManagerResource.class);
+  
+  private ModuleManager moduleManager;
+  //private TemplatePackageRegistry templatePackageRegistry;
+  private JahiaTemplateManagerService templateManagerService;
+  private MessageSource messageSource;
   
   private Resource getUploadedFileAsResource(InputStream uploadedFileIs, String filename) throws ModuleDeploymentException {
     // create internal temp file
     FileOutputStream fileOutputStream = null;
     File tempFile = null;
     try {
-        tempFile = File.createTempFile(FilenameUtils.getBaseName(filename), FilenameUtils.getExtension(filename), FileUtils.getTempDirectory());
+        tempFile = File.createTempFile(FilenameUtils.getBaseName(filename) + "-", "." + FilenameUtils.getExtension(filename), FileUtils.getTempDirectory());
         fileOutputStream = new FileOutputStream(tempFile);
         IOUtils.copy(uploadedFileIs, fileOutputStream);
     } catch (IOException ioex) {
@@ -73,8 +83,20 @@ public class ModuleManagerResource implements ModuleManagerSpi {
     }
     try{
       bundleResource = getUploadedFileAsResource(bundleFileInputStream, fileDisposition.getFileName());
-      OperationResult result = getModuleManager().install(bundleResource, nodes.getNodeIds());
-      return Response.ok(result).build();
+      MessageContext context = new DefaultMessageContext(getMessageSource());
+      
+      try {
+        // FIXME: from rest, always force the update then we will not check force update
+        OperationResult result = ModuleManagerHelper.installBundles(getModuleManager(), bundleResource.getFile(), context, fileDisposition.getFileName(), true, getJahiaTemplateManagerService(), getJahiaTemplateManagerService().getTemplatePackageRegistry());
+        
+        return Response.ok(result).build();
+    } catch (IOException ex) {
+      log.error("IOE error when installing module.", ex);
+      throw new ModuleDeploymentException(Response.Status.EXPECTATION_FAILED, ex.getMessage(), ex);
+    } catch (BundleException bex) {
+      log.error("Bundle Exception occured during module installation.", bex.getMessage(), bex);
+      throw new ModuleDeploymentException(Response.Status.EXPECTATION_FAILED, bex.getMessage(), bex);
+    }
     }finally {
       if(bundleResource != null) {
         try{
@@ -104,7 +126,6 @@ public class ModuleManagerResource implements ModuleManagerSpi {
 
   @Override
   public Response start(String bundleKey, ClusterNodesParam nodes) throws ModuleDeploymentException {
-    //public Response start(String bundleKey, String nodes) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "start");
     if(log.isDebugEnabled()) {
       log.debug("Start bundle {} on nodes {}", bundleKey, nodes);
@@ -167,6 +188,20 @@ public class ModuleManagerResource implements ModuleManagerSpi {
           moduleManager = ModuleManagerApplicationContext.getBean("ModuleManager", ModuleManager.class);
       }
       return moduleManager;
+  }
+  
+  private JahiaTemplateManagerService getJahiaTemplateManagerService(){
+    if(templateManagerService == null) {
+      templateManagerService = ModuleManagerApplicationContext.getBean("JahiaTemplateManagerService", JahiaTemplateManagerService.class);
+    }
+    return templateManagerService;
+  }
+  
+  private MessageSource getMessageSource() {
+    if(messageSource == null) {
+      messageSource = ModuleManagerApplicationContext.getBean("messageSource", ModuleMessageSource.class);
+    }
+    return messageSource;
   }
 
 }

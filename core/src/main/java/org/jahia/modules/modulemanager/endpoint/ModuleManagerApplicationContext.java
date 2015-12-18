@@ -3,6 +3,7 @@
  */
 package org.jahia.modules.modulemanager.endpoint;
 
+import org.jahia.services.SpringContextSingleton;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -12,7 +13,7 @@ import org.springframework.context.ApplicationContextAware;
  * @author bdjiba
  *
  */
-public class ModuleManagerApplicationContext implements ApplicationContextAware {
+public class ModuleManagerApplicationContext implements ApplicationContextAware  {
 
   private static ApplicationContext context;
   
@@ -34,7 +35,7 @@ public class ModuleManagerApplicationContext implements ApplicationContextAware 
    * @throws BeansException the exception thrown when the bean is not found in the context
    */
   public static Object getBean(String beanName) throws BeansException {
-    return context.getBean(beanName);
+    return lookupBean(beanName, null);
   }
   
   /**
@@ -45,7 +46,22 @@ public class ModuleManagerApplicationContext implements ApplicationContextAware 
    * @throws BeansException the exception thrown when the bean is not found in the context
    */
   public static <T> T getBean(String beanName, Class<T> beanType) throws BeansException {
-    return context.getBean(beanName, beanType);
+    return lookupBean(beanName, beanType);
+  }
+
+  // Reprensentes a bridge that access to Servlet container spring beans
+  private static <T> T lookupBeanFromServletContext(String beanName, Class<T> beanType) throws BeansException {
+    return (T) SpringContextSingleton.getBean(beanName);
+  }
+  
+  // lookup a bean in the bundle spring context and if not found, get from servlet container
+  private static <T> T lookupBean(String beanName, Class<T> beanType) throws BeansException {
+    try {
+      T targetBean = context.getBean(beanName, beanType);
+      return targetBean;
+    } catch(BeansException bex) {
+      return lookupBeanFromServletContext(beanName, beanType);
+    }
   }
   
 }
