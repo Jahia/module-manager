@@ -112,5 +112,11 @@ public interface ModuleManager {
      */
     Set<NodeStateReport> getNodesBundleStates(String... targetNodes)  throws ModuleDeploymentException;
 
+    /**
+     * Get the operation state by its uuid
+     * @param operationUuid operation uuid
+     * @return operation state
+     * @throws ModuleDeploymentException thrown exception
+     */
     OperationState getOperationState(String operationUuid) throws ModuleDeploymentException ;
 }
