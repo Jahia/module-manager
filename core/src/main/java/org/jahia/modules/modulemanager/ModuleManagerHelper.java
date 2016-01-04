@@ -76,7 +76,6 @@ import org.springframework.binding.message.MessageBuilder;
 import org.springframework.binding.message.MessageContext;
 import org.springframework.binding.message.Severity;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 
 /**
  * @author bdjiba
@@ -185,9 +184,15 @@ public class ModuleManagerHelper {
     return isSameIdExists;
   }
   
-  // Validation scope
-  // Check if the module already exists
-  // This method is called when there the forceUpdate flag is set to false
+  /**
+   * Check if a module with the given symbolic name and the version exists.<br />
+   * This method is called when there the forceUpdate flag is set to false during installation
+   * @param templatePackageRegistry the package registry
+   * @param symbolicName the module symbolic name
+   * @param version the module version
+   * @param context the spring message context
+   * @return true if the module exists otherwise return false.
+   */
   public static boolean isModuleExists(TemplatePackageRegistry templatePackageRegistry, String symbolicName, String version, MessageContext context){
     boolean isModuleExists = false;
     Set<ModuleVersion> aPackage = templatePackageRegistry.getAvailableVersionsForModule(symbolicName);
@@ -218,7 +223,12 @@ public class ModuleManagerHelper {
     return manifest;
   }
   
-  // retrive the symbolic name from the target manifest if not empty
+  /**
+   * Get the given manifest symbolic name.
+   * It looks for the Bundle-SymbolicName attribute and if missing root-folder attributes is used
+   * @param manifest the manifest
+   * @return the manifest symbolic name
+   */
   public static String getManifestSymbolicName(Manifest manifest) {
     if(manifest == null) {
       return null;
@@ -230,7 +240,12 @@ public class ModuleManagerHelper {
     return symbolicName;
   }
   
-  // retrieve the implementation version from the given manifest if not null
+  /**
+   * Gets the Implementation-Version attribute value from the manifest.
+   * It returns null if the manifest is null
+   * @param manifest the bundle manifest
+   * @return the version or null if missing
+   */
   public static String getManifestVestion(Manifest manifest) {
     if(manifest != null) {
       return manifest.getMainAttributes().getValue("Implementation-Version");
@@ -238,7 +253,12 @@ public class ModuleManagerHelper {
     return null;
   }
   
-  // retrieve the implementation version from the given manifest if not null
+  /**
+   * Gets the manifest Jahia-GroupId attribute.
+   * It returns null if the manifest is null
+   * @param manifest the target manifest
+   * @return the Jahia group id attribute value or null if empty
+   */
   public static String getManifestGroupId(Manifest manifest) {
     if(manifest != null) {
       return manifest.getMainAttributes().getValue("Jahia-GroupId");
@@ -246,12 +266,20 @@ public class ModuleManagerHelper {
     return null;
   }
   
-  // finally install the bundle
-  private static String[] install(ModuleManager moduleManager, Resource bundleResource, String symbolicName, String version) throws IOException, BundleException {
-    moduleManager.install(bundleResource);
-    return new String[] { symbolicName, version };
-  }
-  
+  /**
+   * Install bundles represented by the given JAR file.<br />
+   * The file can be Mega-JAR, a JAR of JARs, or simple JAR.
+   * @param moduleManager the module manager component
+   * @param file the Jar or MEGA-Jar file
+   * @param context the spring message context
+   * @param originalFilename the file original name
+   * @param forceUpdate the flag that is checked to force installation if bundle already exists
+   * @param templateManagerService the template manager service
+   * @param templatePackageRegistry the template package registry service
+   * @return the operation result object
+   * @throws IOException
+   * @throws BundleException
+   */
   public static OperationResult installBundles(ModuleManager moduleManager, File file, MessageContext context, String originalFilename, boolean forceUpdate, JahiaTemplateManagerService templateManagerService, TemplatePackageRegistry templatePackageRegistry) throws IOException, BundleException {
       JarFile jarFile = new JarFile(file);
       try {
