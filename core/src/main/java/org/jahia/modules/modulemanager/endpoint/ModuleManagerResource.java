@@ -84,7 +84,6 @@ public class ModuleManagerResource implements ModuleManagerSpi {
   private static final Logger log = LoggerFactory.getLogger(ModuleManagerResource.class);
   
   private ModuleManager moduleManager;
-  //private TemplatePackageRegistry templatePackageRegistry;
   private JahiaTemplateManagerService templateManagerService;
   private MessageSource messageSource;
   
@@ -129,17 +128,17 @@ public class ModuleManagerResource implements ModuleManagerSpi {
       MessageContext context = new DefaultMessageContext(getMessageSource());
       
       try {
-        // FIXME: from rest, always force the update then we will not check force update
-        OperationResult result = ModuleManagerHelper.installBundles(getModuleManager(), bundleResource.getFile(), context, fileDisposition.getFileName(), true, getJahiaTemplateManagerService(), getJahiaTemplateManagerService().getTemplatePackageRegistry());
-        
-        return Response.ok(result).build();
-    } catch (IOException ex) {
-      log.error("IOE error when installing module.", ex);
-      throw new ModuleDeploymentException(Response.Status.EXPECTATION_FAILED, ex.getMessage(), ex);
-    } catch (BundleException bex) {
-      log.error("Bundle Exception occured during module installation.", bex.getMessage(), bex);
-      throw new ModuleDeploymentException(Response.Status.EXPECTATION_FAILED, bex.getMessage(), bex);
-    }
+          // FIXME: from rest, always force the update then we will not check force update
+          OperationResult result = ModuleManagerHelper.installBundles(getModuleManager(), bundleResource.getFile(), context, fileDisposition.getFileName(), true, getJahiaTemplateManagerService(), getJahiaTemplateManagerService().getTemplatePackageRegistry());
+          
+          return Response.ok(result).build();
+      } catch (IOException ex) {
+        log.error("IOE error when installing module.", ex);
+        throw new ModuleDeploymentException(Response.Status.EXPECTATION_FAILED, ex.getMessage(), ex);
+      } catch (BundleException bex) {
+        log.error("Bundle Exception occured during module installation.", bex.getMessage(), bex);
+        throw new ModuleDeploymentException(Response.Status.EXPECTATION_FAILED, bex.getMessage(), bex);
+      }
     }finally {
       if(bundleResource != null) {
         try{
