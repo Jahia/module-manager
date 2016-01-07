@@ -304,7 +304,7 @@ public class ModuleManagerHelper {
               if (res.isSuccess()) {
                 installResult.getBundleInfoList().addAll(res.getBundleInfoList());
               } else {
-                break;
+                // FIXME: break and Rollback previous installations or Continue.
               }
             }
           }
@@ -348,10 +348,22 @@ public class ModuleManagerHelper {
           OperationResult result = moduleManager.install(new FileSystemResource(file));
           if(result.isSuccess()) {
             result.getBundleInfoList().add(new BundleInfo(symbolicName, version));
+          } else {
+            context.addMessage(new MessageBuilder().source("moduleInstallionFailed")
+                .code("serverSettings.manageModules.install.failed")
+                .arg(symbolicName)
+                .error()
+                .build());
           }
           return result;
-      } finally {
-        //
+      } catch (Exception ex) {
+        // Add message to the context
+        context.addMessage(new MessageBuilder().source("moduleInstallionFailed")
+            .code("serverSettings.manageModules.install.failed")
+            .arg(ex.getMessage())
+            .error()
+            .build());
+        return new OperationResultImpl(false, ex.getMessage());
       }
   }
   
