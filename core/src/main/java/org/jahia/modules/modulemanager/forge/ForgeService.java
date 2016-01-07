@@ -76,8 +76,8 @@ import java.util.*;
  */
 
 public class ForgeService {
-    //Temporary change as this exists in server settings module
-    private static final Logger logger = LoggerFactory.getLogger("ForgeServiceModuleManager");
+
+    private static final Logger logger = LoggerFactory.getLogger(ForgeService.class);
 
     private HttpClientService httpClientService;
     private Set<Forge> forges = new HashSet<Forge>();

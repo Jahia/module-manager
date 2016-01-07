@@ -55,8 +55,7 @@ import org.springframework.binding.validation.ValidationContext;
 import java.io.Serializable;
 
 public class Forge implements Serializable {
-    // Temporary change as this exists in server settings module
-    private static final Logger logger = LoggerFactory.getLogger("ForgeModuleManager");
+    private static final Logger logger = LoggerFactory.getLogger(Forge.class);
 
     private static final long serialVersionUID = 2031426003900898977L;
     String url;
