@@ -65,7 +65,6 @@ import org.jahia.services.modulemanager.payload.BundleInfo;
 import org.jahia.services.modulemanager.payload.OperationResultImpl;
 import org.jahia.services.modulemanager.ModuleManager;
 import org.jahia.services.modulemanager.OperationResult;
-import org.jahia.services.modulemanager.OperationScope;
 import org.jahia.osgi.BundleUtils;
 import org.jahia.security.license.LicenseCheckerService;
 import org.jahia.services.templates.JahiaTemplateManagerService;
@@ -249,7 +248,7 @@ public class ModuleManagerHelper {
    * @param manifest the bundle manifest
    * @return the version or null if missing
    */
-  public static String getManifestVestion(Manifest manifest) {
+  public static String getManifestVersion(Manifest manifest) {
     if(manifest != null) {
       return manifest.getMainAttributes().getValue("Implementation-Version");
     }
@@ -335,7 +334,7 @@ public class ModuleManagerHelper {
   private static OperationResult installModule(ModuleManager moduleManager, File file, Manifest manifest, MessageContext context, List<String> providedBundles, boolean forceUpdate, JahiaTemplateManagerService templateManagerService, TemplatePackageRegistry templatePackageRegistry) throws IOException, BundleException {
       try {
           String symbolicName = getManifestSymbolicName(manifest);
-          String version = getManifestVestion(manifest);
+          String version = getManifestVersion(manifest);
           String groupId = getManifestGroupId(manifest);
           if(isDifferentModuleWithSameIdExists(symbolicName, groupId, context, templateManagerService)) {
               return null;
