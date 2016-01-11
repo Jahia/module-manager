@@ -73,9 +73,6 @@ import org.dom4j.DocumentException;
 import org.jahia.data.templates.JahiaTemplatesPackage;
 import org.jahia.data.templates.ModuleState;
 import org.jahia.exceptions.JahiaException;
-import org.jahia.services.modulemanager.ModuleManager;
-import org.jahia.modules.modulemanager.ModuleManagerHelper;
-import org.jahia.services.modulemanager.OperationResult;
 import org.jahia.modules.modulemanager.forge.ForgeService;
 import org.jahia.modules.modulemanager.forge.Module;
 import org.jahia.osgi.BundleUtils;
@@ -84,6 +81,8 @@ import org.jahia.services.content.JCRSessionWrapper;
 import org.jahia.services.content.decorator.JCRSiteNode;
 import org.jahia.services.content.nodetypes.ExtendedNodeType;
 import org.jahia.services.content.nodetypes.NodeTypeRegistry;
+import org.jahia.services.modulemanager.ModuleManager;
+import org.jahia.services.modulemanager.ModuleManagerHelper;
 import org.jahia.services.modulemanager.OperationResult;
 import org.jahia.services.render.RenderContext;
 import org.jahia.services.sites.JahiaSitesService;
@@ -102,6 +101,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.binding.message.MessageBuilder;
 import org.springframework.binding.message.MessageContext;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.webflow.core.collection.MutableAttributeMap;
 import org.springframework.webflow.execution.RequestContext;
 
@@ -155,7 +155,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         File file = null;
         try {
             file = forgeService.downloadModuleFromForge(forgeId, url);
-            ModuleManagerHelper.installBundles(moduleManager, file, context, url, true, templateManagerService, templatePackageRegistry);
+            moduleManager.install(new FileSystemResource(file), context, file.getName(), true, null);
             return true;
 
         } catch (Exception e) {
@@ -182,7 +182,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         try {
             file = File.createTempFile("module-", "." + StringUtils.substringAfterLast(originalFilename, "."));
             moduleFile.getModuleFile().transferTo(file);
-            ModuleManagerHelper.installBundles(moduleManager, file, context, originalFilename, true, templateManagerService, templatePackageRegistry);
+            moduleManager.install(new FileSystemResource(file), context, originalFilename, true, null);
             return true;
 
         } catch (Exception e) {
