@@ -161,7 +161,7 @@ public class ClusterNodesParam {
     if(CollectionUtils.isEmpty(nodeSet)) {
       return null;
     }
-    return nodeSet.toArray(new String[0]);
+    return nodeSet.toArray(new String[nodeSet.size()]);
   }
   
   @Override
