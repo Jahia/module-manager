@@ -100,7 +100,9 @@ public class ModuleManagerHelper {
    * @throws IOException
    */
   public static boolean isValidJahiaPackageFile(Manifest bundleManifest, MessageContext context, String originalFilename) throws IOException {
-    // TODO: first check of bundleManifest
+    if(bundleManifest == null) {
+      return false;
+    }
     // Assume that it is valid and try to invalidate
     // and pass over all validation and return final validation result
     boolean isValid = true;
