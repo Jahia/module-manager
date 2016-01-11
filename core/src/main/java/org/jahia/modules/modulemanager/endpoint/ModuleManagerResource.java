@@ -152,7 +152,7 @@ public class ModuleManagerResource implements ModuleManagerSpi {
   }
 
   @Override
-  public Response uninstall(String bundleKey, ClusterNodesParam nodes) throws ModuleDeploymentException {
+  public Response uninstall(String bundleKey, ClusterNodesPostParam nodes) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "uninstall");
     if(log.isDebugEnabled()) {
       log.debug("Uninstall bundle {}  on nodes {}", bundleKey, nodes);
@@ -167,7 +167,7 @@ public class ModuleManagerResource implements ModuleManagerSpi {
   }
 
   @Override
-  public Response start(String bundleKey, ClusterNodesParam nodes) throws ModuleDeploymentException {
+  public Response start(String bundleKey, ClusterNodesPostParam nodes) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "start");
     if(log.isDebugEnabled()) {
       log.debug("Start bundle {} on nodes {}", bundleKey, nodes);
@@ -183,7 +183,7 @@ public class ModuleManagerResource implements ModuleManagerSpi {
   }
 
   @Override
-  public Response stop(String bundleKey, ClusterNodesParam nodes) throws ModuleDeploymentException {
+  public Response stop(String bundleKey, ClusterNodesPostParam nodes) throws ModuleDeploymentException {
     validateBundleOperation(bundleKey, "stop");
     if(log.isDebugEnabled()) {
       log.debug("Stoping bundle {} on nodes {}", bundleKey, nodes);
@@ -198,7 +198,7 @@ public class ModuleManagerResource implements ModuleManagerSpi {
   }
 
   @Override
-  public Response getBundleState(String bundleUniqueKey, ClusterNodesParam nodes) throws ModuleDeploymentException {
+  public Response getBundleState(String bundleUniqueKey, ClusterNodesPostParam nodes) throws ModuleDeploymentException {
     if(log.isDebugEnabled()) {
       log.debug("Get bundle state {}", bundleUniqueKey);
     }
@@ -206,7 +206,7 @@ public class ModuleManagerResource implements ModuleManagerSpi {
   }
 
   @Override
-  public Response getNodesBundleStates(ClusterNodesParam nodes) throws ModuleDeploymentException {
+  public Response getNodesBundleStates(ClusterNodesPostParam nodes) throws ModuleDeploymentException {
     if(log.isDebugEnabled()) {
       log.debug("Get bundle states for nodes {}", nodes);
     }

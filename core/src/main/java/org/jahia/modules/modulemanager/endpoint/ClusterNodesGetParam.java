@@ -60,17 +60,14 @@ import org.apache.commons.lang.StringUtils;
  *
  */
 @XmlType
-public class ClusterNodesParam {
+public class ClusterNodesGetParam {
   
   private String nodesAsPathParameter;
   
   @QueryParam("nodes")
   private Set<String> nodesAsQueryParameter;
   
-  @FormParam("nodes")
-  private Set<String> nodesAsFormParameter;
-  
-  public ClusterNodesParam( @DefaultValue("") @PathParam("nodes") String nodesAsPathParam) {
+  public ClusterNodesGetParam( @DefaultValue("") @PathParam("nodes") String nodesAsPathParam) {
     this.nodesAsPathParameter = nodesAsPathParam;
   }
 
@@ -112,23 +109,6 @@ public class ClusterNodesParam {
 
 
 
-  /**
-   * Get the node id set
-   * @return the nodesAsFormParameter
-   */
-  public Set<String> getNodesAsFormParameter() {
-    return nodesAsFormParameter;
-  }
-
-
-
-  /**
-   * Set the set of the node ids from the form
-   * @param nodesAsFormParameter the nodesAsFormParameter to set
-   */
-  public void setNodesAsFormParameter(Set<String> nodesAsFormParameter) {
-    this.nodesAsFormParameter = nodesAsFormParameter;
-  }
   
   /**
    * Get the set of the given node identifier.
@@ -143,10 +123,6 @@ public class ClusterNodesParam {
     // 2 - resolve from query
     if(CollectionUtils.isNotEmpty(nodesAsQueryParameter)){
       return nodesAsQueryParameter;
-    }
-    // 3 - resolve from form but is should be the same as query
-    if(CollectionUtils.isNotEmpty(nodesAsFormParameter)) {
-      return nodesAsFormParameter;
     }
     
     return null;
