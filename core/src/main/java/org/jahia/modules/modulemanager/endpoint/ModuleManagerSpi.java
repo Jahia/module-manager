@@ -95,7 +95,7 @@ public interface ModuleManagerSpi {
    */
   @POST
   @Path("/{bundleKey}/_uninstall{nodes : (/.*)?}")
-  Response uninstall(@PathParam(value="bundleKey") String bundleKey, @BeanParam ClusterNodesParam nodes) throws ModuleDeploymentException;
+  Response uninstall(@PathParam(value="bundleKey") String bundleKey, @BeanParam ClusterNodesPostParam nodes) throws ModuleDeploymentException;
   
   /**
    * Starts the bundle which key is specified in the URL.
@@ -108,7 +108,7 @@ public interface ModuleManagerSpi {
   @POST
   @Path("/{bundleKey}/_start{nodes : (/.*)?}")
   @Inject
-  Response start(@PathParam(value="bundleKey") String bundleKey,  @BeanParam ClusterNodesParam nodes) throws ModuleDeploymentException;
+  Response start(@PathParam(value="bundleKey") String bundleKey,  @BeanParam ClusterNodesPostParam nodes) throws ModuleDeploymentException;
   
   /**
    * Stops the bundle that key is given in parameters on the specified nodes.
@@ -120,7 +120,7 @@ public interface ModuleManagerSpi {
    */
   @POST
   @Path("/{bundleKey}/_stop{nodes : (/.*)?}")
-  Response stop(@PathParam(value="bundleKey") String bundleKey,  @BeanParam ClusterNodesParam nodes) throws ModuleDeploymentException;
+  Response stop(@PathParam(value="bundleKey") String bundleKey,  @BeanParam ClusterNodesPostParam nodes) throws ModuleDeploymentException;
 
 
   /**
@@ -133,7 +133,7 @@ public interface ModuleManagerSpi {
   @GET
   @Path("/{bundleUniqueKey}/_state{nodes : (/.*)?}")
   @Produces(MediaType.APPLICATION_JSON)
-  Response getBundleState(@PathParam("bundleUniqueKey") String bundleUniqueKey, @BeanParam ClusterNodesParam nodes) throws ModuleDeploymentException;
+  Response getBundleState(@PathParam("bundleUniqueKey") String bundleUniqueKey, @BeanParam ClusterNodesGetParam nodes) throws ModuleDeploymentException;
 
   /**
    * Get the state report of a list of nodes including their own bundles.
@@ -144,7 +144,7 @@ public interface ModuleManagerSpi {
   @GET
   @Path("/_states{nodes : (/.*)?}")
   @Produces(MediaType.APPLICATION_JSON)
-  Response getNodesBundleStates(@BeanParam ClusterNodesParam nodes) throws ModuleDeploymentException;
+  Response getNodesBundleStates(@BeanParam ClusterNodesGetParam nodes) throws ModuleDeploymentException;
 
   /**
    * Get the state of a specific operation by its uuid
