@@ -198,7 +198,7 @@ public class ModuleManagerResource implements ModuleManagerSpi {
   }
 
   @Override
-  public Response getBundleState(String bundleUniqueKey, ClusterNodesPostParam nodes) throws ModuleDeploymentException {
+  public Response getBundleState(String bundleUniqueKey, ClusterNodesGetParam nodes) throws ModuleDeploymentException {
     if(log.isDebugEnabled()) {
       log.debug("Get bundle state {}", bundleUniqueKey);
     }
@@ -206,7 +206,7 @@ public class ModuleManagerResource implements ModuleManagerSpi {
   }
 
   @Override
-  public Response getNodesBundleStates(ClusterNodesPostParam nodes) throws ModuleDeploymentException {
+  public Response getNodesBundleStates(ClusterNodesGetParam nodes) throws ModuleDeploymentException {
     if(log.isDebugEnabled()) {
       log.debug("Get bundle states for nodes {}", nodes);
     }
