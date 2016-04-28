@@ -82,8 +82,8 @@ import org.jahia.services.content.decorator.JCRSiteNode;
 import org.jahia.services.content.nodetypes.ExtendedNodeType;
 import org.jahia.services.content.nodetypes.NodeTypeRegistry;
 import org.jahia.services.modulemanager.ModuleManager;
-import org.jahia.services.modulemanager.ModuleManagerHelper;
 import org.jahia.services.modulemanager.OperationResult;
+import org.jahia.services.modulemanager.payload.BundleInfo;
 import org.jahia.services.render.RenderContext;
 import org.jahia.services.sites.JahiaSitesService;
 import org.jahia.services.templates.JahiaTemplateManagerService;
@@ -248,14 +248,8 @@ public class ModuleManagementFlowHandler implements Serializable {
                 if (module.getId().equals(selectedModuleName)) {
                     populateActiveVersion(context, module);
                     final List<String> missing = getMissingDependenciesFrom(module.getDepends());
-                    if(!missing.isEmpty())
+                    if(!missing.isEmpty()) {
                         createMessageForMissingDependencies(context.getMessageContext(), missing);
-                    else if(module.getState().getState()== ModuleState.State.WAITING_TO_BE_PARSED) {
-                        context.getMessageContext().addMessage(new MessageBuilder().source("moduleFile")
-                                .code("serverSettings.manageModules.install.missingDependencies")
-                                .arg(module.getState().getDetails())
-                                .error()
-                                .build());
                     }
                     break;
                 }
@@ -592,7 +586,7 @@ public class ModuleManagementFlowHandler implements Serializable {
             }
         }
         if (missingDependencies.isEmpty()) {
-            moduleManager.start(moduleId + "-" + version);
+            moduleManager.start(module.getBundleKey());
             requestContext.getExternalContext().getSessionMap().put("moduleHasBeenStarted", moduleId);
         } else {
             requestContext.getExternalContext().getSessionMap().put("missingDependencies", missingDependencies);
@@ -601,13 +595,13 @@ public class ModuleManagementFlowHandler implements Serializable {
     }
 
     public void uninstallModule(String moduleId, String moduleVersion, RequestContext requestContext) throws RepositoryException, BundleException {
-        moduleManager.uninstall(moduleId + "-" + moduleVersion);
+        moduleManager.uninstall(BundleInfo.fromModuleInfo(moduleId, moduleVersion).getKey());
     }
     
     public void stopModule(String moduleId, RequestContext requestContext) throws RepositoryException, BundleException {
         // templateManagerService.stopModule(moduleId);
         JahiaTemplatesPackage module = templatePackageRegistry.lookupById(moduleId);
-        OperationResult opResult = moduleManager.stop(module.getId() + "-" + module.getVersion());
+        OperationResult opResult = moduleManager.stop(module.getBundleKey());
         // TODO: check operation result
         if (!opResult.isSuccess()) {
             requestContext.getMessageContext()
