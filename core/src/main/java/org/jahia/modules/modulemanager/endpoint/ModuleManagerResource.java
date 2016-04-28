@@ -203,14 +203,6 @@ public class ModuleManagerResource implements ModuleManagerSpi {
     return Response.ok(getModuleManager().getNodesBundleStates(nodes.getNodeIds())).build();
   }
 
-  @Override
-  public Response getOperationState(String operationUuid) throws ModuleDeploymentException {
-    if(log.isDebugEnabled()) {
-      log.debug("Get operation state for Operation", operationUuid);
-    }
-    return Response.ok(getModuleManager().getOperationState(operationUuid)).build();
-  }
-
   /**
    * Spring bridge method to access to the module manager bean.
    * @return an instance of the module manager service
