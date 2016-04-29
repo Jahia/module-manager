@@ -155,7 +155,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         File file = null;
         try {
             file = forgeService.downloadModuleFromForge(forgeId, url);
-            moduleManager.install(new FileSystemResource(file), context, file.getName(), true, null);
+            moduleManager.install(new FileSystemResource(file), null);
             return true;
 
         } catch (Exception e) {
@@ -182,7 +182,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         try {
             file = File.createTempFile("module-", "." + StringUtils.substringAfterLast(originalFilename, "."));
             moduleFile.getModuleFile().transferTo(file);
-            moduleManager.install(new FileSystemResource(file), context, originalFilename, true, null);
+            moduleManager.install(new FileSystemResource(file), null);
             return true;
 
         } catch (Exception e) {
@@ -586,7 +586,7 @@ public class ModuleManagementFlowHandler implements Serializable {
             }
         }
         if (missingDependencies.isEmpty()) {
-            moduleManager.start(module.getBundleKey());
+            moduleManager.start(module.getBundleKey(), null);
             requestContext.getExternalContext().getSessionMap().put("moduleHasBeenStarted", moduleId);
         } else {
             requestContext.getExternalContext().getSessionMap().put("missingDependencies", missingDependencies);
@@ -595,13 +595,13 @@ public class ModuleManagementFlowHandler implements Serializable {
     }
 
     public void uninstallModule(String moduleId, String moduleVersion, RequestContext requestContext) throws RepositoryException, BundleException {
-        moduleManager.uninstall(BundleInfo.fromModuleInfo(moduleId, moduleVersion).getKey());
+        moduleManager.uninstall(BundleInfo.fromModuleInfo(moduleId, moduleVersion).getKey(), null);
     }
     
     public void stopModule(String moduleId, RequestContext requestContext) throws RepositoryException, BundleException {
         // templateManagerService.stopModule(moduleId);
         JahiaTemplatesPackage module = templatePackageRegistry.lookupById(moduleId);
-        OperationResult opResult = moduleManager.stop(module.getBundleKey());
+        OperationResult opResult = moduleManager.stop(module.getBundleKey(), null);
         // TODO: check operation result
         if (!opResult.isSuccess()) {
             requestContext.getMessageContext()

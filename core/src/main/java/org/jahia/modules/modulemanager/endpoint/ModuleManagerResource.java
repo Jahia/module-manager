@@ -119,7 +119,7 @@ public class ModuleManagerResource implements ModuleManagerSpi {
       
       try {
           // FIXME: from rest, always force the update then we will not check force update
-          OperationResult result = getModuleManager().install(bundleResource, null, fileDisposition.getFileName(), true, nodes.getNodeIds());
+          OperationResult result = getModuleManager().install(bundleResource, nodes.getNodeIds().toString());
           
           return Response.ok(result).build();
       } catch (ModuleManagementException ex) {
@@ -148,7 +148,7 @@ public class ModuleManagerResource implements ModuleManagerSpi {
       log.debug("Uninstall bundle {}  on nodes {}", bundleKey, nodes);
     }
     try{
-      OperationResult result = getModuleManager().uninstall(bundleKey, nodes.getNodeIds());
+      OperationResult result = getModuleManager().uninstall(bundleKey, nodes.getNodeIds().toString());
       return Response.ok(result).build();      
     } catch(ModuleManagementException mmEx){
       log.error("Error while uninstalling module " + bundleKey, mmEx);
@@ -164,7 +164,7 @@ public class ModuleManagerResource implements ModuleManagerSpi {
     }
     
     try{
-      OperationResult result = getModuleManager().start(bundleKey, nodes.getNodeIds());
+      OperationResult result = getModuleManager().start(bundleKey, nodes.getNodeIds().toString());
       return Response.ok(result).build();      
     } catch(ModuleManagementException mmEx){
       log.error("Error while starting bundle " + bundleKey, mmEx);
@@ -179,7 +179,7 @@ public class ModuleManagerResource implements ModuleManagerSpi {
       log.debug("Stoping bundle {} on nodes {}", bundleKey, nodes);
     }
     try{
-      OperationResult result = getModuleManager().stop(bundleKey, nodes.getNodeIds());
+      OperationResult result = getModuleManager().stop(bundleKey, nodes.getNodeIds().toString());
       return Response.ok(result).build();      
     } catch(ModuleManagementException mmEx){
       log.error("Error while stoping module.", mmEx);
@@ -192,7 +192,8 @@ public class ModuleManagerResource implements ModuleManagerSpi {
     if(log.isDebugEnabled()) {
       log.debug("Get bundle state {}", bundleUniqueKey);
     }
-    return Response.ok(getModuleManager().getBundleState(bundleUniqueKey, nodes.getNodeIds())).build();
+//    return Response.ok(getModuleManager().getBundleState(bundleUniqueKey, nodes.getNodeIds())).build();
+    return null;
   }
 
   @Override
@@ -200,7 +201,8 @@ public class ModuleManagerResource implements ModuleManagerSpi {
     if(log.isDebugEnabled()) {
       log.debug("Get bundle states for nodes {}", nodes);
     }
-    return Response.ok(getModuleManager().getNodesBundleStates(nodes.getNodeIds())).build();
+//    return Response.ok(getModuleManager().getNodesBundleStates(nodes.getNodeIds())).build();
+    return null;
   }
 
   /**
