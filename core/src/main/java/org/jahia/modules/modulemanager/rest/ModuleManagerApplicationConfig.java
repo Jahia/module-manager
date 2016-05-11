@@ -41,11 +41,11 @@
  *     If you are unsure which license is appropriate for your use,
  *     please contact the sales department at sales@jahia.com.
  */
-package org.jahia.modules.modulemanager.endpoint;
+package org.jahia.modules.modulemanager.rest;
 
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.jahia.modules.modulemanager.exception.ModuleManagerExceptionMapper;
+import org.jahia.modules.modulemanager.rest.exception.ModuleManagerExceptionMapper;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 
@@ -61,7 +61,7 @@ public class ModuleManagerApplicationConfig extends ResourceConfig {
      * Initializes an instance of this class providing a list of classes to be registered.
      */
     public ModuleManagerApplicationConfig() {
-        super(MultiPartFeature.class, ModuleManagerResource.class, JacksonJaxbJsonProvider.class,
+        super(MultiPartFeature.class, ModuleManagerService.class, JacksonJaxbJsonProvider.class,
                 ModuleManagerExceptionMapper.class);
     }
 }

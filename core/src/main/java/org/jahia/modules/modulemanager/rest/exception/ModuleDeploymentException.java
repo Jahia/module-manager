@@ -41,35 +41,70 @@
  *     If you are unsure which license is appropriate for your use,
  *     please contact the sales department at sales@jahia.com.
  */
-package org.jahia.modules.modulemanager.exception;
+package org.jahia.modules.modulemanager.rest.exception;
 
-import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Response;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
 
 /**
- * A specific Exception used for service operation validation.
- * It is thrown when the bundle key is missing during a call for start or stop a bundle.
- *   
+ * The Exception raised when a deployment failed. 
+ * Contains the underlying error and a HTTP status code to send to the client. 
+ * 
  * @author bdjiba
  */
-public class MissingBundleKeyValueException extends ModuleDeploymentException {
-
-  private static final long serialVersionUID = -6817346037208187306L;
+@XmlType(propOrder = {"responseStatus", "message", "cause"})
+public class ModuleDeploymentException extends Exception {
+  private static final long serialVersionUID = -1886713186574565575L;
+  
+  private final Response.Status responseStatus;
 
   /**
-   * @param httpStatus
-   * @param msg
-   * @param err
+   * @param message
    */
-  public MissingBundleKeyValueException(String msg, Throwable err) {
-    super(Status.BAD_REQUEST, msg, err);
+  public ModuleDeploymentException(Response.Status httpStatus, String msg, Throwable err) {
+    super(msg, err);
+    this.responseStatus = httpStatus;
   }
 
   /**
    * @param httpStatus
-   * @param msg
+   * @param message
    */
-  public MissingBundleKeyValueException(String msg) {
-    super(Status.BAD_REQUEST, msg);
+  public ModuleDeploymentException(Response.Status httpStatus, String msg) {
+    this(httpStatus, msg, null);
   }
 
+  /**
+   * @return the statusCode
+   */
+  public Response.Status getResponseStatus() {
+    return responseStatus;
+  }
+
+  
+  /**
+   * Gets the response status code
+   * @return
+   */
+  public int getStatus() {
+    return responseStatus.getStatusCode();
+  }
+  
+  @Override
+  @XmlTransient
+  public StackTraceElement[] getStackTrace() {
+    return super.getStackTrace();
+  }
+  
+  @XmlTransient
+  @Override
+  public String getLocalizedMessage() {
+    return super.getLocalizedMessage();
+  }
+
+  @Override
+  public String toString() {
+    return java.text.MessageFormat.format("Error '{'status:{0},message:''{1}'',reason:{2}'}'", responseStatus, getMessage(), getCause()) ;
+  }
 }
