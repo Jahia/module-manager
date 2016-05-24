@@ -49,7 +49,6 @@ import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -81,40 +80,43 @@ import org.springframework.core.io.Resource;
  * @author bdjiba
  */
 @Path("/api/bundles")
-@Produces({MediaType.APPLICATION_JSON})
+@Produces({ MediaType.APPLICATION_JSON })
 public class ModuleManagerService {
-  
-  private static final Logger log = LoggerFactory.getLogger(ModuleManagerService.class);
-  
-  private ModuleManager moduleManager;
-  
-  private Resource getUploadedFileAsResource(InputStream inputStream, String filename) throws ModuleDeploymentException {
-    File tempFile = null;
-    try {
-        tempFile = File.createTempFile(FilenameUtils.getBaseName(filename) + "-", "." + FilenameUtils.getExtension(filename), FileUtils.getTempDirectory());
-        FileUtils.copyInputStreamToFile(inputStream, tempFile);
-    } catch (IOException ioex) {
-        log.error("Error copy uploaded stream to local temp file for " + filename, ioex);
-        throw new ModuleDeploymentException(Response.Status.INTERNAL_SERVER_ERROR, "Error while deploying bundle " + filename, ioex);
-    } finally {
-        IOUtils.closeQuietly(inputStream);
+
+    private static final Logger log = LoggerFactory.getLogger(ModuleManagerService.class);
+
+    private ModuleManager moduleManager;
+
+    /**
+     * Spring bridge method to access to the module manager bean.
+     * 
+     * @return an instance of the module manager service
+     */
+    private ModuleManager getModuleManager() {
+        if (moduleManager == null) {
+            moduleManager = (ModuleManager) SpringContextSingleton.getBean("ModuleManager");
+        }
+        return moduleManager;
     }
 
-    return new FileSystemResource(tempFile);
-  }
-  
-  private void validateBundleOperation(String bundleKey, String serviceOperation) throws MissingBundleKeyValueException {
-    if(StringUtils.isBlank(bundleKey)) {
-      throw new MissingBundleKeyValueException("Bundle key is mandatory for " + serviceOperation + " operation.");
-    }
-  }
+    private Resource getUploadedFileAsResource(InputStream inputStream, String filename)
+            throws ModuleDeploymentException {
+        File tempFile = null;
+        try {
+            tempFile = File.createTempFile(FilenameUtils.getBaseName(filename) + "-",
+                    "." + FilenameUtils.getExtension(filename), FileUtils.getTempDirectory());
+            FileUtils.copyInputStreamToFile(inputStream, tempFile);
+        } catch (IOException ioex) {
+            log.error("Error copy uploaded stream to local temp file for " + filename, ioex);
+            throw new ModuleDeploymentException(Response.Status.INTERNAL_SERVER_ERROR,
+                    "Error while deploying bundle " + filename, ioex);
+        } finally {
+            IOUtils.closeQuietly(inputStream);
+        }
 
-  @GET
-  @Path("/ping")
-  public String getInfo() {
-      return "{\"pong\":\"ok\"}";
-  }
-  
+        return new FileSystemResource(tempFile);
+    }
+
     /**
      * Install the given bundle on the specified group of nodes. If nodes parameter is empty then deploy to default group.
      * 
@@ -170,21 +172,6 @@ public class ModuleManagerService {
         }
     }
 
-//  @Override
-//  public Response uninstall(String bundleKey, ClusterNodesPostParam nodes) throws ModuleDeploymentException {
-//    validateBundleOperation(bundleKey, "uninstall");
-//    if(log.isDebugEnabled()) {
-//      log.debug("Uninstall bundle {}  on nodes {}", bundleKey, nodes);
-//    }
-//    try{
-//      OperationResult result = getModuleManager().uninstall(bundleKey, nodes.getNodeIds().toString());
-//      return Response.ok(result).build();      
-//    } catch(ModuleManagementException mmEx){
-//      log.error("Error while uninstalling module " + bundleKey, mmEx);
-//      throw new ModuleDeploymentException(Status.INTERNAL_SERVER_ERROR, mmEx.getMessage(), mmEx);
-//    }
-//  }
-//
     /**
      * Starts the specified bundle.
      * 
@@ -239,7 +226,6 @@ public class ModuleManagerService {
         }
     }
 
-
     /**
      * Uninstalls the specified bundle.
      * 
@@ -266,50 +252,12 @@ public class ModuleManagerService {
             throw new ModuleDeploymentException(Status.INTERNAL_SERVER_ERROR, mmEx.getMessage());
         }
     }
-//    
-//  @Override
-//  public Response stop(String bundleKey, ClusterNodesPostParam nodes) throws ModuleDeploymentException {
-//    validateBundleOperation(bundleKey, "stop");
-//    if(log.isDebugEnabled()) {
-//      log.debug("Stoping bundle {} on nodes {}", bundleKey, nodes);
-//    }
-//    try{
-//      OperationResult result = getModuleManager().stop(bundleKey, nodes.getNodeIds().toString());
-//      return Response.ok(result).build();      
-//    } catch(ModuleManagementException mmEx){
-//      log.error("Error while stoping module.", mmEx);
-//      throw new ModuleDeploymentException(Status.INTERNAL_SERVER_ERROR, mmEx.getMessage());
-//    }
-//  }
-//
-//  @Override
-//  public Response getBundleState(String bundleUniqueKey, ClusterNodesGetParam nodes) throws ModuleDeploymentException {
-//    if(log.isDebugEnabled()) {
-//      log.debug("Get bundle state {}", bundleUniqueKey);
-//    }
-////    return Response.ok(getModuleManager().getBundleState(bundleUniqueKey, nodes.getNodeIds())).build();
-//    return null;
-//  }
-//
-//  @Override
-//  public Response getNodesBundleStates(ClusterNodesGetParam nodes) throws ModuleDeploymentException {
-//    if(log.isDebugEnabled()) {
-//      log.debug("Get bundle states for nodes {}", nodes);
-//    }
-////    return Response.ok(getModuleManager().getNodesBundleStates(nodes.getNodeIds())).build();
-//    return null;
-//  }
 
-  /**
-   * Spring bridge method to access to the module manager bean.
-   * 
-   * @return an instance of the module manager service
-   */
-  private ModuleManager getModuleManager() {
-      if (moduleManager == null) {
-          moduleManager = (ModuleManager) SpringContextSingleton.getBean("ModuleManager");
-      }
-      return moduleManager;
-  }
+    private void validateBundleOperation(String bundleKey, String serviceOperation)
+            throws MissingBundleKeyValueException {
+        if (StringUtils.isBlank(bundleKey)) {
+            throw new MissingBundleKeyValueException("Bundle key is mandatory for " + serviceOperation + " operation.");
+        }
+    }
 
 }
