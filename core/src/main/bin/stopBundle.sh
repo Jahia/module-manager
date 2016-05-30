@@ -3,5 +3,6 @@
 source ./common.sh
 #start bundle REST call
 echo Stopping bundle $1...
-STOP_OUTPUT=`curl $CURL_OPTIONS --data '$2' --request POST $DX_REST_URL/$1/_stop`
+DATA="target=$2";
+STOP_OUTPUT=`curl $CURL_OPTIONS --data $DATA --request POST $DX_REST_URL/$1/_stop`
 echo "Stop result=$STOP_OUTPUT"

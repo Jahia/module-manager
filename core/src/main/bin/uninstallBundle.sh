@@ -3,5 +3,6 @@
 source ./common.sh
 #undeploy bundle REST call
 echo Uninstalling bundle $1...
-UNINSTALL_OUTPUT=`curl $CURL_OPTIONS --data '$2' --request POST $DX_REST_URL/$1/_uninstall`
+DATA="target=$2";
+UNINSTALL_OUTPUT=`curl $CURL_OPTIONS --data $DATA --request POST $DX_REST_URL/$1/_uninstall`
 echo "Uninstall result=$UNINSTALL_OUTPUT"
