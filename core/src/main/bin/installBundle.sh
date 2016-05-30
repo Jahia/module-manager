@@ -4,4 +4,4 @@ source ./common.sh
 #deploy bundle REST call
 echo Installing bundle file $1...
 INSTALL_OUTPUT=`curl $CURL_OPTIONS --form bundleFile=@$1 $DX_REST_URL/_install`
-echo "Deploy result=$INSTALL_OUTPUT"
+echo "Install result=$INSTALL_OUTPUT"
