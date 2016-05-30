@@ -6,5 +6,5 @@ echo Stopping bundle $1...
 STOP_OUTPUT=`curl $CURL_OPTIONS --data '$2' --request POST $DX_REST_URL/$1/_stop`
 echo "Stop result=$STOP_OUTPUT"
 #check the operation status
-OPERATION_UUID=`echo $STOP_OUTPUT | python -m json.tool | sed -n -e '/"operationId":/ s/^.*"\(.*\)".*/\1/p'`
-checkOperation $OPERATION_UUID
+#OPERATION_UUID=`echo $STOP_OUTPUT | python -m json.tool | sed -n -e '/"operationId":/ s/^.*"\(.*\)".*/\1/p'`
+#checkOperation $OPERATION_UUID
