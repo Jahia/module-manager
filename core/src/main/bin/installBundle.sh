@@ -3,5 +3,5 @@
 source ./common.sh
 #deploy bundle REST call
 echo Installing bundle file $1...
-INSTALL_OUTPUT=`curl $CURL_OPTIONS --form bundleFile=@$1 $DX_REST_URL/_install`
+INSTALL_OUTPUT=`curl $CURL_OPTIONS --form bundle=@$1 $DX_REST_URL/`
 echo "Install result=$INSTALL_OUTPUT"
