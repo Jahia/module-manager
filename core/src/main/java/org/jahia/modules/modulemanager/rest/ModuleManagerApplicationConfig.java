@@ -52,7 +52,7 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 /**
  * Application configuration component.
  * Register jersey components.
- * 
+ *
  * @author bdjiba
  */
 public class ModuleManagerApplicationConfig extends ResourceConfig {
@@ -61,7 +61,6 @@ public class ModuleManagerApplicationConfig extends ResourceConfig {
      * Initializes an instance of this class providing a list of classes to be registered.
      */
     public ModuleManagerApplicationConfig() {
-        super(MultiPartFeature.class, ModuleManagerService.class, JacksonJaxbJsonProvider.class,
-                ModuleManagerExceptionMapper.class);
+        super(MultiPartFeature.class, ModuleManagerService.class, JacksonJaxbJsonProvider.class, ModuleManagerExceptionMapper.class);
     }
 }

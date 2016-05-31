@@ -76,7 +76,7 @@ import org.springframework.core.io.Resource;
 
 /**
  * The REST service implementation for module manager API.
- * 
+ *
  * @author bdjiba
  */
 @Path("/api/bundles")
@@ -87,11 +87,6 @@ public class ModuleManagerService {
 
     private ModuleManager moduleManager;
 
-    /**
-     * Spring bridge method to access to the module manager bean.
-     * 
-     * @return an instance of the module manager service
-     */
     private ModuleManager getModuleManager() {
         if (moduleManager == null) {
             moduleManager = (ModuleManager) SpringContextSingleton.getBean("ModuleManager");
@@ -101,35 +96,30 @@ public class ModuleManagerService {
 
     private Resource getUploadedFileAsResource(InputStream inputStream, String filename)
             throws ModuleDeploymentException {
-        File tempFile = null;
+
+        File tempFile;
         try {
             tempFile = File.createTempFile(FilenameUtils.getBaseName(filename) + "-",
                     "." + FilenameUtils.getExtension(filename), FileUtils.getTempDirectory());
             FileUtils.copyInputStreamToFile(inputStream, tempFile);
-        } catch (IOException ioex) {
-            log.error("Error copy uploaded stream to local temp file for " + filename, ioex);
+        } catch (IOException e) {
+            log.error("Error copy uploaded stream to local temp file for " + filename, e);
             throw new ModuleDeploymentException(Response.Status.INTERNAL_SERVER_ERROR,
-                    "Error while deploying bundle " + filename, ioex);
+                    "Error while deploying bundle " + filename, e);
         } finally {
             IOUtils.closeQuietly(inputStream);
         }
-
         return new FileSystemResource(tempFile);
     }
 
     /**
      * Install the given bundle on the specified group of nodes. If nodes parameter is empty then deploy to default group.
-     * 
-     * @param bundleInputStream
-     *            the bundle to deploy file input stream
-     * @param target
-     *            the group of cluster nodes targeted by the install operation
-     * @param start
-     *            <code>true</code> if the installed bundle should be started right away; <code>false</code> to keep it in the installed
-     *            stated
+     *
+     * @param bundleInputStream the bundle to deploy file input stream
+     * @param target the group of cluster nodes targeted by the install operation
+     * @param start whether the installed bundle should be started right away
      * @return the operation result
-     * @throws ModuleDeploymentException
-     *             when the operation fails
+     * @throws ModuleDeploymentException when the operation fails
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -137,11 +127,12 @@ public class ModuleManagerService {
     public Response install(@FormDataParam("bundle") InputStream bundleInputStream,
             @FormDataParam("bundle") FormDataContentDisposition fileDisposition, @FormDataParam("target") String target,
             @FormDataParam("start") boolean start) throws ModuleDeploymentException {
-        long startTime = System.currentTimeMillis();
+
         if (bundleInputStream == null) {
             throw new ModuleDeploymentException(Response.Status.BAD_REQUEST, "The bundle file could not be null");
         }
 
+        long startTime = System.currentTimeMillis();
         log.info("Received request to install bundle {} on target {}. Should start the bundle after: {}",
                 new Object[] { fileDisposition.getFileName(), target, start });
 
@@ -153,12 +144,12 @@ public class ModuleManagerService {
             OperationResult result = getModuleManager().install(bundleResource, target, start);
 
             return Response.ok(result).build();
-        } catch (ModuleManagementException ex) {
-            log.error("Module management exception when installing module.", ex);
-            throw new ModuleDeploymentException(Response.Status.EXPECTATION_FAILED, ex.getMessage(), ex);
-        } catch (Exception bex) {
-            log.error("An Exception occured during module installation.", bex.getMessage(), bex);
-            throw new ModuleDeploymentException(Response.Status.EXPECTATION_FAILED, bex.getMessage(), bex);
+        } catch (ModuleManagementException e) {
+            log.error("Module management exception when installing module.", e);
+            throw new ModuleDeploymentException(Response.Status.EXPECTATION_FAILED, e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("An Exception occured during module installation.", e.getMessage(), e);
+            throw new ModuleDeploymentException(Response.Status.EXPECTATION_FAILED, e.getMessage(), e);
         } finally {
             log.info("Operation completed in {} ms", System.currentTimeMillis() - startTime);
             if (bundleResource != null) {
@@ -174,87 +165,82 @@ public class ModuleManagerService {
 
     /**
      * Starts the specified bundle.
-     * 
-     * @param bundleKey
-     *            the bundle key
-     * @param target
-     *            the group of cluster nodes targeted by this operation
+     *
+     * @param bundleKey the bundle key
+     * @param target the group of cluster nodes targeted by this operation
      * @return the operation status
-     * @throws ModuleDeploymentException
-     *             in case of an error during start operation
+     * @throws ModuleDeploymentException in case of an error during start operation
      */
     @POST
     @Path("/{bundleKey:.*}/_start")
     public Response start(@PathParam(value = "bundleKey") String bundleKey, @FormParam("target") String target)
             throws ModuleDeploymentException {
+
         validateBundleOperation(bundleKey, "start");
         log.info("Received request to start bundle {} on target {}", new Object[] { bundleKey, target });
 
         try {
             OperationResult result = getModuleManager().start(bundleKey, target);
             return Response.ok(result).build();
-        } catch (ModuleManagementException mmEx) {
-            log.error("Error while starting bundle " + bundleKey, mmEx);
-            throw new ModuleDeploymentException(Status.INTERNAL_SERVER_ERROR, mmEx.getMessage());
+        } catch (ModuleManagementException e) {
+            log.error("Error while starting bundle " + bundleKey, e);
+            throw new ModuleDeploymentException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
     /**
      * Stops the specified bundle.
-     * 
-     * @param bundleKey
-     *            the bundle key
-     * @param target
-     *            the group of cluster nodes targeted by this operation
+     *
+     * @param bundleKey the bundle key
+     * @param target the group of cluster nodes targeted by this operation
      * @return the operation status
-     * @throws ModuleDeploymentException
-     *             in case of an error during stop operation
+     * @throws ModuleDeploymentException in case of an error during stop operation
      */
     @POST
     @Path("/{bundleKey:.*}/_stop")
     public Response stop(@PathParam(value = "bundleKey") String bundleKey, @FormParam("target") String target)
             throws ModuleDeploymentException {
+
         validateBundleOperation(bundleKey, "stop");
         log.info("Received request to stop bundle {} on target {}", new Object[] { bundleKey, target });
 
         try {
             OperationResult result = getModuleManager().stop(bundleKey, target);
             return Response.ok(result).build();
-        } catch (ModuleManagementException mmEx) {
-            log.error("Error while stopping bundle " + bundleKey, mmEx);
-            throw new ModuleDeploymentException(Status.INTERNAL_SERVER_ERROR, mmEx.getMessage());
+        } catch (ModuleManagementException e) {
+            log.error("Error while stopping bundle " + bundleKey, e);
+            throw new ModuleDeploymentException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
     /**
      * Uninstalls the specified bundle.
-     * 
-     * @param bundleKey
-     *            the bundle key
-     * @param target
-     *            the group of cluster nodes targeted by this operation
+     *
+     * @param bundleKey the bundle key
+     * @param target the group of cluster nodes targeted by this operation
      * @return the operation status
-     * @throws ModuleDeploymentException
-     *             in case of an error during uninstall operation
+     * @throws ModuleDeploymentException in case of an error during uninstall operation
      */
     @POST
     @Path("/{bundleKey:.*}/_uninstall")
     public Response uninstall(@PathParam(value = "bundleKey") String bundleKey, @FormParam("target") String target)
             throws ModuleDeploymentException {
+
         validateBundleOperation(bundleKey, "stop");
         log.info("Received request to uninstall bundle {} on target {}", new Object[] { bundleKey, target });
 
         try {
             OperationResult result = getModuleManager().uninstall(bundleKey, target);
             return Response.ok(result).build();
-        } catch (ModuleManagementException mmEx) {
-            log.error("Error while uninstalling bundle " + bundleKey, mmEx);
-            throw new ModuleDeploymentException(Status.INTERNAL_SERVER_ERROR, mmEx.getMessage());
+        } catch (ModuleManagementException e) {
+            log.error("Error while uninstalling bundle " + bundleKey, e);
+            throw new ModuleDeploymentException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
     private void validateBundleOperation(String bundleKey, String serviceOperation)
             throws MissingBundleKeyValueException {
+
         if (StringUtils.isBlank(bundleKey)) {
             throw new MissingBundleKeyValueException("Bundle key is mandatory for " + serviceOperation + " operation.");
         }

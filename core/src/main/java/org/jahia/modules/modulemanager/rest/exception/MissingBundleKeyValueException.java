@@ -48,28 +48,27 @@ import javax.ws.rs.core.Response.Status;
 /**
  * A specific Exception used for service operation validation.
  * It is thrown when the bundle key is missing during a call for start or stop a bundle.
- *   
+ *
  * @author bdjiba
  */
 public class MissingBundleKeyValueException extends ModuleDeploymentException {
 
-  private static final long serialVersionUID = -6817346037208187306L;
+    private static final long serialVersionUID = -6817346037208187306L;
 
-  /**
-   * @param httpStatus
-   * @param msg
-   * @param err
-   */
-  public MissingBundleKeyValueException(String msg, Throwable err) {
-    super(Status.BAD_REQUEST, msg, err);
-  }
+    /**
+     * @param httpStatus
+     * @param msg
+     * @param err
+     */
+    public MissingBundleKeyValueException(String msg, Throwable err) {
+         super(Status.BAD_REQUEST, msg, err);
+    }
 
-  /**
-   * @param httpStatus
-   * @param msg
-   */
-  public MissingBundleKeyValueException(String msg) {
-    super(Status.BAD_REQUEST, msg);
-  }
-
+    /**
+     * @param httpStatus
+     * @param msg
+     */
+    public MissingBundleKeyValueException(String msg) {
+        super(Status.BAD_REQUEST, msg);
+    }
 }

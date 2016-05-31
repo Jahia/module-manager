@@ -43,68 +43,70 @@
  */
 package org.jahia.modules.modulemanager.rest.exception;
 
+import java.text.MessageFormat;
+
 import javax.ws.rs.core.Response;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 /**
- * The Exception raised when a deployment failed. 
- * Contains the underlying error and a HTTP status code to send to the client. 
- * 
+ * The Exception raised when a deployment failed.
+ * Contains the underlying error and a HTTP status code to send to the client.
+ *
  * @author bdjiba
  */
 @XmlType(propOrder = {"responseStatus", "message", "cause"})
 public class ModuleDeploymentException extends Exception {
-  private static final long serialVersionUID = -1886713186574565575L;
-  
-  private final Response.Status responseStatus;
 
-  /**
-   * @param message
-   */
-  public ModuleDeploymentException(Response.Status httpStatus, String msg, Throwable err) {
-    super(msg, err);
-    this.responseStatus = httpStatus;
-  }
+    private static final long serialVersionUID = -1886713186574565575L;
 
-  /**
-   * @param httpStatus
-   * @param message
-   */
-  public ModuleDeploymentException(Response.Status httpStatus, String msg) {
-    this(httpStatus, msg, null);
-  }
+    private final Response.Status responseStatus;
 
-  /**
-   * @return the statusCode
-   */
-  public Response.Status getResponseStatus() {
-    return responseStatus;
-  }
+    /**
+     * @param message
+     */
+    public ModuleDeploymentException(Response.Status httpStatus, String msg, Throwable err) {
+        super(msg, err);
+        this.responseStatus = httpStatus;
+    }
 
-  
-  /**
-   * Gets the response status code
-   * @return
-   */
-  public int getStatus() {
-    return responseStatus.getStatusCode();
-  }
-  
-  @Override
-  @XmlTransient
-  public StackTraceElement[] getStackTrace() {
-    return super.getStackTrace();
-  }
-  
-  @XmlTransient
-  @Override
-  public String getLocalizedMessage() {
-    return super.getLocalizedMessage();
-  }
+    /**
+     * @param httpStatus
+     * @param message
+     */
+    public ModuleDeploymentException(Response.Status httpStatus, String msg) {
+        this(httpStatus, msg, null);
+    }
 
-  @Override
-  public String toString() {
-    return java.text.MessageFormat.format("Error '{'status:{0},message:''{1}'',reason:{2}'}'", responseStatus, getMessage(), getCause()) ;
-  }
+    /**
+     * @return the statusCode
+     */
+    public Response.Status getResponseStatus() {
+        return responseStatus;
+    }
+
+    /**
+     * Gets the response status code
+     * @return
+     */
+    public int getStatus() {
+        return responseStatus.getStatusCode();
+    }
+
+    @Override
+    @XmlTransient
+    public StackTraceElement[] getStackTrace() {
+        return super.getStackTrace();
+    }
+
+    @XmlTransient
+    @Override
+    public String getLocalizedMessage() {
+        return super.getLocalizedMessage();
+    }
+
+    @Override
+    public String toString() {
+        return MessageFormat.format("Error '{'status:{0}, message:''{1}'', reason:{2}'}'", responseStatus, getMessage(), getCause()) ;
+    }
 }
