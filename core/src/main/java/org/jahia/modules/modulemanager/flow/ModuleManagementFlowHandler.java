@@ -182,7 +182,14 @@ public class ModuleManagementFlowHandler implements Serializable {
         try {
             file = File.createTempFile("module-", "." + StringUtils.substringAfterLast(originalFilename, "."));
             moduleFile.getModuleFile().transferTo(file);
-            moduleManager.install(new FileSystemResource(file), null);
+            OperationResult result = moduleManager.install(new FileSystemResource(file), null);
+            if(result!= null && result.getBundleInfos()!= null && result.getBundleInfos().iterator().hasNext()) {
+                BundleInfo info = result.getBundleInfos().iterator().next();
+                context.addMessage(new MessageBuilder().source("moduleFile")
+                        .code("serverSettings.manageModules.install.uploaded")
+                        .args(new String[]{info.getSymbolicName(), info.getVersion().toString()})
+                        .build());
+            }
             return true;
 
         } catch (Exception e) {
