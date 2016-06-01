@@ -61,6 +61,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.nodetype.NodeTypeIterator;
@@ -182,6 +184,33 @@ public class ModuleManagementFlowHandler implements Serializable {
         try {
             file = File.createTempFile("module-", "." + StringUtils.substringAfterLast(originalFilename, "."));
             moduleFile.getModuleFile().transferTo(file);
+            JarFile jarFile = new JarFile(file);
+            Manifest manifest = jarFile.getManifest();
+            String symbolicName = manifest.getMainAttributes().getValue("Bundle-SymbolicName");
+            if (symbolicName == null) {
+                symbolicName = manifest.getMainAttributes().getValue("root-folder");
+            }
+            String version = manifest.getMainAttributes().getValue("Implementation-Version");
+            String groupId = manifest.getMainAttributes().getValue("Jahia-GroupId");
+            if (templateManagerService.differentModuleWithSameIdExists(symbolicName, groupId)) {
+                context.addMessage(new MessageBuilder().source("moduleFile")
+                        .code("serverSettings.manageModules.install.moduleWithSameIdExists")
+                        .arg(symbolicName)
+                        .error()
+                        .build());
+                return false;
+            }
+            if(!forceUpdate) {
+                Set<ModuleVersion> aPackage = templatePackageRegistry.getAvailableVersionsForModule(symbolicName);
+                ModuleVersion moduleVersion = new ModuleVersion(version);
+                if (!moduleVersion.isSnapshot() && aPackage.contains(moduleVersion)) {
+                    context.addMessage(new MessageBuilder().source("moduleExists")
+                            .code("serverSettings.manageModules.install.moduleExists")
+                            .args(new String[]{symbolicName, version})
+                            .build());
+                    return false;
+                }
+            }
             OperationResult result = moduleManager.install(new FileSystemResource(file), null);
             if(result!= null && result.getBundleInfos()!= null && result.getBundleInfos().iterator().hasNext()) {
                 BundleInfo info = result.getBundleInfos().iterator().next();
