@@ -113,8 +113,8 @@ import org.springframework.webflow.execution.RequestContext;
  * @author rincevent
  */
 public class ModuleManagementFlowHandler implements Serializable {
-    private static final long serialVersionUID = -4195379181264451784L;
 
+    private static final long serialVersionUID = -4195379181264451784L;
     private static Logger logger = LoggerFactory.getLogger(ModuleManagementFlowHandler.class);
 
     @Autowired
@@ -174,6 +174,7 @@ public class ModuleManagementFlowHandler implements Serializable {
     }
 
     public boolean uploadModule(ModuleFile moduleFile, MessageContext context, boolean forceUpdate) {
+
         String originalFilename = moduleFile.getModuleFile().getOriginalFilename();
         if (!FilenameUtils.isExtension(StringUtils.lowerCase(originalFilename), "jar")) {
             context.addMessage(new MessageBuilder().error().source("moduleFile")
@@ -200,10 +201,10 @@ public class ModuleManagementFlowHandler implements Serializable {
                         .build());
                 return false;
             }
-            if(!forceUpdate) {
-                Set<ModuleVersion> aPackage = templatePackageRegistry.getAvailableVersionsForModule(symbolicName);
+            if (!forceUpdate) {
+                Set<ModuleVersion> moduleVerions = templatePackageRegistry.getAvailableVersionsForModule(symbolicName);
                 ModuleVersion moduleVersion = new ModuleVersion(version);
-                if (!moduleVersion.isSnapshot() && aPackage.contains(moduleVersion)) {
+                if (!moduleVersion.isSnapshot() && moduleVerions.contains(moduleVersion)) {
                     context.addMessage(new MessageBuilder().source("moduleExists")
                             .code("serverSettings.manageModules.install.moduleExists")
                             .args(new String[]{symbolicName, version})
@@ -212,7 +213,7 @@ public class ModuleManagementFlowHandler implements Serializable {
                 }
             }
             OperationResult result = moduleManager.install(new FileSystemResource(file), null);
-            if(result!= null && result.getBundleInfos()!= null && result.getBundleInfos().iterator().hasNext()) {
+            if (result!= null && result.getBundleInfos()!= null && result.getBundleInfos().iterator().hasNext()) {
                 BundleInfo info = result.getBundleInfos().iterator().next();
                 context.addMessage(new MessageBuilder().source("moduleFile")
                         .code("serverSettings.manageModules.install.uploaded")
@@ -633,7 +634,7 @@ public class ModuleManagementFlowHandler implements Serializable {
     public void uninstallModule(String moduleId, String moduleVersion, RequestContext requestContext) throws RepositoryException, BundleException {
         moduleManager.uninstall(BundleInfo.fromModuleInfo(moduleId, moduleVersion).getKey(), null);
     }
-    
+
     public void stopModule(String moduleId, RequestContext requestContext) throws RepositoryException, BundleException {
         // templateManagerService.stopModule(moduleId);
         JahiaTemplatesPackage module = templatePackageRegistry.lookupById(moduleId);
