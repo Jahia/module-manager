@@ -85,6 +85,7 @@ import org.jahia.services.content.nodetypes.ExtendedNodeType;
 import org.jahia.services.content.nodetypes.NodeTypeRegistry;
 import org.jahia.services.modulemanager.BundleInfo;
 import org.jahia.services.modulemanager.ModuleManager;
+import org.jahia.services.modulemanager.ModuleNotFoundException;
 import org.jahia.services.modulemanager.OperationResult;
 import org.jahia.services.render.RenderContext;
 import org.jahia.services.sites.JahiaSitesService;
@@ -638,16 +639,15 @@ public class ModuleManagementFlowHandler implements Serializable {
     public void stopModule(String moduleId, RequestContext requestContext) throws RepositoryException, BundleException {
         // templateManagerService.stopModule(moduleId);
         JahiaTemplatesPackage module = templatePackageRegistry.lookupById(moduleId);
-        OperationResult opResult = moduleManager.stop(module.getBundleKey(), null);
-        // TODO: check operation result
-        if (!opResult.isSuccess()) {
-            requestContext.getMessageContext()
-                    .addMessage(new MessageBuilder().error()
-                            .code("serverSettings.manageModules.createOperation.failure.notFound")
-                            .args("stop", "moduleId").build());
-        } else {
+        try {
+            moduleManager.stop(module.getBundleKey(), null);
             requestContext.getExternalContext().getSessionMap().put("moduleHasBeenStopped", moduleId);
             storeTablesUUID(requestContext);
+        } catch (ModuleNotFoundException e) {
+            requestContext.getMessageContext()
+            .addMessage(new MessageBuilder().error()
+                    .code("serverSettings.manageModules.createOperation.failure.notFound")
+                    .args("stop", "moduleId").build());
         }
     }
 

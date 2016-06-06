@@ -64,8 +64,10 @@ import org.apache.commons.lang.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.jahia.services.SpringContextSingleton;
+import org.jahia.services.modulemanager.InvalidModuleException;
 import org.jahia.services.modulemanager.ModuleManagementException;
 import org.jahia.services.modulemanager.ModuleManager;
+import org.jahia.services.modulemanager.ModuleNotFoundException;
 import org.jahia.services.modulemanager.OperationResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,13 +85,8 @@ public class ModuleManagerResource {
 
     private static final Logger log = LoggerFactory.getLogger(ModuleManagerResource.class);
 
-    private ModuleManager moduleManager;
-
     private ModuleManager getModuleManager() {
-        if (moduleManager == null) {
-            moduleManager = (ModuleManager) SpringContextSingleton.getBean("ModuleManager");
-        }
-        return moduleManager;
+        return (ModuleManager) SpringContextSingleton.getBean("ModuleManager");
     }
 
     private Resource getUploadedFileAsResource(InputStream inputStream, String filename)
@@ -104,8 +101,6 @@ public class ModuleManagerResource {
             log.error("Error copy uploaded stream to local temp file for " + filename, e);
             throw new ModuleManagementRestException(Response.Status.INTERNAL_SERVER_ERROR,
                     "Error while deploying bundle " + filename, e);
-        } finally {
-            IOUtils.closeQuietly(inputStream);
         }
         return new FileSystemResource(tempFile);
     }
@@ -141,13 +136,14 @@ public class ModuleManagerResource {
             OperationResult result = getModuleManager().install(bundleResource, target, start);
 
             return Response.ok(result).build();
-        } catch (ModuleManagementException e) {
-            log.error("Module management exception when installing module.", e);
-            throw new ModuleManagementRestException(Response.Status.EXPECTATION_FAILED, e.getMessage(), e);
+        } catch (InvalidModuleException e) {
+            log.error("Unable to install module. Cause: " + e.getMessage());
+            throw new ModuleManagementRestException(Response.Status.BAD_REQUEST, e.getMessage());
         } catch (Exception e) {
-            log.error("An Exception occured during module installation.", e.getMessage(), e);
-            throw new ModuleManagementRestException(Response.Status.EXPECTATION_FAILED, e.getMessage(), e);
+            log.error("Module management exception when installing module.", e);
+            throw new ModuleManagementRestException(Response.Status.INTERNAL_SERVER_ERROR, e.getMessage(), e);
         } finally {
+            IOUtils.closeQuietly(bundleInputStream);
             log.info("Operation completed in {} ms", System.currentTimeMillis() - startTime);
             if (bundleResource != null) {
                 try {
@@ -179,6 +175,8 @@ public class ModuleManagerResource {
         try {
             OperationResult result = getModuleManager().start(bundleKey, target);
             return Response.ok(result).build();
+        } catch (ModuleNotFoundException e) {
+            throw new ModuleManagementRestException(Status.NOT_FOUND, e.getMessage());
         } catch (ModuleManagementException e) {
             log.error("Error while starting bundle " + bundleKey, e);
             throw new ModuleManagementRestException(Status.INTERNAL_SERVER_ERROR, e.getMessage(), e);
@@ -204,6 +202,8 @@ public class ModuleManagerResource {
         try {
             OperationResult result = getModuleManager().stop(bundleKey, target);
             return Response.ok(result).build();
+        } catch (ModuleNotFoundException e) {
+            throw new ModuleManagementRestException(Status.NOT_FOUND, e.getMessage());
         } catch (ModuleManagementException e) {
             log.error("Error while stopping bundle " + bundleKey, e);
             throw new ModuleManagementRestException(Status.INTERNAL_SERVER_ERROR, e.getMessage(), e);
@@ -229,6 +229,8 @@ public class ModuleManagerResource {
         try {
             OperationResult result = getModuleManager().uninstall(bundleKey, target);
             return Response.ok(result).build();
+        } catch (ModuleNotFoundException e) {
+            throw new ModuleManagementRestException(Status.NOT_FOUND, e.getMessage());
         } catch (ModuleManagementException e) {
             log.error("Error while uninstalling bundle " + bundleKey, e);
             throw new ModuleManagementRestException(Status.INTERNAL_SERVER_ERROR, e.getMessage(), e);
