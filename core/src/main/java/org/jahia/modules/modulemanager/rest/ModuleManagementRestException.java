@@ -41,23 +41,81 @@
  *     If you are unsure which license is appropriate for your use,
  *     please contact the sales department at sales@jahia.com.
  */
-package org.jahia.modules.modulemanager.rest.exception;
+package org.jahia.modules.modulemanager.rest;
+
+import java.text.MessageFormat;
 
 import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
 
 /**
- * Provide a mapping of the module exception to display as the response to the client.
- *
+ * The Exception raised when a module management operation fails. Contains the underlying error and a HTTP status code to send to the
+ * client.
+ * 
  * @author bdjiba
  */
-public class ModuleManagerExceptionMapper implements ExceptionMapper<ModuleDeploymentException> {
+@XmlType(propOrder = { "responseStatus", "message", "cause" })
+public class ModuleManagementRestException extends Exception {
+    private static final long serialVersionUID = -1886713186574565575L;
 
-    /* (non-Javadoc)
-     * @see javax.ws.rs.ext.ExceptionMapper#toResponse(java.lang.Throwable)
+    private final Response.Status responseStatus;
+
+    /**
+     * Initializes an instance of this class.
+     * 
+     * @param httpStatus the response status
+     * @param message the detail error message
      */
+    public ModuleManagementRestException(Response.Status httpStatus, String msg) {
+        this(httpStatus, msg, null);
+    }
+
+    /**
+     * Initializes an instance of this class.
+     * 
+     * @param httpStatus the response status
+     * @param message the detail error message
+     * @param cause the cause of the error
+     */
+    public ModuleManagementRestException(Response.Status httpStatus, String message, Throwable cause) {
+        super(message, cause);
+        this.responseStatus = httpStatus;
+    }
+
+    @XmlTransient
     @Override
-    public Response toResponse(ModuleDeploymentException exception) {
-        return Response.status(exception.getStatus()).entity(exception).build();
+    public String getLocalizedMessage() {
+        return super.getLocalizedMessage();
+    }
+
+    /**
+     * Obtains the response status object.
+     * 
+     * @return the response status object
+     */
+    public Response.Status getResponseStatus() {
+        return responseStatus;
+    }
+
+    @Override
+    @XmlTransient
+    public StackTraceElement[] getStackTrace() {
+        return super.getStackTrace();
+    }
+    
+    /**
+     * Gets the response status code.
+     * 
+     * @return the response status code
+     */
+    public int getStatus() {
+        return responseStatus.getStatusCode();
+    }
+
+    @Override
+    public String toString() {
+        return MessageFormat.format("Error '{'status:{0},message:''{1}'',reason:{2}'}'", responseStatus, getMessage(),
+                getCause());
     }
 }

@@ -41,34 +41,27 @@
  *     If you are unsure which license is appropriate for your use,
  *     please contact the sales department at sales@jahia.com.
  */
-package org.jahia.modules.modulemanager.rest.exception;
+package org.jahia.modules.modulemanager.rest;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.ext.ExceptionMapper;
 
 /**
- * A specific Exception used for service operation validation.
- * It is thrown when the bundle key is missing during a call for start or stop a bundle.
- *
+ * Provide a mapping of the module management related exception into a displayable client response.
+ * 
  * @author bdjiba
  */
-public class MissingBundleKeyValueException extends ModuleDeploymentException {
+public class ModuleManagerExceptionMapper implements ExceptionMapper<Exception> {
 
-    private static final long serialVersionUID = -6817346037208187306L;
+    @Override
+    public Response toResponse(Exception exception) {
+        ResponseBuilder responseBuilder = Response.status(exception instanceof ModuleManagementRestException
+                ? ((ModuleManagementRestException) exception).getStatus()
+                : Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
-    /**
-     * @param httpStatus
-     * @param msg
-     * @param err
-     */
-    public MissingBundleKeyValueException(String msg, Throwable err) {
-         super(Status.BAD_REQUEST, msg, err);
+        return responseBuilder.entity(exception).build();
     }
 
-    /**
-     * @param httpStatus
-     * @param msg
-     */
-    public MissingBundleKeyValueException(String msg) {
-        super(Status.BAD_REQUEST, msg);
-    }
 }

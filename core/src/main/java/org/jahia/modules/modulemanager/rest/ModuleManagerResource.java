@@ -63,8 +63,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.jahia.modules.modulemanager.rest.exception.MissingBundleKeyValueException;
-import org.jahia.modules.modulemanager.rest.exception.ModuleDeploymentException;
 import org.jahia.services.SpringContextSingleton;
 import org.jahia.services.modulemanager.ModuleManagementException;
 import org.jahia.services.modulemanager.ModuleManager;
@@ -81,9 +79,9 @@ import org.springframework.core.io.Resource;
  */
 @Path("/api/bundles")
 @Produces({ MediaType.APPLICATION_JSON })
-public class ModuleManagerService {
+public class ModuleManagerResource {
 
-    private static final Logger log = LoggerFactory.getLogger(ModuleManagerService.class);
+    private static final Logger log = LoggerFactory.getLogger(ModuleManagerResource.class);
 
     private ModuleManager moduleManager;
 
@@ -95,7 +93,7 @@ public class ModuleManagerService {
     }
 
     private Resource getUploadedFileAsResource(InputStream inputStream, String filename)
-            throws ModuleDeploymentException {
+            throws ModuleManagementRestException {
 
         File tempFile;
         try {
@@ -104,7 +102,7 @@ public class ModuleManagerService {
             FileUtils.copyInputStreamToFile(inputStream, tempFile);
         } catch (IOException e) {
             log.error("Error copy uploaded stream to local temp file for " + filename, e);
-            throw new ModuleDeploymentException(Response.Status.INTERNAL_SERVER_ERROR,
+            throw new ModuleManagementRestException(Response.Status.INTERNAL_SERVER_ERROR,
                     "Error while deploying bundle " + filename, e);
         } finally {
             IOUtils.closeQuietly(inputStream);
@@ -119,17 +117,16 @@ public class ModuleManagerService {
      * @param target the group of cluster nodes targeted by the install operation
      * @param start whether the installed bundle should be started right away
      * @return the operation result
-     * @throws ModuleDeploymentException when the operation fails
+     * @throws ModuleManagementRestException when the operation fails
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Path("/")
     public Response install(@FormDataParam("bundle") InputStream bundleInputStream,
             @FormDataParam("bundle") FormDataContentDisposition fileDisposition, @FormDataParam("target") String target,
-            @FormDataParam("start") boolean start) throws ModuleDeploymentException {
+            @FormDataParam("start") boolean start) throws ModuleManagementRestException {
 
         if (bundleInputStream == null) {
-            throw new ModuleDeploymentException(Response.Status.BAD_REQUEST, "The bundle file could not be null");
+            throw new ModuleManagementRestException(Response.Status.BAD_REQUEST, "The bundle file could not be null");
         }
 
         long startTime = System.currentTimeMillis();
@@ -146,10 +143,10 @@ public class ModuleManagerService {
             return Response.ok(result).build();
         } catch (ModuleManagementException e) {
             log.error("Module management exception when installing module.", e);
-            throw new ModuleDeploymentException(Response.Status.EXPECTATION_FAILED, e.getMessage(), e);
+            throw new ModuleManagementRestException(Response.Status.EXPECTATION_FAILED, e.getMessage(), e);
         } catch (Exception e) {
             log.error("An Exception occured during module installation.", e.getMessage(), e);
-            throw new ModuleDeploymentException(Response.Status.EXPECTATION_FAILED, e.getMessage(), e);
+            throw new ModuleManagementRestException(Response.Status.EXPECTATION_FAILED, e.getMessage(), e);
         } finally {
             log.info("Operation completed in {} ms", System.currentTimeMillis() - startTime);
             if (bundleResource != null) {
@@ -169,12 +166,12 @@ public class ModuleManagerService {
      * @param bundleKey the bundle key
      * @param target the group of cluster nodes targeted by this operation
      * @return the operation status
-     * @throws ModuleDeploymentException in case of an error during start operation
+     * @throws ModuleManagementRestException in case of an error during start operation
      */
     @POST
     @Path("/{bundleKey:.*}/_start")
     public Response start(@PathParam(value = "bundleKey") String bundleKey, @FormParam("target") String target)
-            throws ModuleDeploymentException {
+            throws ModuleManagementRestException {
 
         validateBundleOperation(bundleKey, "start");
         log.info("Received request to start bundle {} on target {}", new Object[] { bundleKey, target });
@@ -184,7 +181,7 @@ public class ModuleManagerService {
             return Response.ok(result).build();
         } catch (ModuleManagementException e) {
             log.error("Error while starting bundle " + bundleKey, e);
-            throw new ModuleDeploymentException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
+            throw new ModuleManagementRestException(Status.INTERNAL_SERVER_ERROR, e.getMessage(), e);
         }
     }
 
@@ -194,12 +191,12 @@ public class ModuleManagerService {
      * @param bundleKey the bundle key
      * @param target the group of cluster nodes targeted by this operation
      * @return the operation status
-     * @throws ModuleDeploymentException in case of an error during stop operation
+     * @throws ModuleManagementRestException in case of an error during stop operation
      */
     @POST
     @Path("/{bundleKey:.*}/_stop")
     public Response stop(@PathParam(value = "bundleKey") String bundleKey, @FormParam("target") String target)
-            throws ModuleDeploymentException {
+            throws ModuleManagementRestException {
 
         validateBundleOperation(bundleKey, "stop");
         log.info("Received request to stop bundle {} on target {}", new Object[] { bundleKey, target });
@@ -209,7 +206,7 @@ public class ModuleManagerService {
             return Response.ok(result).build();
         } catch (ModuleManagementException e) {
             log.error("Error while stopping bundle " + bundleKey, e);
-            throw new ModuleDeploymentException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
+            throw new ModuleManagementRestException(Status.INTERNAL_SERVER_ERROR, e.getMessage(), e);
         }
     }
 
@@ -219,12 +216,12 @@ public class ModuleManagerService {
      * @param bundleKey the bundle key
      * @param target the group of cluster nodes targeted by this operation
      * @return the operation status
-     * @throws ModuleDeploymentException in case of an error during uninstall operation
+     * @throws ModuleManagementRestException in case of an error during uninstall operation
      */
     @POST
     @Path("/{bundleKey:.*}/_uninstall")
     public Response uninstall(@PathParam(value = "bundleKey") String bundleKey, @FormParam("target") String target)
-            throws ModuleDeploymentException {
+            throws ModuleManagementRestException {
 
         validateBundleOperation(bundleKey, "stop");
         log.info("Received request to uninstall bundle {} on target {}", new Object[] { bundleKey, target });
@@ -234,15 +231,15 @@ public class ModuleManagerService {
             return Response.ok(result).build();
         } catch (ModuleManagementException e) {
             log.error("Error while uninstalling bundle " + bundleKey, e);
-            throw new ModuleDeploymentException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
+            throw new ModuleManagementRestException(Status.INTERNAL_SERVER_ERROR, e.getMessage(), e);
         }
     }
 
     private void validateBundleOperation(String bundleKey, String serviceOperation)
-            throws MissingBundleKeyValueException {
+            throws ModuleManagementRestException {
 
         if (StringUtils.isBlank(bundleKey)) {
-            throw new MissingBundleKeyValueException("Bundle key is mandatory for " + serviceOperation + " operation.");
+            throw new ModuleManagementRestException(Status.BAD_REQUEST, "Bundle key is mandatory for " + serviceOperation + " operation.");
         }
     }
 

@@ -136,13 +136,6 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Import-Package>
-                            org.springframework.cglib.core,
-                            org.springframework.cglib.proxy,
-                            org.springframework.beans.factory,
-                            ${jahia.plugin.projectPackageImport},
-                            *
-                        </Import-Package>
                         <JAX-RS-Alias>/api/bundles</JAX-RS-Alias>
                         <JAX-RS-Application>org.jahia.modules.modulemanager.rest.ModuleManagerApplicationConfig</JAX-RS-Application>
                     </instructions>
