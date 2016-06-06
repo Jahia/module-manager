@@ -150,7 +150,12 @@ public class ModuleManagerResource {
                     File bundleFile = bundleResource.getFile();
                     FileUtils.deleteQuietly(bundleFile);
                 } catch (IOException ioex) {
-                    log.debug("Unable to clean installed bundle file", ioex);
+                    if (log.isDebugEnabled()) {
+                        log.warn("Unable to clean installed bundle file. Cause: " + ioex.getMessage(), ioex);
+                    } else {
+                        log.warn("Unable to clean installed bundle file (details in DEBUG logging level). Cause: "
+                                + ioex.getMessage());
+                    }
                 }
             }
         }
