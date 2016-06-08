@@ -53,23 +53,20 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * Provide a mapping of the module management related exception into a displayable client response.
- * 
+ *
  * @author bdjiba
  */
 public class ModuleManagerExceptionMapper implements ExceptionMapper<Exception> {
 
     @XmlRootElement
     @XmlType(propOrder = { "status", "reasonPhrase", "message", "cause" })
-    static class ErrorInfo {
+    static private class ErrorInfo {
 
         private final String cause;
-
         private final String message;
-
         private final Status status;
 
-        ErrorInfo(Status status, String message, String cause) {
-            super();
+        public ErrorInfo(Status status, String message, String cause) {
             this.status = status;
             this.message = message;
             this.cause = cause;
@@ -94,23 +91,21 @@ public class ModuleManagerExceptionMapper implements ExceptionMapper<Exception> 
         public int getStatus() {
             return status.getStatusCode();
         }
-
     }
 
     private ErrorInfo getErrorInfo(Exception ex) {
         int statusCode = ex instanceof WebApplicationException
                 ? ((WebApplicationException) ex).getResponse().getStatus()
                 : Status.INTERNAL_SERVER_ERROR.getStatusCode();
-        return new ErrorInfo(Status.fromStatusCode(statusCode), ex.getMessage(),
-                statusCode >= Status.INTERNAL_SERVER_ERROR.getStatusCode() && ex.getCause() != null
-                        ? ex.getCause().toString() : null);
+        String cause = Response.Status.Family.familyOf(statusCode) == Response.Status.Family.SERVER_ERROR && ex.getCause() != null
+                ? ex.getCause().toString()
+                : null;
+        return new ErrorInfo(Status.fromStatusCode(statusCode), ex.getMessage(), cause);
     }
 
     @Override
     public Response toResponse(Exception exception) {
         ErrorInfo errorInfo = getErrorInfo(exception);
-
         return Response.status(errorInfo.status).entity(errorInfo).build();
     }
-
 }

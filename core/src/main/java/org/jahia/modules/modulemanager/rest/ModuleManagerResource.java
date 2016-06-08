@@ -67,7 +67,7 @@ import org.apache.commons.lang.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.jahia.services.SpringContextSingleton;
-import org.jahia.services.modulemanager.ModuleManagementClientException;
+import org.jahia.services.modulemanager.ModuleManagementInvalidArgumentException;
 import org.jahia.services.modulemanager.ModuleManager;
 import org.jahia.services.modulemanager.ModuleNotFoundException;
 import org.jahia.services.modulemanager.OperationResult;
@@ -133,16 +133,14 @@ public class ModuleManagerResource {
 
         try {
             bundleResource = getUploadedFileAsResource(bundleInputStream, fileDisposition.getFileName());
-
             OperationResult result = getModuleManager().install(bundleResource, target, start);
-
             return Response.ok(result).build();
-        } catch (ModuleManagementClientException e) {
+        } catch (ModuleManagementInvalidArgumentException e) {
             log.error("Unable to install module. Cause: " + e.getMessage());
             throw new ClientErrorException("Unable to install module", Response.Status.BAD_REQUEST, e);
         } catch (Exception e) {
             log.error("Module management exception when installing module", e);
-            throw new InternalServerErrorException("Module management exception when installing module", e);
+            throw new InternalServerErrorException("Error while installing bundle", e);
         } finally {
             IOUtils.closeQuietly(bundleInputStream);
             log.info("Operation completed in {} ms", System.currentTimeMillis() - startTime);
@@ -150,12 +148,12 @@ public class ModuleManagerResource {
                 try {
                     File bundleFile = bundleResource.getFile();
                     FileUtils.deleteQuietly(bundleFile);
-                } catch (IOException ioex) {
+                } catch (IOException e) {
                     if (log.isDebugEnabled()) {
-                        log.warn("Unable to clean installed bundle file. Cause: " + ioex.getMessage(), ioex);
+                        log.warn("Unable to clean installed bundle file. Cause: " + e.getMessage(), e);
                     } else {
                         log.warn("Unable to clean installed bundle file (details in DEBUG logging level). Cause: "
-                                + ioex.getMessage());
+                                + e.getMessage());
                     }
                 }
             }
@@ -183,7 +181,7 @@ public class ModuleManagerResource {
             return Response.ok(result).build();
         } catch (ModuleNotFoundException e) {
             throw new ClientErrorException(e.getMessage(), Status.NOT_FOUND, e);
-        } catch (ModuleManagementClientException e) {
+        } catch (ModuleManagementInvalidArgumentException e) {
             throw new ClientErrorException(e.getMessage(), Status.BAD_REQUEST, e);
         } catch (Exception e) {
             log.error("Error while starting bundle " + bundleKey, e);
@@ -212,7 +210,7 @@ public class ModuleManagerResource {
             return Response.ok(result).build();
         } catch (ModuleNotFoundException e) {
             throw new ClientErrorException(e.getMessage(), Status.NOT_FOUND, e);
-        } catch (ModuleManagementClientException e) {
+        } catch (ModuleManagementInvalidArgumentException e) {
             throw new ClientErrorException(e.getMessage(), Status.BAD_REQUEST, e);
         } catch (Exception e) {
             log.error("Error while stopping bundle " + bundleKey, e);
@@ -241,7 +239,7 @@ public class ModuleManagerResource {
             return Response.ok(result).build();
         } catch (ModuleNotFoundException e) {
             throw new ClientErrorException(e.getMessage(), Status.NOT_FOUND, e);
-        } catch (ModuleManagementClientException e) {
+        } catch (ModuleManagementInvalidArgumentException e) {
             throw new ClientErrorException(e.getMessage(), Status.BAD_REQUEST, e);
         } catch (Exception e) {
             log.error("Error while uninstalling bundle " + bundleKey, e);
@@ -255,5 +253,4 @@ public class ModuleManagerResource {
                     Status.BAD_REQUEST);
         }
     }
-
 }
