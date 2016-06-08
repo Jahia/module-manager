@@ -47,12 +47,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -64,8 +67,7 @@ import org.apache.commons.lang.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.jahia.services.SpringContextSingleton;
-import org.jahia.services.modulemanager.InvalidModuleException;
-import org.jahia.services.modulemanager.ModuleManagementException;
+import org.jahia.services.modulemanager.ModuleManagementClientException;
 import org.jahia.services.modulemanager.ModuleManager;
 import org.jahia.services.modulemanager.ModuleNotFoundException;
 import org.jahia.services.modulemanager.OperationResult;
@@ -90,7 +92,7 @@ public class ModuleManagerResource {
     }
 
     private Resource getUploadedFileAsResource(InputStream inputStream, String filename)
-            throws ModuleManagementRestException {
+            throws InternalServerErrorException {
 
         File tempFile;
         try {
@@ -99,8 +101,7 @@ public class ModuleManagerResource {
             FileUtils.copyInputStreamToFile(inputStream, tempFile);
         } catch (IOException e) {
             log.error("Error copy uploaded stream to local temp file for " + filename, e);
-            throw new ModuleManagementRestException(Response.Status.INTERNAL_SERVER_ERROR,
-                    "Error while deploying bundle " + filename, e);
+            throw new InternalServerErrorException("Error while deploying bundle " + filename, e);
         }
         return new FileSystemResource(tempFile);
     }
@@ -112,16 +113,16 @@ public class ModuleManagerResource {
      * @param target the group of cluster nodes targeted by the install operation
      * @param start whether the installed bundle should be started right away
      * @return the operation result
-     * @throws ModuleManagementRestException when the operation fails
+     * @throws WebApplicationException when the operation fails
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response install(@FormDataParam("bundle") InputStream bundleInputStream,
             @FormDataParam("bundle") FormDataContentDisposition fileDisposition, @FormDataParam("target") String target,
-            @FormDataParam("start") boolean start) throws ModuleManagementRestException {
+            @FormDataParam("start") boolean start) throws WebApplicationException {
 
         if (bundleInputStream == null) {
-            throw new ModuleManagementRestException(Response.Status.BAD_REQUEST, "The bundle file could not be null");
+            throw new ClientErrorException("The bundle file could not be null", Response.Status.BAD_REQUEST);
         }
 
         long startTime = System.currentTimeMillis();
@@ -136,12 +137,12 @@ public class ModuleManagerResource {
             OperationResult result = getModuleManager().install(bundleResource, target, start);
 
             return Response.ok(result).build();
-        } catch (InvalidModuleException e) {
+        } catch (ModuleManagementClientException e) {
             log.error("Unable to install module. Cause: " + e.getMessage());
-            throw new ModuleManagementRestException(Response.Status.BAD_REQUEST, e.getMessage());
+            throw new ClientErrorException("Unable to install module", Response.Status.BAD_REQUEST, e);
         } catch (Exception e) {
-            log.error("Module management exception when installing module.", e);
-            throw new ModuleManagementRestException(Response.Status.INTERNAL_SERVER_ERROR, e.getMessage(), e);
+            log.error("Module management exception when installing module", e);
+            throw new InternalServerErrorException("Module management exception when installing module", e);
         } finally {
             IOUtils.closeQuietly(bundleInputStream);
             log.info("Operation completed in {} ms", System.currentTimeMillis() - startTime);
@@ -167,12 +168,12 @@ public class ModuleManagerResource {
      * @param bundleKey the bundle key
      * @param target the group of cluster nodes targeted by this operation
      * @return the operation status
-     * @throws ModuleManagementRestException in case of an error during start operation
+     * @throws WebApplicationException in case of an error during start operation
      */
     @POST
     @Path("/{bundleKey:.*}/_start")
     public Response start(@PathParam(value = "bundleKey") String bundleKey, @FormParam("target") String target)
-            throws ModuleManagementRestException {
+            throws WebApplicationException {
 
         validateBundleOperation(bundleKey, "start");
         log.info("Received request to start bundle {} on target {}", new Object[] { bundleKey, target });
@@ -181,10 +182,12 @@ public class ModuleManagerResource {
             OperationResult result = getModuleManager().start(bundleKey, target);
             return Response.ok(result).build();
         } catch (ModuleNotFoundException e) {
-            throw new ModuleManagementRestException(Status.NOT_FOUND, e.getMessage());
-        } catch (ModuleManagementException e) {
+            throw new ClientErrorException(e.getMessage(), Status.NOT_FOUND, e);
+        } catch (ModuleManagementClientException e) {
+            throw new ClientErrorException(e.getMessage(), Status.BAD_REQUEST, e);
+        } catch (Exception e) {
             log.error("Error while starting bundle " + bundleKey, e);
-            throw new ModuleManagementRestException(Status.INTERNAL_SERVER_ERROR, e.getMessage(), e);
+            throw new InternalServerErrorException("Error while starting bundle " + bundleKey, e);
         }
     }
 
@@ -194,12 +197,12 @@ public class ModuleManagerResource {
      * @param bundleKey the bundle key
      * @param target the group of cluster nodes targeted by this operation
      * @return the operation status
-     * @throws ModuleManagementRestException in case of an error during stop operation
+     * @throws WebApplicationException in case of an error during stop operation
      */
     @POST
     @Path("/{bundleKey:.*}/_stop")
     public Response stop(@PathParam(value = "bundleKey") String bundleKey, @FormParam("target") String target)
-            throws ModuleManagementRestException {
+            throws WebApplicationException {
 
         validateBundleOperation(bundleKey, "stop");
         log.info("Received request to stop bundle {} on target {}", new Object[] { bundleKey, target });
@@ -208,10 +211,12 @@ public class ModuleManagerResource {
             OperationResult result = getModuleManager().stop(bundleKey, target);
             return Response.ok(result).build();
         } catch (ModuleNotFoundException e) {
-            throw new ModuleManagementRestException(Status.NOT_FOUND, e.getMessage());
-        } catch (ModuleManagementException e) {
+            throw new ClientErrorException(e.getMessage(), Status.NOT_FOUND, e);
+        } catch (ModuleManagementClientException e) {
+            throw new ClientErrorException(e.getMessage(), Status.BAD_REQUEST, e);
+        } catch (Exception e) {
             log.error("Error while stopping bundle " + bundleKey, e);
-            throw new ModuleManagementRestException(Status.INTERNAL_SERVER_ERROR, e.getMessage(), e);
+            throw new InternalServerErrorException("Error while stopping bundle " + bundleKey, e);
         }
     }
 
@@ -221,12 +226,12 @@ public class ModuleManagerResource {
      * @param bundleKey the bundle key
      * @param target the group of cluster nodes targeted by this operation
      * @return the operation status
-     * @throws ModuleManagementRestException in case of an error during uninstall operation
+     * @throws WebApplicationException in case of an error during uninstall operation
      */
     @POST
     @Path("/{bundleKey:.*}/_uninstall")
     public Response uninstall(@PathParam(value = "bundleKey") String bundleKey, @FormParam("target") String target)
-            throws ModuleManagementRestException {
+            throws WebApplicationException {
 
         validateBundleOperation(bundleKey, "stop");
         log.info("Received request to uninstall bundle {} on target {}", new Object[] { bundleKey, target });
@@ -235,18 +240,19 @@ public class ModuleManagerResource {
             OperationResult result = getModuleManager().uninstall(bundleKey, target);
             return Response.ok(result).build();
         } catch (ModuleNotFoundException e) {
-            throw new ModuleManagementRestException(Status.NOT_FOUND, e.getMessage());
-        } catch (ModuleManagementException e) {
+            throw new ClientErrorException(e.getMessage(), Status.NOT_FOUND, e);
+        } catch (ModuleManagementClientException e) {
+            throw new ClientErrorException(e.getMessage(), Status.BAD_REQUEST, e);
+        } catch (Exception e) {
             log.error("Error while uninstalling bundle " + bundleKey, e);
-            throw new ModuleManagementRestException(Status.INTERNAL_SERVER_ERROR, e.getMessage(), e);
+            throw new InternalServerErrorException("Error while uninstalling bundle " + bundleKey, e);
         }
     }
 
-    private void validateBundleOperation(String bundleKey, String serviceOperation)
-            throws ModuleManagementRestException {
-
+    private void validateBundleOperation(String bundleKey, String serviceOperation) throws ClientErrorException {
         if (StringUtils.isBlank(bundleKey)) {
-            throw new ModuleManagementRestException(Status.BAD_REQUEST, "Bundle key is mandatory for " + serviceOperation + " operation.");
+            throw new ClientErrorException("Bundle key is mandatory for " + serviceOperation + " operation.",
+                    Status.BAD_REQUEST);
         }
     }
 

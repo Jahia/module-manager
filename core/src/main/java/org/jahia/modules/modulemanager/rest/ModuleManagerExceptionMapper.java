@@ -43,10 +43,13 @@
  */
 package org.jahia.modules.modulemanager.rest;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 /**
  * Provide a mapping of the module management related exception into a displayable client response.
@@ -55,13 +58,59 @@ import javax.ws.rs.ext.ExceptionMapper;
  */
 public class ModuleManagerExceptionMapper implements ExceptionMapper<Exception> {
 
+    @XmlRootElement
+    @XmlType(propOrder = { "status", "reasonPhrase", "message", "cause" })
+    static class ErrorInfo {
+
+        private final String cause;
+
+        private final String message;
+
+        private final Status status;
+
+        ErrorInfo(Status status, String message, String cause) {
+            super();
+            this.status = status;
+            this.message = message;
+            this.cause = cause;
+        }
+
+        @XmlElement
+        public String getCause() {
+            return cause;
+        }
+
+        @XmlElement
+        public String getMessage() {
+            return message;
+        }
+
+        @XmlElement
+        public String getReasonPhrase() {
+            return status.getReasonPhrase();
+        }
+
+        @XmlElement
+        public int getStatus() {
+            return status.getStatusCode();
+        }
+
+    }
+
+    private ErrorInfo getErrorInfo(Exception ex) {
+        int statusCode = ex instanceof WebApplicationException
+                ? ((WebApplicationException) ex).getResponse().getStatus()
+                : Status.INTERNAL_SERVER_ERROR.getStatusCode();
+        return new ErrorInfo(Status.fromStatusCode(statusCode), ex.getMessage(),
+                statusCode >= Status.INTERNAL_SERVER_ERROR.getStatusCode() && ex.getCause() != null
+                        ? ex.getCause().toString() : null);
+    }
+
     @Override
     public Response toResponse(Exception exception) {
-        ResponseBuilder responseBuilder = Response.status(exception instanceof ModuleManagementRestException
-                ? ((ModuleManagementRestException) exception).getStatus()
-                : Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        ErrorInfo errorInfo = getErrorInfo(exception);
 
-        return responseBuilder.entity(exception).build();
+        return Response.status(errorInfo.status).entity(errorInfo).build();
     }
 
 }
