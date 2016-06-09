@@ -41,6 +41,7 @@
         <transition on="startModule" to="startModule"/>
         <transition on="stopModule" to="stopModule"/>
         <transition on="undeployModule" to="undeployModule"/>
+        <transition on="updateModule" to="updateModule"/>
         <transition on="upload" to="view">
             <evaluate expression="flowHandler.uploadModule(moduleFile, messageContext, requestParameters.moduleForceUpdate != null ? true:false)"/>
         </transition>
@@ -100,6 +101,7 @@
         <transition on="disableAll" to="disableFromAllSites"/>
         <transition on="viewInstalledModules" to="viewResolver"/>
         <transition on="undeployModule" to="undeployModule"/>
+        <transition on="updateModule" to="updateModule"/>
     </view-state>
 
     <action-state id="downloadSources">
@@ -178,6 +180,11 @@
 
     <action-state id="undeployModule">
         <evaluate expression="flowHandler.uninstallModule(requestParameters.module,requestParameters.version,flowRequestContext)"/>
+        <transition to="view"/>
+    </action-state>
+
+    <action-state id="updateModule">
+        <evaluate expression="flowHandler.updateModule(requestParameters.module,requestParameters.version)"/>
         <transition to="view"/>
     </action-state>
 

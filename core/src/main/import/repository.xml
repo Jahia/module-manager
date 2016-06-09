@@ -16,19 +16,16 @@
                     <files jcr:primaryType="jnt:folder">
                         <serveradmin jcr:primaryType="jnt:folder">
                             <system_x0020_components jcr:primaryType="jnt:folder">
-                                <module-manager jcr:primaryType="jnt:folder">
-                                    <module-manager.png j:height="16"
+                                <modules jcr:primaryType="jnt:folder">
+                                    <modules.png j:height="16"
                                      j:width="16"
                                      jcr:mixinTypes="jmix:image"
                                      jcr:primaryType="jnt:file">
                                         <jcr:content jcr:mimeType="image/png" jcr:primaryType="jnt:resource"/>
                                         <thumbnail jcr:mimeType="image/png" jcr:primaryType="jnt:resource"/>
                                         <thumbnail2 jcr:mimeType="image/png" jcr:primaryType="jnt:resource"/>
-                                    </module-manager.png>
-                                    <crop-100x100module-manager.png jcr:primaryType="jnt:file">
-                                        <jcr:content jcr:mimeType="image/png" jcr:primaryType="jnt:resource"/>
-                                    </crop-100x100module-manager.png>
-                                </module-manager>
+                                    </modules.png>
+                                </modules>
                             </system_x0020_components>
                         </serveradmin>
                     </files>
@@ -40,18 +37,18 @@
                                 j:titleKey="serverSettings.systemComponents"
                                 jcr:mixinTypes="jmix:rbTitle"
                                 jcr:primaryType="jnt:template">
-                            <module-manager j:applyOn="jnt:globalSettings"
+                            <manageModules j:applyOn="jnt:globalSettings"
                                  j:defaultTemplate="false"
                                  j:hiddenTemplate="false"
-                                 j:icon="/modules/module-manager/templates/files/serveradmin/system_x0020_components/module-manager/module-manager.png"
+                                 j:icon="/modules/module-manager/templates/files/serveradmin/system_x0020_components/modules/modules.png"
                                  j:requiredPermissionNames="adminTemplates"
-                                 j:titleKey="serverSettings.moduleManager"
+                                 j:titleKey="serverSettings.manageModules"
                                  jcr:mixinTypes="jmix:rbTitle"
                                  jcr:primaryType="jnt:contentTemplate">
                                 <pagecontent jcr:primaryType="jnt:contentList">
-                                    <module-manager jcr:primaryType="jnt:serverSettingsModuleManager"/>
+                                    <manage-modules jcr:primaryType="jnt:serverSettingsManageModules"/>
                                 </pagecontent>
-                            </module-manager>
+                            </manageModules>
                         </system-components>
                 </server-settings-base>
             </templates>

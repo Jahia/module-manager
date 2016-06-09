@@ -6,4 +6,4 @@
 <mix = 'http://www.jcp.org/jcr/mix/1.0'>
 <jmm = 'http://www.jahia.org/jahia/module-manager/1.0'>
 
-[jnt:serverSettingsModuleManager] > jnt:content, jmix:siteComponent, mix:title, jmix:studioOnly
+[jnt:serverSettingsManageModules] > jnt:content, jmix:siteComponent, mix:title, jmix:studioOnly
