@@ -6,6 +6,5 @@ source ./common.sh
 
 #start bundle REST call
 echo Starting bundle $1...
-DATA="target=$2";
-START_OUTPUT=`curl $CURL_OPTIONS --data DATA --request POST $DX_REST_URL/$1/_start`
+START_OUTPUT=`curl $CURL_OPTIONS --request POST $DX_REST_URL/$1/_start`
 echo "Start result=$START_OUTPUT"
