@@ -227,7 +227,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         if (new Version(jahiaRequiredVersion).compareTo(new Version(Jahia.VERSION)) > 0) {
             context.addMessage(new MessageBuilder().source("moduleFile")
                     .code("serverSettings.manageModules.install.required.version.error")
-                    .args(new String[] { jahiaRequiredVersion, Jahia.VERSION }).error().build());
+                    .args(jahiaRequiredVersion, Jahia.VERSION).error().build());
             return null;
         }
         String jahiaPackageName = manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_NAME.toString());
@@ -245,7 +245,7 @@ public class ModuleManagementFlowHandler implements Serializable {
             if(licenseFeature != null && !LicenseCheckerService.Stub.isAllowed(licenseFeature)){
                 context.addMessage(new MessageBuilder().source("moduleFile")
                         .code("serverSettings.manageModules.install.package.missing.license")
-                        .args(new String[]{originalFilename, licenseFeature})
+                        .args(originalFilename, licenseFeature)
                         .build());
                 return null;
             }
@@ -284,12 +284,12 @@ public class ModuleManagementFlowHandler implements Serializable {
                 moduleManager.start(module.getBundleKey(), null);
                 context.addMessage(new MessageBuilder().source("moduleFile")
                         .code("serverSettings.manageModules.install.uploadedAndStarted")
-                        .args(new String[]{bundle.getSymbolicName(), bundle.getVersion().toString()})
+                        .args(bundle.getSymbolicName(), bundle.getVersion().toString())
                         .build());
             } else {
                 context.addMessage(new MessageBuilder().source("moduleFile")
                         .code("serverSettings.manageModules.install.uploaded")
-                        .args(new String[]{bundle.getSymbolicName(), bundle.getVersion().toString()})
+                        .args(bundle.getSymbolicName(), bundle.getVersion().toString())
                         .build());
             }
         }
@@ -319,7 +319,7 @@ public class ModuleManagementFlowHandler implements Serializable {
                 if (!moduleVersion.isSnapshot() && aPackage.contains(moduleVersion)) {
                     context.addMessage(new MessageBuilder().source("moduleExists")
                             .code("serverSettings.manageModules.install.moduleExists")
-                            .args(new String[]{symbolicName, version})
+                            .args(symbolicName, version)
                             .build());
                     return null;
                 }
