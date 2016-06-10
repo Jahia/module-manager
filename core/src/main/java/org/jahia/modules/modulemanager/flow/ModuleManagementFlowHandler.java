@@ -607,7 +607,8 @@ public class ModuleManagementFlowHandler implements Serializable {
                 state.setInstalled(false);
                 state.setCanBeUninstalled(state.getUsedInSites().isEmpty() || multipleVersionsOfModuleInstalled);
                 if (details != null) {
-                    String dspMsg = Messages.getWithArgs("resources.JahiaServerSettings", "serverSettings.manageModules.incompatibleVersion", LocaleContextHolder.getLocale(), details.toString());
+                    String dspMsg = Messages.getWithArgs("resources.ModuleManager", "serverSettings.manageModules" +
+                            ".incompatibleVersion", LocaleContextHolder.getLocale(), details.toString());
                     addError(moduleVersion, errors, moduleId, dspMsg);
                 }
             } else if (pkg.getState().getState() == ModuleState.State.ERROR_WITH_DEFINITIONS) {
@@ -615,13 +616,13 @@ public class ModuleManagementFlowHandler implements Serializable {
                 state.setInstalled(false);
                 state.setCanBeUninstalled(state.getUsedInSites().isEmpty() || multipleVersionsOfModuleInstalled);
                 state.setCanBeReinstalled(true);
-                String dspMsg = Messages.getWithArgs("resources.JahiaServerSettings", "serverSettings.manageModules.errorWithDefinitions", LocaleContextHolder.getLocale(), ((Exception)details).getCause().getMessage());
+                String dspMsg = Messages.getWithArgs("resources.ModuleManager", "serverSettings.manageModules.errorWithDefinitions", LocaleContextHolder.getLocale(), ((Exception)details).getCause().getMessage());
                 addError(moduleVersion, errors, moduleId, dspMsg);
             } else if (pkg.getState().getState() == ModuleState.State.WAITING_TO_BE_IMPORTED) {
                 state.setCanBeStarted(false);
                 state.setCanBeUninstalled(state.getUsedInSites().isEmpty() || multipleVersionsOfModuleInstalled);
                 state.setCanBeReinstalled(true);
-                String dspMsg = Messages.getWithArgs("resources.JahiaServerSettings", "serverSettings.manageModules.waitingToBeImported", LocaleContextHolder.getLocale());
+                String dspMsg = Messages.getWithArgs("resources.ModuleManager", "serverSettings.manageModules.waitingToBeImported", LocaleContextHolder.getLocale());
                 addError(moduleVersion, errors, moduleId, dspMsg);
             } else if (state.getUnresolvedDependencies().isEmpty()) {
                 // no unresolved dependencies -> can start module version
