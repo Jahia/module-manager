@@ -607,8 +607,7 @@ public class ModuleManagementFlowHandler implements Serializable {
                 state.setInstalled(false);
                 state.setCanBeUninstalled(state.getUsedInSites().isEmpty() || multipleVersionsOfModuleInstalled);
                 if (details != null) {
-                    String dspMsg = Messages.getWithArgs("resources.ModuleManager", "serverSettings.manageModules" +
-                            ".incompatibleVersion", LocaleContextHolder.getLocale(), details.toString());
+                    String dspMsg = Messages.getWithArgs("resources.ModuleManager", "serverSettings.manageModules.incompatibleVersion", LocaleContextHolder.getLocale(), details.toString());
                     addError(moduleVersion, errors, moduleId, dspMsg);
                 }
             } else if (pkg.getState().getState() == ModuleState.State.ERROR_WITH_DEFINITIONS) {
