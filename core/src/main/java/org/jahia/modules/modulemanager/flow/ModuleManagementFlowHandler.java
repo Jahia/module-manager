@@ -90,6 +90,7 @@ import org.jahia.services.content.decorator.JCRSiteNode;
 import org.jahia.services.content.nodetypes.ExtendedNodeType;
 import org.jahia.services.content.nodetypes.NodeTypeRegistry;
 import org.jahia.services.modulemanager.BundleInfo;
+import org.jahia.services.modulemanager.Constants;
 import org.jahia.services.modulemanager.ModuleManager;
 import org.jahia.services.render.RenderContext;
 import org.jahia.services.sites.JahiaSitesService;
@@ -217,7 +218,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         List<Bundle> bundlesToStart = new ArrayList<Bundle>();
         JarFile jarFile = new JarFile(file);
         Attributes manifestAttributes = jarFile.getManifest().getMainAttributes();
-        String jahiaRequiredVersion = manifestAttributes.getValue("Jahia-Required-Version");
+        String jahiaRequiredVersion = manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_REQUIRED_VERSION.toString());
         if (StringUtils.isEmpty(jahiaRequiredVersion)) {
             context.addMessage(new MessageBuilder().source("moduleFile")
                     .code("serverSettings.manageModules.install.required.version.missing.error").error().build());
@@ -229,7 +230,7 @@ public class ModuleManagementFlowHandler implements Serializable {
                     .args(new String[] { jahiaRequiredVersion, Jahia.VERSION }).error().build());
             return null;
         }
-        String jahiaPackageName = manifestAttributes.getValue("Jahia-Package-Name");
+        String jahiaPackageName = manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_NAME.toString());
         if(jahiaPackageName!=null && jahiaPackageName.trim().length()==0){
             context.addMessage(new MessageBuilder().source("moduleFile")
                     .code("serverSettings.manageModules.install.package.name.error").error()
@@ -240,7 +241,7 @@ public class ModuleManagementFlowHandler implements Serializable {
 
         if (isPackage) {
             //Check license
-            String licenseFeature = manifestAttributes.getValue("Jahia-Package-License");
+            String licenseFeature = manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_LICENSE.toString());
             if(licenseFeature != null && !LicenseCheckerService.Stub.isAllowed(licenseFeature)){
                 context.addMessage(new MessageBuilder().source("moduleFile")
                         .code("serverSettings.manageModules.install.package.missing.license")
@@ -298,12 +299,12 @@ public class ModuleManagementFlowHandler implements Serializable {
         JarFile jarFile = new JarFile(file);
         try {
             Manifest manifest = jarFile.getManifest();
-            String symbolicName = manifest.getMainAttributes().getValue("Bundle-SymbolicName");
+            String symbolicName = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_BUNDLE_SYMBOLIC_NAME.toString());
             if (symbolicName == null) {
-                symbolicName = manifest.getMainAttributes().getValue("root-folder");
+                symbolicName = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_ROOT_FOLDER.toString());
             }
-            String version = manifest.getMainAttributes().getValue("Implementation-Version");
-            String groupId = manifest.getMainAttributes().getValue("Jahia-GroupId");
+            String version = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_IMPL_VERSION.toString());
+            String groupId = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_GROUP_ID.toString());
             if (templateManagerService.differentModuleWithSameIdExists(symbolicName, groupId)) {
                 context.addMessage(new MessageBuilder().source("moduleFile")
                         .code("serverSettings.manageModules.install.moduleWithSameIdExists")
