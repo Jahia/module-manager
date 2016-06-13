@@ -762,11 +762,12 @@ public class ModuleManagementFlowHandler implements Serializable {
         }
     }
 
-    public void startModule(String moduleId, String version, RequestContext requestContext) throws RepositoryException, BundleException {
-        JahiaTemplatesPackage module = templateManagerService.getTemplatePackageRegistry().lookupByIdAndVersion(moduleId,
-                new ModuleVersion(version));
-        moduleManager.start(module.getBundleKey(), null);
-        if (module.getBundle().getState() == Bundle.ACTIVE) {
+    public void startModule(String moduleId, String version, RequestContext requestContext)
+            throws RepositoryException, BundleException {
+        Bundle bundle = BundleUtils.getBundle(moduleId, version);
+        moduleManager.start(new BundleInfo(BundleUtils.getModuleGroupId(bundle), bundle.getSymbolicName(),
+                bundle.getVersion().toString()).getKey(), null);
+        if (bundle.getState() == Bundle.ACTIVE) {
             requestContext.getExternalContext().getSessionMap().put("moduleHasBeenStarted", moduleId);
         }
         storeTablesUUID(requestContext);
