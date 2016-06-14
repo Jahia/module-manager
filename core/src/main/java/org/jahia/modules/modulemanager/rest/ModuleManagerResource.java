@@ -137,7 +137,7 @@ public class ModuleManagerResource {
             return Response.ok(result).build();
         } catch (ModuleManagementInvalidArgumentException e) {
             log.error("Unable to install module. Cause: " + e.getMessage());
-            throw new ClientErrorException("Unable to install module", Response.Status.BAD_REQUEST, e);
+            throw new ClientErrorException("Unable to install module. Cause: " + e.getMessage(), Response.Status.BAD_REQUEST, e);
         } catch (Exception e) {
             log.error("Module management exception when installing module", e);
             throw new InternalServerErrorException("Error while installing bundle", e);
