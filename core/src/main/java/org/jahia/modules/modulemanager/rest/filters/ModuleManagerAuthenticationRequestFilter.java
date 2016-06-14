@@ -87,10 +87,7 @@ public class ModuleManagerAuthenticationRequestFilter implements ContainerReques
         try {
             final JahiaUser user = getAllowedJahiaUser();
             if (user == null) {
-                requestContext.abortWith(Response
-                        .status(Response.Status.UNAUTHORIZED)
-                        .entity("Unauthorized request")
-                        .build());
+                abort(requestContext);
                 return;
             }
             requestContext.setSecurityContext(new SecurityContext() {
@@ -114,23 +111,26 @@ public class ModuleManagerAuthenticationRequestFilter implements ContainerReques
                     return httpServletRequest.getScheme();
                 }
             });
-        } catch (JahiaUnauthorizedException e) {
-
+        } catch (RepositoryException e) {
+            log.error("an error occurs while accessing the module manager API ", e);
+            abort(requestContext);
         }
     }
 
-    private JahiaUser getAllowedJahiaUser() throws JahiaUnauthorizedException {
-        JCRUserNode user = null;
-        try {
-            JCRSessionWrapper currentUserSession = JCRSessionFactory.getInstance().getCurrentUserSession();
-            user =  currentUserSession.getUserNode();
-            if (currentUserSession.getRootNode().hasPermission(REQUIRED_PERMISSON)) {
-                return user.getJahiaUser();
-            }
-        } catch (Exception e) {
-            log.debug("An error occurs while accessing the API", e);
+    private void abort(ContainerRequestContext requestContext) {
+        requestContext.abortWith(Response
+                .status(Response.Status.UNAUTHORIZED)
+                .entity("Unauthorized request")
+                .build());
+    }
+
+    private JahiaUser getAllowedJahiaUser() throws RepositoryException {
+        JCRSessionWrapper currentUserSession = JCRSessionFactory.getInstance().getCurrentUserSession();
+        JahiaUser user =  currentUserSession.getUser();
+        if (currentUserSession.getRootNode().hasPermission(REQUIRED_PERMISSON)) {
+            return user;
         }
-        log.warn("Unauthorized access to the API by user {}", user != null ? user.getPath() : "unknown");
-        throw new JahiaUnauthorizedException("not authorized");
+        log.warn("Unauthorized access to the API by user {}", user != null ? user.getUserKey() : "unknown");
+        return null;
     }
 }
