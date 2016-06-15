@@ -90,7 +90,7 @@ public class ModuleManagerAuthenticationRequestFilter implements ContainerReques
                 requestContext.abortWith(Response
                         .status(Response.Status.UNAUTHORIZED)
                         .entity(String.format("user %s is not allowed to access Module Manager HTTP API", jahiaUser.getUserKey()))
-                        .build());;
+                        .build());
             }
 
             requestContext.setSecurityContext(new SecurityContext() {
