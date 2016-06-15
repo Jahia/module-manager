@@ -43,10 +43,8 @@
  */
 package org.jahia.modules.modulemanager.rest.filters;
 
-import org.jahia.exceptions.JahiaUnauthorizedException;
 import org.jahia.services.content.JCRSessionFactory;
 import org.jahia.services.content.JCRSessionWrapper;
-import org.jahia.services.content.decorator.JCRUserNode;
 import org.jahia.services.usermanager.JahiaUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,15 +83,20 @@ public class ModuleManagerAuthenticationRequestFilter implements ContainerReques
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         try {
-            final JahiaUser user = getAllowedJahiaUser();
-            if (user == null) {
-                abort(requestContext);
-                return;
+            JCRSessionWrapper currentUserSession = JCRSessionFactory.getInstance().getCurrentUserSession();
+            final JahiaUser jahiaUser = currentUserSession.getUser();
+            if (!currentUserSession.getRootNode().hasPermission(REQUIRED_PERMISSON)) {
+                log.warn("Unauthorized access to the API by user {}", jahiaUser.getUserKey());
+                requestContext.abortWith(Response
+                        .status(Response.Status.UNAUTHORIZED)
+                        .entity(String.format("user %s is not allowed to access Module Manager HTTP API", jahiaUser.getUserKey()))
+                        .build());;
             }
+
             requestContext.setSecurityContext(new SecurityContext() {
                 @Override
                 public Principal getUserPrincipal() {
-                    return user;
+                    return jahiaUser;
                 }
 
                 @Override
@@ -112,25 +115,11 @@ public class ModuleManagerAuthenticationRequestFilter implements ContainerReques
                 }
             });
         } catch (RepositoryException e) {
-            log.error("an error occurs while accessing the module manager API ", e);
-            abort(requestContext);
+            log.error("An error occurs while accessing the module manager API ", e);
+            requestContext.abortWith(Response
+                    .status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(String.format("an error occured %s (see server log for more detail)", e.getMessage() != null ? e.getMessage() : e))
+                    .build());
         }
-    }
-
-    private void abort(ContainerRequestContext requestContext) {
-        requestContext.abortWith(Response
-                .status(Response.Status.UNAUTHORIZED)
-                .entity("Unauthorized request")
-                .build());
-    }
-
-    private JahiaUser getAllowedJahiaUser() throws RepositoryException {
-        JCRSessionWrapper currentUserSession = JCRSessionFactory.getInstance().getCurrentUserSession();
-        JahiaUser user =  currentUserSession.getUser();
-        if (currentUserSession.getRootNode().hasPermission(REQUIRED_PERMISSON)) {
-            return user;
-        }
-        log.warn("Unauthorized access to the API by user {}", user != null ? user.getUserKey() : "unknown");
-        return null;
     }
 }
