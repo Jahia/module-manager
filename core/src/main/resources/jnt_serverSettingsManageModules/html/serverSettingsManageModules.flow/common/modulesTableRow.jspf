@@ -48,8 +48,15 @@
                 </c:if>
             </c:forEach>
             <c:if test="${not empty availableUpdates[entry.key] and not functions:contains(systemSiteRequiredModules,entry.key)}">
-                <br/>Update available to version ${availableUpdates[entry.key].version}!
+                <br/>
+                <fmt:message key="serverSettings.manageModules.updateAvailable">
+                	<fmt:param value="${availableUpdates[entry.key].version}"/>
+                </fmt:message>
                 <form style="margin: 0;" action="${flowExecutionUrl}" method="POST" onsubmit="workInProgress('${i18nWaiting}');">
+                    (<label for="moduleAutoStart">
+                        <fmt:message key="serverSettings.manageModules.upload.autoStart"/>&nbsp;
+                        <input type="checkbox" name="moduleAutoStart" id="moduleAutoStart" ${developmentMode ? 'checked="checked"' : ''}/>
+                    </label>)
                     <input type="hidden" name="forgeId" value="${availableUpdates[entry.key].forgeId}"/>
                     <input type="hidden" name="moduleUrl" value="${availableUpdates[entry.key].downloadUrl}"/>
                     <button class="btn btn-block button-download" type="submit" name="_eventId_installModule" onclick="">

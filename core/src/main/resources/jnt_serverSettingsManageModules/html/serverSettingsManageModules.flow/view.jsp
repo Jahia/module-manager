@@ -27,14 +27,6 @@
 <fmt:message key="serverSettings.manageModules.checkForUpdates" var="i18nRefreshModules" />
 <fmt:message var="lastUpdateTooltip" key="serverSettings.manageModules.lastUpdate"/>
 <h2><fmt:message key="serverSettings.manageModules"/></h2>
-<c:forEach items="${flowRequestContext.messageContext.allMessages}" var="message">
-    <c:if test="${message.severity eq 'ERROR'}">
-        <div class="alert alert-error">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
-                ${message.text}
-        </div>
-    </c:if>
-</c:forEach>
 
 <c:set var="moduleTableId" value="module_table_${adminModuleTableUUID}"/>
 
@@ -135,7 +127,13 @@
             </div>
         </c:if>
         <div class="alert alert-info">
-            <label for="moduleFileUpload"><fmt:message key="serverSettings.manageModules.upload.module"/></label>
+            <label for="moduleFileUpload">
+                <fmt:message key="serverSettings.manageModules.upload.module"/>
+                <label for="moduleAutoStart" style="display:inline">
+                    (<fmt:message key="serverSettings.manageModules.upload.autoStart"/>&nbsp;
+                    <input type="checkbox" name="moduleAutoStart" id="moduleAutoStart" ${developmentMode ? 'checked="checked"' : ''}/>)
+	            </label>
+            </label>
             <input type="file" id="moduleFileUpload" name="moduleFile" accept=""/>
             <c:if test="${forceUpdateDisplay eq 'true'}">
                 <label for="moduleForceUpdate"><fmt:message key="serverSettings.manageModules.upload.force"/>

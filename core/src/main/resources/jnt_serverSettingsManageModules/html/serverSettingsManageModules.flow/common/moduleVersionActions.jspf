@@ -32,7 +32,7 @@
                                         </c:if>
 
                                         <button class="btn btn-danger" type="submit" name="_eventId_stopModule"
-                                            onclick="return confirm('${functions:escapeJavaScript(i18nModuleStopConfirm)} ${functions:escapeJavaScript(i18nContinue)}');">
+                                            onclick="return confirm('${functions:escapeJavaScript(i18nModuleStopConfirm)}${' '}${functions:escapeJavaScript(i18nContinue)}');">
                                             <i class=" icon-stop icon-white"></i>&nbsp;${i18nModuleStop}
                                         </button>
                                     </c:if>
@@ -46,7 +46,7 @@
                                             <fmt:param value="${version.value.name} (${version.key})"/>
                                         </fmt:message>
                                         <button class="btn" type="submit" name="_eventId_undeployModule"
-                                            onclick="return confirm('${functions:escapeJavaScript(i18nModuleUndeployConfirm)} ${functions:escapeJavaScript(i18nContinue)}');">
+                                            onclick="return confirm('${functions:escapeJavaScript(i18nModuleUndeployConfirm)}${' '}${functions:escapeJavaScript(i18nContinue)}');">
                                                 <i class="icon-ban-circle"></i>&nbsp;${i18nModuleUndeploy}
                                         </button>
                                     </c:if>

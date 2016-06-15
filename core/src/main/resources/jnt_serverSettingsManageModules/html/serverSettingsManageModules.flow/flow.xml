@@ -43,10 +43,10 @@
         <transition on="undeployModule" to="undeployModule"/>
         <transition on="updateModule" to="updateModule"/>
         <transition on="upload" to="view">
-            <evaluate expression="flowHandler.uploadModule(moduleFile, messageContext, requestParameters.moduleForceUpdate != null ? true:false)"/>
+            <evaluate expression="flowHandler.uploadModule(moduleFile, messageContext, requestParameters.moduleForceUpdate != null, requestParameters.moduleAutoStart != null)"/>
         </transition>
         <transition on="installModule" to="view">
-            <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, messageContext)"/>
+            <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, requestParameters.moduleAutoStart != null, messageContext)"/>
         </transition>
         <transition on="reloadModules" to="view">
             <evaluate expression="flowHandler.reloadModules()"/>
@@ -226,7 +226,7 @@
         </on-render>
 
         <transition on="installForgeModule" to="forgeView">
-            <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, messageContext)"/>
+            <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, requestParameters.moduleAutoStart != null &amp;&amp; requestParameters.moduleAutoStart == 'true', messageContext)"/>
         </transition>
 
         <transition on="reloadModules" to="forgeView">

@@ -1,4 +1,5 @@
 <%@ page import="java.util.Date" %>
+<%@ page import="org.jahia.settings.SettingsBean" %>
 <%@ taglib prefix="jcr" uri="http://www.jahia.org/tags/jcr" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -17,6 +18,7 @@
 <%--@elvariable id="currentResource" type="org.jahia.services.render.Resource"--%>
 <%--@elvariable id="url" type="org.jahia.services.render.URLGenerator"--%>
 <%--@elvariable id="module" type="org.jahia.modules.modulemanager.forge.Module"--%>
+<c:set var="developmentMode" value="<%= SettingsBean.getInstance().isDevelopmentMode() %>"/>
 <template:addResources type="javascript" resources="jquery.min.js,jquery.blockUI.js,workInProgress.js,jquery.cuteTime.js"/>
 <template:addResources type="javascript" resources="jquery.cuteTime.settings.${currentResource.locale}.js"/>
 <template:addResources type="javascript" resources="datatables/jquery.dataTables.js,i18n/jquery.dataTables-${currentResource.locale}.js,datatables/dataTables.bootstrap-ext.js"/>
@@ -29,6 +31,14 @@
     <fmt:param value="${lastModulesUpdate}"/>
 </fmt:message>
 <h2><fmt:message key="serverSettings.manageModules"/></h2>
+<c:forEach items="${flowRequestContext.messageContext.allMessages}" var="message">
+    <c:if test="${message.severity eq 'ERROR'}">
+        <div class="alert alert-error">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                ${message.text}
+        </div>
+    </c:if>
+</c:forEach>
 
 <c:set var="moduleTableId" value="module_table_${forgeModuleTableUUID}"/>
 
@@ -98,6 +108,13 @@
         </div>
     </div>
 
+    <div class="alert alert-info">
+        <label for="globalModuleAutoStart">
+            <fmt:message key="serverSettings.manageModules.download.autoStart"/>&nbsp;
+            <input type="checkbox" name="globalModuleAutoStart" id="globalModuleAutoStart" ${developmentMode ? 'checked="checked"' : ''}/>
+        </label>
+    </div>
+
     <table class="table table-bordered table-striped table-hover" id="${moduleTableId}">
         <thead>
         <tr>
@@ -150,9 +167,10 @@
                                 <fmt:message key="serverSettings.manageModules.module.alreadyInstalled" />
                             </c:when>
                             <c:otherwise>
-                                <form style="margin: 0;" action="${flowExecutionUrl}" method="POST" onsubmit="workInProgress('${i18nWaiting}');">
+                                <form style="margin: 0;" action="${flowExecutionUrl}" method="POST" onsubmit="this.elements.namedItem('moduleAutoStart').value=document.getElementById('globalModuleAutoStart').checked; workInProgress('${i18nWaiting}');">
                                     <input type="hidden" name="forgeId" value="${module.forgeId}"/>
                                     <input type="hidden" name="moduleUrl" value="${module.downloadUrl}"/>
+                                    <input type="hidden" name="moduleAutoStart" value="${developmentMode}"/>
                                     <button class="btn btn-block button-download" type="submit" name="_eventId_installForgeModule">
                                         <i class="icon-download"></i>
                                         &nbsp;<fmt:message key="serverSettings.manageModules.download"/>
