@@ -120,9 +120,9 @@ import org.springframework.webflow.execution.RequestContext;
  * @author rincevent
  */
 public class ModuleManagementFlowHandler implements Serializable {
-    private static final long serialVersionUID = -4195379181264451784L;
 
-    private static Logger logger = LoggerFactory.getLogger(ModuleManagementFlowHandler.class);
+    private static final long serialVersionUID = -4195379181264451784L;
+    private static final Logger logger = LoggerFactory.getLogger(ModuleManagementFlowHandler.class);
 
     @Autowired
     private transient JahiaTemplateManagerService templateManagerService;
@@ -135,12 +135,12 @@ public class ModuleManagementFlowHandler implements Serializable {
 
     @Autowired
     private transient ModuleManager moduleManager;
-    
+
     @Autowired
     private transient TemplatePackageRegistry templatePackageRegistry;
 
     private String moduleName;
-    
+
     public boolean isInModule(RenderContext renderContext) {
         try {
             if (renderContext.getMainResource().getNode().isNodeType("jnt:module")) {
@@ -161,13 +161,11 @@ public class ModuleManagementFlowHandler implements Serializable {
     }
 
     public boolean installModule(String forgeId, String url, boolean autoStart, MessageContext context) {
-        JarFile jarFile = null;
         File file = null;
         try {
             file = forgeService.downloadModuleFromForge(forgeId, url);
-            jarFile = installBundles(file, context, url, false, autoStart);
+            installBundles(file, context, url, false, autoStart);
             return true;
-
         } catch (Exception e) {
             context.addMessage(new MessageBuilder().source("moduleFile")
                     .code("serverSettings.manageModules.install.failed")
@@ -176,7 +174,6 @@ public class ModuleManagementFlowHandler implements Serializable {
                     .build());
             logger.error(e.getMessage(), e);
         } finally {
-            IOUtils.closeQuietly(jarFile);
             FileUtils.deleteQuietly(file);
         }
         return false;
@@ -189,12 +186,11 @@ public class ModuleManagementFlowHandler implements Serializable {
                     .code("serverSettings.manageModules.install.wrongFormat").build());
             return false;
         }
-        JarFile jarFile = null;
         File file = null;
         try {
             file = File.createTempFile("module-", "." + StringUtils.substringAfterLast(originalFilename, "."));
             moduleFile.getModuleFile().transferTo(file);
-            jarFile = installBundles(file, context, originalFilename, forceUpdate, autoStart);
+            installBundles(file, context, originalFilename, forceUpdate, autoStart);
             return true;
 
         } catch (Exception e) {
@@ -205,69 +201,73 @@ public class ModuleManagementFlowHandler implements Serializable {
                     .build());
             logger.error(e.getMessage(), e);
         } finally {
-            IOUtils.closeQuietly(jarFile);
             FileUtils.deleteQuietly(file);
         }
         return false;
     }
 
-    private JarFile installBundles(File file, MessageContext context, String originalFilename, boolean forceUpdate, boolean autoStart) throws IOException, BundleException {
-        JarFile jarFile = new JarFile(file);
-        Attributes manifestAttributes = jarFile.getManifest().getMainAttributes();
-        String jahiaRequiredVersion = manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_REQUIRED_VERSION.toString());
-        if (StringUtils.isEmpty(jahiaRequiredVersion)) {
-            context.addMessage(new MessageBuilder().source("moduleFile")
-                    .code("serverSettings.manageModules.install.required.version.missing.error").error().build());
-            return null;
-        }
-        if (new Version(jahiaRequiredVersion).compareTo(new Version(Jahia.VERSION)) > 0) {
-            context.addMessage(new MessageBuilder().source("moduleFile")
-                    .code("serverSettings.manageModules.install.required.version.error")
-                    .args(jahiaRequiredVersion, Jahia.VERSION).error().build());
-            return null;
-        }
-        String jahiaPackageName = manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_NAME.toString());
-        if(jahiaPackageName!=null && jahiaPackageName.trim().length()==0){
-            context.addMessage(new MessageBuilder().source("moduleFile")
-                    .code("serverSettings.manageModules.install.package.name.error").error()
-                    .build());
-            return null;
-        }
-        boolean isPackage = jahiaPackageName != null;
+    private void installBundles(File file, MessageContext context, String originalFilename, boolean forceUpdate, boolean autoStart) throws IOException, BundleException {
 
-        if (isPackage) {
-            //Check license
-            String licenseFeature = manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_LICENSE.toString());
-            if(licenseFeature != null && !LicenseCheckerService.Stub.isAllowed(licenseFeature)){
+        JarFile jarFile = new JarFile(file);
+        try {
+
+            Attributes manifestAttributes = jarFile.getManifest().getMainAttributes();
+            String jahiaRequiredVersion = manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_REQUIRED_VERSION);
+            if (StringUtils.isEmpty(jahiaRequiredVersion)) {
                 context.addMessage(new MessageBuilder().source("moduleFile")
-                        .code("serverSettings.manageModules.install.package.missing.license")
-                        .args(originalFilename, licenseFeature)
-                        .build());
-                return null;
+                        .code("serverSettings.manageModules.install.required.version.missing.error").error().build());
+                return;
             }
-            ModulesPackage pack = ModulesPackage.create(jarFile);
-            try {
-            List<String> providedBundles = new ArrayList<String>(pack.getModules().keySet());
-            for (ModulesPackage.PackagedModule entry : pack.getModules().values()) {
-                Bundle bundle = installModule(entry.getModuleFile(), context, providedBundles, forceUpdate, autoStart);
+            if (new Version(jahiaRequiredVersion).compareTo(new Version(Jahia.VERSION)) > 0) {
+                context.addMessage(new MessageBuilder().source("moduleFile")
+                        .code("serverSettings.manageModules.install.required.version.error")
+                        .args(jahiaRequiredVersion, Jahia.VERSION).error().build());
+                return;
+            }
+            String jahiaPackageName = manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_NAME);
+            if(jahiaPackageName!=null && jahiaPackageName.trim().length()==0){
+                context.addMessage(new MessageBuilder().source("moduleFile")
+                        .code("serverSettings.manageModules.install.package.name.error").error()
+                        .build());
+                return;
+            }
+            boolean isPackage = jahiaPackageName != null;
+
+            if (isPackage) {
+                //Check license
+                String licenseFeature = manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_LICENSE);
+                if(licenseFeature != null && !LicenseCheckerService.Stub.isAllowed(licenseFeature)){
+                    context.addMessage(new MessageBuilder().source("moduleFile")
+                            .code("serverSettings.manageModules.install.package.missing.license")
+                            .args(originalFilename, licenseFeature)
+                            .build());
+                    return;
+                }
+                ModulesPackage pack = ModulesPackage.create(jarFile);
+                try {
+                List<String> providedBundles = new ArrayList<String>(pack.getModules().keySet());
+                for (ModulesPackage.PackagedModule entry : pack.getModules().values()) {
+                    Bundle bundle = installModule(entry.getModuleFile(), context, providedBundles, forceUpdate, autoStart);
+                    if (bundle != null) {
+                        addInfoAboutBundle(bundle, autoStart, context);
+                    }
+                }
+                } finally {
+                    // delete temporary created files of the package
+                    for (ModulesPackage.PackagedModule entry : pack.getModules().values()) {
+                        FileUtils.deleteQuietly(entry.getModuleFile());
+                    }
+                }
+            } else {
+                Bundle bundle = installModule(file, context, null, forceUpdate, autoStart);
                 if (bundle != null) {
                     addInfoAboutBundle(bundle, autoStart, context);
                 }
             }
-            } finally {
-                // delete temporary created files of the package
-                for (ModulesPackage.PackagedModule entry : pack.getModules().values()) {
-                    FileUtils.deleteQuietly(entry.getModuleFile());
-                }
-            }
-        } else {
-            Bundle bundle = installModule(file, context, null, forceUpdate, autoStart);
-            if (bundle != null) {
-                addInfoAboutBundle(bundle, autoStart, context);
-            }
+
+        } finally {
+            jarFile.close();
         }
-        
-        return jarFile;
     }
 
     private void addInfoAboutBundle(Bundle bundle, boolean autoStart, MessageContext context) throws BundleException {
@@ -281,12 +281,12 @@ public class ModuleManagementFlowHandler implements Serializable {
         JarFile jarFile = new JarFile(file);
         try {
             Manifest manifest = jarFile.getManifest();
-            String symbolicName = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_BUNDLE_SYMBOLIC_NAME.toString());
+            String symbolicName = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_BUNDLE_SYMBOLIC_NAME);
             if (symbolicName == null) {
-                symbolicName = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_ROOT_FOLDER.toString());
+                symbolicName = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_ROOT_FOLDER);
             }
-            String version = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_IMPL_VERSION.toString());
-            String groupId = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_GROUP_ID.toString());
+            String version = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_IMPL_VERSION);
+            String groupId = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_GROUP_ID);
             if (templateManagerService.differentModuleWithSameIdExists(symbolicName, groupId)) {
                 context.addMessage(new MessageBuilder().source("moduleFile")
                         .code("serverSettings.manageModules.install.moduleWithSameIdExists")
@@ -306,9 +306,9 @@ public class ModuleManagementFlowHandler implements Serializable {
                     return null;
                 }
             }
-            
+
             String resolutionError = null;
-            
+
             try {
                 moduleManager.install(new FileSystemResource(file), null, autoStart);
             } catch (ModuleManagementException e) {
@@ -325,7 +325,7 @@ public class ModuleManagementFlowHandler implements Serializable {
             Bundle bundle = BundleUtils.getBundle(symbolicName, version);
 
             JahiaTemplatesPackage module = BundleUtils.getModule(bundle);
-            
+
             List<String> missingDeps = getMissingDependenciesFrom(module.getDepends(), providedBundles);
             if (!missingDeps.isEmpty()) {
                 createMessageForMissingDependencies(context, missingDeps);
