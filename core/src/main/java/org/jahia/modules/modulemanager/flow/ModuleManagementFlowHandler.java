@@ -53,9 +53,12 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -109,6 +112,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.binding.message.MessageBuilder;
 import org.springframework.binding.message.MessageContext;
+import org.springframework.binding.message.MessageResolver;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.webflow.core.collection.MutableAttributeMap;
@@ -224,42 +228,11 @@ public class ModuleManagementFlowHandler implements Serializable {
                         .args(jahiaRequiredVersion, Jahia.VERSION).error().build());
                 return;
             }
-            String jahiaPackageName = manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_NAME);
-            if(jahiaPackageName!=null && jahiaPackageName.trim().length()==0){
-                context.addMessage(new MessageBuilder().source("moduleFile")
-                        .code("serverSettings.manageModules.install.package.name.error").error()
-                        .build());
-                return;
-            }
-            boolean isPackage = jahiaPackageName != null;
 
-            if (isPackage) {
-                //Check license
-                String licenseFeature = manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_LICENSE);
-                if(licenseFeature != null && !LicenseCheckerService.Stub.isAllowed(licenseFeature)){
-                    context.addMessage(new MessageBuilder().source("moduleFile")
-                            .code("serverSettings.manageModules.install.package.missing.license")
-                            .args(originalFilename, licenseFeature)
-                            .build());
-                    return;
-                }
-                ModulesPackage pack = ModulesPackage.create(jarFile);
-                try {
-                List<String> providedBundles = new ArrayList<String>(pack.getModules().keySet());
-                for (ModulesPackage.PackagedModule entry : pack.getModules().values()) {
-                    Bundle bundle = installModule(entry.getModuleFile(), context, providedBundles, forceUpdate, autoStart);
-                    if (bundle != null) {
-                        addInfoAboutBundle(bundle, autoStart, context);
-                    }
-                }
-                } finally {
-                    // delete temporary created files of the package
-                    for (ModulesPackage.PackagedModule entry : pack.getModules().values()) {
-                        FileUtils.deleteQuietly(entry.getModuleFile());
-                    }
-                }
+            if (manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_NAME) != null) {
+                handlePackage(jarFile, manifestAttributes, originalFilename, forceUpdate, autoStart, context);
             } else {
-                Bundle bundle = installModule(file, context, null, forceUpdate, autoStart);
+                Bundle bundle = installModule(file, context, null, null, forceUpdate, autoStart);
                 if (bundle != null) {
                     addInfoAboutBundle(bundle, autoStart, context);
                 }
@@ -270,6 +243,66 @@ public class ModuleManagementFlowHandler implements Serializable {
         }
     }
 
+    private void handlePackage(JarFile jarFile, Attributes manifestAttributes, String originalFilename,
+            boolean forceUpdate, boolean autoStart, MessageContext context) throws IOException, BundleException {
+        
+        // check package name validity
+        String jahiaPackageName = manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_NAME);
+        if (jahiaPackageName != null && jahiaPackageName.trim().length() == 0) {
+            context.addMessage(new MessageBuilder().source("moduleFile")
+                    .code("serverSettings.manageModules.install.package.name.error").error().build());
+            return;
+        }        
+        
+        //Check license
+        String licenseFeature = manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_LICENSE);
+        if(licenseFeature != null && !LicenseCheckerService.Stub.isAllowed(licenseFeature)){
+            context.addMessage(new MessageBuilder().source("moduleFile")
+                    .code("serverSettings.manageModules.install.package.missing.license")
+                    .args(originalFilename, licenseFeature)
+                    .build());
+            return;
+        }
+        
+        ModulesPackage pack = ModulesPackage.create(jarFile);
+        try {
+            List<String> providedBundles = new ArrayList<String>(pack.getModules().keySet());
+            Map<Bundle, MessageResolver> collectedResolutionErrors = new LinkedHashMap<>();
+            List<Bundle> installedBundles = new LinkedList<>();
+            for (ModulesPackage.PackagedModule entry : pack.getModules().values()) {
+                Bundle bundle = installModule(entry.getModuleFile(), context, providedBundles, collectedResolutionErrors, forceUpdate, autoStart);
+                if (bundle != null) {
+                    installedBundles.add(bundle);
+                }
+            }
+            if (!collectedResolutionErrors.isEmpty()) {
+                // double-check the resolution issues after all bundles were installed
+                for(Iterator<Map.Entry<Bundle, MessageResolver>> resolutionErrorIterator = collectedResolutionErrors.entrySet().iterator(); resolutionErrorIterator.hasNext();) {
+                    Entry<Bundle, MessageResolver> resolutionErrorEntry = resolutionErrorIterator.next();
+                    if (resolutionErrorEntry.getKey().getState() >= Bundle.RESOLVED) {
+                        // the bundle is successfully resolved now
+                        resolutionErrorIterator.remove();
+                    } else {
+                        // the bundle still has resolution issue -> add error message
+                        context.addMessage(resolutionErrorEntry.getValue());
+                    }
+                }
+            }
+            
+            // add info about installed bundles
+            for (Bundle installedBundle : installedBundles) {
+                if (!collectedResolutionErrors.containsKey(installedBundle)) {
+                    addInfoAboutBundle(installedBundle, autoStart, context);
+                }
+            }
+        } finally {
+            // delete temporary created files of the package
+            for (ModulesPackage.PackagedModule entry : pack.getModules().values()) {
+                FileUtils.deleteQuietly(entry.getModuleFile());
+            }
+        }
+    }
+
     private void addInfoAboutBundle(Bundle bundle, boolean autoStart, MessageContext context) throws BundleException {
         context.addMessage(new MessageBuilder().source("moduleFile")
                 .code(autoStart ? "serverSettings.manageModules.install.uploadedAndStarted"
@@ -277,7 +310,7 @@ public class ModuleManagementFlowHandler implements Serializable {
                 .args(bundle.getSymbolicName(), bundle.getVersion().toString()).build());
     }
 
-    private Bundle installModule(File file, MessageContext context, List<String> providedBundles, boolean forceUpdate, boolean autoStart) throws IOException, BundleException {
+    private Bundle installModule(File file, MessageContext context, List<String> providedBundles, Map<Bundle, MessageResolver> collectedResolutionErrors, boolean forceUpdate, boolean autoStart) throws IOException, BundleException {
         JarFile jarFile = new JarFile(file);
         try {
             Manifest manifest = jarFile.getManifest();
@@ -336,8 +369,15 @@ public class ModuleManagementFlowHandler implements Serializable {
                         .error()
                         .build());
             } else if (resolutionError != null) {
-                context.addMessage(
-                        new MessageBuilder().source("moduleFile").defaultText(resolutionError).error().build());
+                MessageResolver errorMessage = new MessageBuilder().source("moduleFile").defaultText(resolutionError).error().build();
+                if (collectedResolutionErrors != null && bundle != null) {
+                    // we just collect the resolution errors for multiple module to double-check them after all modules are installed
+                    collectedResolutionErrors.put(bundle, errorMessage);
+                    return bundle;
+                } else {
+                    // we directly add error message
+                    context.addMessage(errorMessage);
+                }
             } else {
                 return bundle;
             }
