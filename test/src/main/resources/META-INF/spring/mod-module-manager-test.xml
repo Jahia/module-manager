@@ -13,6 +13,7 @@
         <property name="testCases">
             <list>
                 <value>org.jahia.test.services.modulemanager.ModuleManagerInitialStructureTest</value>
+                <value>org.jahia.test.services.modulemanager.ModuleManagerDeploymentTest</value>
             </list>
         </property>
     </bean>
