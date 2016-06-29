@@ -67,7 +67,7 @@ import java.io.InputStream;
 import static org.junit.Assert.*;
 
 /**
- *
+ * ModuleManagerDeploymentTest
  */
 public class ModuleManagerDeploymentTest extends JahiaTestCase {
 
