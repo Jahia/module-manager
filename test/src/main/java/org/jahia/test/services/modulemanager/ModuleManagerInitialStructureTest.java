@@ -77,41 +77,9 @@ public class ModuleManagerInitialStructureTest extends JahiaTestCase {
         assertNotNull(session.getNode("/module-management/bundles"));
     }
 
-    @Test
-    public void testClusterNodesNodePresence() throws RepositoryException {
-        assertNotNull(session.getNode("/module-management/nodes"));
-    }
-
-    @Test
-    public void testOperationsNodePresence() throws RepositoryException {
-        assertNotNull(session.getNode("/module-management/operations"));
-    }
-
-    @Test
-    public void testOperationLogNodePresence() throws RepositoryException {
-        assertNotNull(session.getNode("/module-management/operationLog"));
-    }
-
 
     @Test
     public void testBundleChildrenNotEmpty() throws RepositoryException {
         assertTrue(session.getNode("/module-management/bundles").hasNodes());
-    }
-
-    @Test
-    public void testClusterNodesChildrenNotEmpty() throws RepositoryException {
-        assertTrue(session.getNode("/module-management/nodes").hasNodes());
-    }
-
-    @Test
-    public void testEqualBundleSize() throws RepositoryException {
-
-            long bundlesSize = session.getNode("/module-management/bundles").getNodes().getSize();
-            JCRNodeIteratorWrapper nodes = session.getNode("/module-management/nodes").getNodes();
-            while (nodes.hasNext()) {
-                String clusterNodePath = ((JCRNodeWrapper) nodes.next()).getPath();
-                JCRNodeIteratorWrapper clusterBundleNodes = session.getNode(clusterNodePath + "/bundles").getNodes();
-                assertEquals(bundlesSize, clusterBundleNodes.getSize());
-            }
     }
 }
