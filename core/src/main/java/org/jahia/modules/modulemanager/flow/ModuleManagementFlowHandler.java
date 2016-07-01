@@ -369,7 +369,8 @@ public class ModuleManagementFlowHandler implements Serializable {
                         .error()
                         .build());
             } else if (resolutionError != null) {
-                MessageResolver errorMessage = new MessageBuilder().source("moduleFile").defaultText(resolutionError).error().build();
+                MessageResolver errorMessage = new MessageBuilder().source("moduleFile")
+                        .code("serverSettings.manageModules.resolutionError").arg(resolutionError).error().build();
                 if (collectedResolutionErrors != null && bundle != null) {
                     // we just collect the resolution errors for multiple module to double-check them after all modules are installed
                     collectedResolutionErrors.put(bundle, errorMessage);
