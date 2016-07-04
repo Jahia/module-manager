@@ -245,15 +245,15 @@ public class ModuleManagementFlowHandler implements Serializable {
 
     private void handlePackage(JarFile jarFile, Attributes manifestAttributes, String originalFilename,
             boolean forceUpdate, boolean autoStart, MessageContext context) throws IOException, BundleException {
-        
+
         // check package name validity
         String jahiaPackageName = manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_NAME);
         if (jahiaPackageName != null && jahiaPackageName.trim().length() == 0) {
             context.addMessage(new MessageBuilder().source("moduleFile")
                     .code("serverSettings.manageModules.install.package.name.error").error().build());
             return;
-        }        
-        
+        }
+
         //Check license
         String licenseFeature = manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_LICENSE);
         if(licenseFeature != null && !LicenseCheckerService.Stub.isAllowed(licenseFeature)){
@@ -263,7 +263,7 @@ public class ModuleManagementFlowHandler implements Serializable {
                     .build());
             return;
         }
-        
+
         ModulesPackage pack = ModulesPackage.create(jarFile);
         try {
             List<String> providedBundles = new ArrayList<String>(pack.getModules().keySet());
@@ -288,7 +288,7 @@ public class ModuleManagementFlowHandler implements Serializable {
                     }
                 }
             }
-            
+
             // add info about installed bundles
             for (Bundle installedBundle : installedBundles) {
                 if (!collectedResolutionErrors.containsKey(installedBundle)) {
@@ -371,7 +371,7 @@ public class ModuleManagementFlowHandler implements Serializable {
             } else if (resolutionError != null) {
                 MessageResolver errorMessage = new MessageBuilder().source("moduleFile")
                         .code("serverSettings.manageModules.resolutionError").arg(resolutionError).error().build();
-                if (collectedResolutionErrors != null && bundle != null) {
+                if (collectedResolutionErrors != null) {
                     // we just collect the resolution errors for multiple module to double-check them after all modules are installed
                     collectedResolutionErrors.put(bundle, errorMessage);
                     return bundle;
