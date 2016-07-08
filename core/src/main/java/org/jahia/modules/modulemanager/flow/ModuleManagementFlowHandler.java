@@ -144,6 +144,8 @@ public class ModuleManagementFlowHandler implements Serializable {
     private transient TemplatePackageRegistry templatePackageRegistry;
 
     private String moduleName;
+    
+    private boolean autoStartOlderVersions;
 
     public boolean isInModule(RenderContext renderContext) {
         try {
@@ -234,7 +236,7 @@ public class ModuleManagementFlowHandler implements Serializable {
             } else {
                 Bundle bundle = installModule(file, context, null, null, forceUpdate, autoStart);
                 if (bundle != null) {
-                    addInfoAboutBundle(bundle, autoStart, context);
+                    addInfoAboutBundle(bundle, context);
                 }
             }
 
@@ -292,7 +294,7 @@ public class ModuleManagementFlowHandler implements Serializable {
             // add info about installed bundles
             for (Bundle installedBundle : installedBundles) {
                 if (!collectedResolutionErrors.containsKey(installedBundle)) {
-                    addInfoAboutBundle(installedBundle, autoStart, context);
+                    addInfoAboutBundle(installedBundle, context);
                 }
             }
         } finally {
@@ -303,9 +305,9 @@ public class ModuleManagementFlowHandler implements Serializable {
         }
     }
 
-    private void addInfoAboutBundle(Bundle bundle, boolean autoStart, MessageContext context) throws BundleException {
+    private void addInfoAboutBundle(Bundle bundle, MessageContext context) throws BundleException {
         context.addMessage(new MessageBuilder().source("moduleFile")
-                .code(autoStart ? "serverSettings.manageModules.install.uploadedAndStarted"
+                .code(Bundle.ACTIVE == bundle.getState() ? "serverSettings.manageModules.install.uploadedAndStarted"
                         : "serverSettings.manageModules.install.uploaded")
                 .args(bundle.getSymbolicName(), bundle.getVersion().toString()).build());
     }
@@ -328,22 +330,39 @@ public class ModuleManagementFlowHandler implements Serializable {
                         .build());
                 return null;
             }
+            ModuleVersion moduleVersion = new ModuleVersion(version);
+            Set<ModuleVersion> allVersions = templatePackageRegistry.getAvailableVersionsForModule(symbolicName);
             if(!forceUpdate) {
-                Set<ModuleVersion> aPackage = templatePackageRegistry.getAvailableVersionsForModule(symbolicName);
-                ModuleVersion moduleVersion = new ModuleVersion(version);
-                if (!moduleVersion.isSnapshot() && aPackage.contains(moduleVersion)) {
-                    context.addMessage(new MessageBuilder().source("moduleExists")
-                            .code("serverSettings.manageModules.install.moduleExists")
-                            .args(symbolicName, version)
-                            .build());
-                    return null;
+                if (!moduleVersion.isSnapshot()) {
+                    if (allVersions.contains(moduleVersion)) {
+                        context.addMessage(new MessageBuilder().source("moduleExists")
+                                .code("serverSettings.manageModules.install.moduleExists")
+                                .args(symbolicName, version)
+                                .build());
+                        return null;
+                    }
                 }
             }
 
             String resolutionError = null;
 
+            boolean shouldAutoStart = autoStart;
+            if (autoStart && !autoStartOlderVersions) {
+                // verify that a newer version is not active already
+                JahiaTemplatesPackage currentActivePackage = templateManagerService.getTemplatePackageRegistry()
+                        .lookupById(symbolicName);
+                ModuleVersion currentVersion = currentActivePackage != null ? currentActivePackage.getVersion() : null;
+                if (currentActivePackage != null && moduleVersion.compareTo(currentVersion) < 0) {
+                    // we do not start the uploaded older version automatically
+                    shouldAutoStart = false;
+                    context.addMessage(new MessageBuilder().source("moduleFile")
+                            .code("serverSettings.manageModules.install.newerVersionIsActive")
+                            .args(currentVersion.toString(), symbolicName, version.toString()).build());
+                }
+            }
+
             try {
-                moduleManager.install(new FileSystemResource(file), null, autoStart);
+                moduleManager.install(new FileSystemResource(file), null, shouldAutoStart);
             } catch (ModuleManagementException e) {
                 Throwable cause = e.getCause();
                 if (cause != null && cause instanceof BundleException && ((BundleException) cause).getType() == BundleException.RESOLVE_ERROR) {
@@ -920,6 +939,10 @@ public class ModuleManagementFlowHandler implements Serializable {
 
     public void uninstallModule(String moduleId, String moduleVersion, RequestContext requestContext) throws RepositoryException, BundleException {
         moduleManager.uninstall(BundleInfo.fromModuleInfo(moduleId, moduleVersion).getKey(), null);
+    }
+
+    public void setAutoStartOlderVersions(String autoStartOlderVersions) {
+        this.autoStartOlderVersions = Boolean.parseBoolean(autoStartOlderVersions);
     }
 
 }

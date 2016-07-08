@@ -7,6 +7,7 @@
     <var name="flowHandler" class="org.jahia.modules.modulemanager.flow.ModuleManagementFlowHandler"/>
 
     <on-start>
+        <evaluate expression="flowHandler.setAutoStartOlderVersions(settingsBean.propertiesFile['org.jahia.modules.autoStartOlderVersions'])"/>
         <evaluate expression="flowHandler.initModules(flowRequestContext, externalContext.requestMap.renderContext)" />
     </on-start>
 

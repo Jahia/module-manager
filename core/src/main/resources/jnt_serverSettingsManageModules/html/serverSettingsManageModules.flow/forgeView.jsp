@@ -32,6 +32,12 @@
 </fmt:message>
 <h2><fmt:message key="serverSettings.manageModules"/></h2>
 <c:forEach items="${flowRequestContext.messageContext.allMessages}" var="message">
+    <c:if test="${message.severity eq 'INFO'}">
+        <div class="alert alert-success">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            ${message.text}
+        </div>
+    </c:if>
     <c:if test="${message.severity eq 'ERROR'}">
         <div class="alert alert-error">
             <button type="button" class="close" data-dismiss="alert">&times;</button>
