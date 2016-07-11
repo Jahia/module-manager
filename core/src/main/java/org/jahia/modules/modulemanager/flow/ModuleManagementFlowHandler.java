@@ -378,26 +378,28 @@ public class ModuleManagementFlowHandler implements Serializable {
 
             JahiaTemplatesPackage module = BundleUtils.getModule(bundle);
 
-            List<String> missingDeps = getMissingDependenciesFrom(module.getDepends(), providedBundles);
-            if (!missingDeps.isEmpty()) {
-                createMessageForMissingDependencies(context, missingDeps);
+            if (resolutionError != null) {
+                List<String> missingDeps = getMissingDependenciesFrom(module.getDepends(), providedBundles);
+                if(!missingDeps.isEmpty()) {
+                    createMessageForMissingDependencies(context, missingDeps);
+                } else {
+                    MessageResolver errorMessage = new MessageBuilder().source("moduleFile")
+                            .code("serverSettings.manageModules.resolutionError").arg(resolutionError).error().build();
+                    if (collectedResolutionErrors != null) {
+                        // we just collect the resolution errors for multiple module to double-check them after all modules are installed
+                        collectedResolutionErrors.put(bundle, errorMessage);
+                        return bundle;
+                    } else {
+                        // we directly add error message
+                        context.addMessage(errorMessage);
+                    }
+                }
             } else if (module.getState().getState() == ModuleState.State.ERROR_WITH_DEFINITIONS) {
                 context.addMessage(new MessageBuilder().source("moduleFile")
                         .code("serverSettings.manageModules.errorWithDefinitions")
                         .arg(((Exception)module.getState().getDetails()).getCause().getMessage())
                         .error()
                         .build());
-            } else if (resolutionError != null) {
-                MessageResolver errorMessage = new MessageBuilder().source("moduleFile")
-                        .code("serverSettings.manageModules.resolutionError").arg(resolutionError).error().build();
-                if (collectedResolutionErrors != null) {
-                    // we just collect the resolution errors for multiple module to double-check them after all modules are installed
-                    collectedResolutionErrors.put(bundle, errorMessage);
-                    return bundle;
-                } else {
-                    // we directly add error message
-                    context.addMessage(errorMessage);
-                }
             } else {
                 return bundle;
             }
