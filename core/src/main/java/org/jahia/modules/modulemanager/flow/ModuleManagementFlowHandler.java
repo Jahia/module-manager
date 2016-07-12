@@ -43,34 +43,6 @@
  */
 package org.jahia.modules.modulemanager.flow;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.UUID;
-import java.util.jar.Attributes;
-import java.util.jar.JarFile;
-import java.util.jar.Manifest;
-
-import javax.jcr.RepositoryException;
-import javax.jcr.nodetype.NodeTypeIterator;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -98,12 +70,7 @@ import org.jahia.services.modulemanager.ModuleManagementException;
 import org.jahia.services.modulemanager.ModuleManager;
 import org.jahia.services.render.RenderContext;
 import org.jahia.services.sites.JahiaSitesService;
-import org.jahia.services.templates.JahiaTemplateManagerService;
-import org.jahia.services.templates.ModuleVersion;
-import org.jahia.services.templates.ScmUnavailableModuleIdException;
-import org.jahia.services.templates.ScmWrongVersionException;
-import org.jahia.services.templates.SourceControlException;
-import org.jahia.services.templates.TemplatePackageRegistry;
+import org.jahia.services.templates.*;
 import org.jahia.utils.i18n.Messages;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
@@ -117,6 +84,17 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.webflow.core.collection.MutableAttributeMap;
 import org.springframework.webflow.execution.RequestContext;
+
+import javax.jcr.RepositoryException;
+import javax.jcr.nodetype.NodeTypeIterator;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 /**
  * WebFlow handler for managing modules.
@@ -549,6 +527,11 @@ public class ModuleManagementFlowHandler implements Serializable {
                 TreeMap<ModuleVersion, JahiaTemplatesPackage> map = new TreeMap<ModuleVersion, JahiaTemplatesPackage>();
                 map.put(module.getVersion(), module);
                 result.put(module.getId(), map);
+            } else {
+                SortedMap<ModuleVersion, JahiaTemplatesPackage> map = result.get(module.getId());
+                if (!map.containsKey(module.getVersion())) {
+                    map.put(module.getVersion(), module);
+                }
             }
         }
         return result;
