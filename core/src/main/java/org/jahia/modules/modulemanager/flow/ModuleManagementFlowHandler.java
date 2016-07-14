@@ -87,6 +87,7 @@ import org.springframework.webflow.execution.RequestContext;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.nodetype.NodeTypeIterator;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -122,7 +123,7 @@ public class ModuleManagementFlowHandler implements Serializable {
     private transient TemplatePackageRegistry templatePackageRegistry;
 
     private String moduleName;
-    
+
     private boolean autoStartOlderVersions;
 
     public boolean isInModule(RenderContext renderContext) {
@@ -212,12 +213,11 @@ public class ModuleManagementFlowHandler implements Serializable {
             if (manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_NAME) != null) {
                 handlePackage(jarFile, manifestAttributes, originalFilename, forceUpdate, autoStart, context);
             } else {
-                Bundle bundle = installModule(file, context, null, null, forceUpdate, autoStart);
-                if (bundle != null) {
-                    addInfoAboutBundle(bundle, context);
+                ModuleInstallationResult installationResult = installModule(file, context, null, null, forceUpdate, autoStart);
+                if (installationResult != null) {
+                    addModuleIntsallationMessage(installationResult, context);
                 }
             }
-
         } finally {
             jarFile.close();
         }
@@ -236,7 +236,7 @@ public class ModuleManagementFlowHandler implements Serializable {
 
         //Check license
         String licenseFeature = manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_LICENSE);
-        if(licenseFeature != null && !LicenseCheckerService.Stub.isAllowed(licenseFeature)){
+        if (licenseFeature != null && !LicenseCheckerService.Stub.isAllowed(licenseFeature)){
             context.addMessage(new MessageBuilder().source("moduleFile")
                     .code("serverSettings.manageModules.install.package.missing.license")
                     .args(originalFilename, licenseFeature)
@@ -248,11 +248,11 @@ public class ModuleManagementFlowHandler implements Serializable {
         try {
             List<String> providedBundles = new ArrayList<String>(pack.getModules().keySet());
             Map<Bundle, MessageResolver> collectedResolutionErrors = new LinkedHashMap<>();
-            List<Bundle> installedBundles = new LinkedList<>();
+            List<ModuleInstallationResult> installationResults = new LinkedList<>();
             for (ModulesPackage.PackagedModule entry : pack.getModules().values()) {
-                Bundle bundle = installModule(entry.getModuleFile(), context, providedBundles, collectedResolutionErrors, forceUpdate, autoStart);
-                if (bundle != null) {
-                    installedBundles.add(bundle);
+                ModuleInstallationResult installationResult = installModule(entry.getModuleFile(), context, providedBundles, collectedResolutionErrors, forceUpdate, autoStart);
+                if (installationResult != null) {
+                    installationResults.add(installationResult);
                 }
             }
             if (!collectedResolutionErrors.isEmpty()) {
@@ -270,9 +270,9 @@ public class ModuleManagementFlowHandler implements Serializable {
             }
 
             // add info about installed bundles
-            for (Bundle installedBundle : installedBundles) {
-                if (!collectedResolutionErrors.containsKey(installedBundle)) {
-                    addInfoAboutBundle(installedBundle, context);
+            for (ModuleInstallationResult installationResult : installationResults) {
+                if (!collectedResolutionErrors.containsKey(installationResult)) {
+                    addModuleIntsallationMessage(installationResult, context);
                 }
             }
         } finally {
@@ -283,16 +283,19 @@ public class ModuleManagementFlowHandler implements Serializable {
         }
     }
 
-    private void addInfoAboutBundle(Bundle bundle, MessageContext context) throws BundleException {
+    private void addModuleIntsallationMessage(ModuleInstallationResult installationResult, MessageContext context) throws BundleException {
+        Bundle bundle = installationResult.getBundle();
         context.addMessage(new MessageBuilder().source("moduleFile")
-                .code(Bundle.ACTIVE == bundle.getState() ? "serverSettings.manageModules.install.uploadedAndStarted"
-                        : "serverSettings.manageModules.install.uploaded")
-                .args(bundle.getSymbolicName(), bundle.getVersion().toString()).build());
+                .code(installationResult.getMessageCode())
+                .args(bundle.getSymbolicName(), bundle.getVersion().toString())
+                .build());
     }
 
-    private Bundle installModule(File file, MessageContext context, List<String> providedBundles, Map<Bundle, MessageResolver> collectedResolutionErrors, boolean forceUpdate, boolean autoStart) throws IOException, BundleException {
+    private ModuleInstallationResult installModule(File file, MessageContext context, List<String> providedBundles, Map<Bundle, MessageResolver> collectedResolutionErrors, boolean forceUpdate, boolean autoStart) throws IOException, BundleException {
+
         JarFile jarFile = new JarFile(file);
         try {
+
             Manifest manifest = jarFile.getManifest();
             String symbolicName = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_BUNDLE_SYMBOLIC_NAME);
             if (symbolicName == null) {
@@ -310,7 +313,7 @@ public class ModuleManagementFlowHandler implements Serializable {
             }
             ModuleVersion moduleVersion = new ModuleVersion(version);
             Set<ModuleVersion> allVersions = templatePackageRegistry.getAvailableVersionsForModule(symbolicName);
-            if(!forceUpdate) {
+            if (!forceUpdate) {
                 if (!moduleVersion.isSnapshot()) {
                     if (allVersions.contains(moduleVersion)) {
                         context.addMessage(new MessageBuilder().source("moduleExists")
@@ -322,6 +325,9 @@ public class ModuleManagementFlowHandler implements Serializable {
                 }
             }
 
+            String successMessage = (autoStart
+                    ? "serverSettings.manageModules.install.uploadedAndStarted"
+                    : "serverSettings.manageModules.install.uploaded");
             String resolutionError = null;
 
             boolean shouldAutoStart = autoStart;
@@ -333,9 +339,7 @@ public class ModuleManagementFlowHandler implements Serializable {
                 if (currentActivePackage != null && moduleVersion.compareTo(currentVersion) < 0) {
                     // we do not start the uploaded older version automatically
                     shouldAutoStart = false;
-                    context.addMessage(new MessageBuilder().source("moduleFile")
-                            .code("serverSettings.manageModules.install.newerVersionIsActive")
-                            .args(currentVersion.toString(), symbolicName, version.toString()).build());
+                    successMessage = "serverSettings.manageModules.install.uploadedNotStartedDueToNewerVersionActive";
                 }
             }
 
@@ -358,7 +362,7 @@ public class ModuleManagementFlowHandler implements Serializable {
 
             if (resolutionError != null) {
                 List<String> missingDeps = getMissingDependenciesFrom(module.getDepends(), providedBundles);
-                if(!missingDeps.isEmpty()) {
+                if (!missingDeps.isEmpty()) {
                     createMessageForMissingDependencies(context, missingDeps);
                 } else {
                     MessageResolver errorMessage = new MessageBuilder().source("moduleFile")
@@ -366,7 +370,7 @@ public class ModuleManagementFlowHandler implements Serializable {
                     if (collectedResolutionErrors != null) {
                         // we just collect the resolution errors for multiple module to double-check them after all modules are installed
                         collectedResolutionErrors.put(bundle, errorMessage);
-                        return bundle;
+                        return new ModuleInstallationResult(bundle, successMessage);
                     } else {
                         // we directly add error message
                         context.addMessage(errorMessage);
@@ -379,7 +383,7 @@ public class ModuleManagementFlowHandler implements Serializable {
                         .error()
                         .build());
             } else {
-                return bundle;
+                return new ModuleInstallationResult(bundle, successMessage);
             }
         } finally {
             IOUtils.closeQuietly(jarFile);
@@ -930,4 +934,22 @@ public class ModuleManagementFlowHandler implements Serializable {
         this.autoStartOlderVersions = Boolean.parseBoolean(autoStartOlderVersions);
     }
 
+    private static class ModuleInstallationResult {
+
+        private Bundle bundle;
+        private String messageCode;
+
+        public ModuleInstallationResult(Bundle bundle, String messageCode) {
+            this.bundle = bundle;
+            this.messageCode = messageCode;
+        }
+
+        public Bundle getBundle() {
+            return bundle;
+        }
+
+        public String getMessageCode() {
+            return messageCode;
+        }
+    }
 }
