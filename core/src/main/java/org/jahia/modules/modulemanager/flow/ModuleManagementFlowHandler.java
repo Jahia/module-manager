@@ -522,21 +522,16 @@ public class ModuleManagementFlowHandler implements Serializable {
      * @return a map, keyed by the module name, with the sorted map (by version ascending) of {@link JahiaTemplatesPackage} objects
      */
     public Map<String, SortedMap<ModuleVersion, JahiaTemplatesPackage>> getAllModuleVersions() {
-        Map<Bundle, ModuleState> moduleStates = templateManagerService.getModuleStates();
-        Map<String, SortedMap<ModuleVersion, JahiaTemplatesPackage>> allModuleVersions = templateManagerService.getTemplatePackageRegistry().getAllModuleVersions();
-        Map<String, SortedMap<ModuleVersion, JahiaTemplatesPackage>> result = new TreeMap<String, SortedMap<ModuleVersion, JahiaTemplatesPackage>>(allModuleVersions);
-        for (Bundle bundle : moduleStates.keySet()) {
+        Map<String, SortedMap<ModuleVersion, JahiaTemplatesPackage>> result = new TreeMap<String, SortedMap<ModuleVersion, JahiaTemplatesPackage>>();
+        Map<Bundle, ModuleState> moduleStatesByBundle = templateManagerService.getModuleStates();
+        for (Bundle bundle : moduleStatesByBundle.keySet()) {
             JahiaTemplatesPackage module = BundleUtils.getModule(bundle);
-            if (!allModuleVersions.containsKey(module.getId())) {
-                TreeMap<ModuleVersion, JahiaTemplatesPackage> map = new TreeMap<ModuleVersion, JahiaTemplatesPackage>();
-                map.put(module.getVersion(), module);
-                result.put(module.getId(), map);
-            } else {
-                SortedMap<ModuleVersion, JahiaTemplatesPackage> map = result.get(module.getId());
-                if (!map.containsKey(module.getVersion())) {
-                    map.put(module.getVersion(), module);
-                }
+            SortedMap<ModuleVersion, JahiaTemplatesPackage> modulesByVersion = result.get(module.getId());
+            if (modulesByVersion == null) {
+                modulesByVersion = new TreeMap<ModuleVersion, JahiaTemplatesPackage>();
+                result.put(module.getId(), modulesByVersion);
             }
+            modulesByVersion.put(module.getVersion(), module);
         }
         return result;
     }
