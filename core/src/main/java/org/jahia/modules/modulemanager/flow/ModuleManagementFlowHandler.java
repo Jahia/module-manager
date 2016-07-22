@@ -215,7 +215,7 @@ public class ModuleManagementFlowHandler implements Serializable {
             } else {
                 ModuleInstallationResult installationResult = installModule(file, context, null, null, forceUpdate, autoStart);
                 if (installationResult != null) {
-                    addModuleIntsallationMessage(installationResult, context);
+                    addModuleInstallationMessage(installationResult, context);
                 }
             }
         } finally {
@@ -272,7 +272,7 @@ public class ModuleManagementFlowHandler implements Serializable {
             // add info about installed bundles
             for (ModuleInstallationResult installationResult : installationResults) {
                 if (!collectedResolutionErrors.containsKey(installationResult)) {
-                    addModuleIntsallationMessage(installationResult, context);
+                    addModuleInstallationMessage(installationResult, context);
                 }
             }
         } finally {
@@ -283,7 +283,13 @@ public class ModuleManagementFlowHandler implements Serializable {
         }
     }
 
-    private void addModuleIntsallationMessage(ModuleInstallationResult installationResult, MessageContext context) throws BundleException {
+    /**
+     * Add module installation result to the message context
+     * @param installationResult module installation result
+     * @param context message context
+     * @throws BundleException thrown exception
+     */
+    private void addModuleInstallationMessage(ModuleInstallationResult installationResult, MessageContext context) throws BundleException {
         Bundle bundle = installationResult.getBundle();
         context.addMessage(new MessageBuilder().source("moduleFile")
                 .code(installationResult.getMessageCode())
