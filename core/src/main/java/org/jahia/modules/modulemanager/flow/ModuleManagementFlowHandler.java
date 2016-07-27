@@ -71,6 +71,7 @@ import org.jahia.services.modulemanager.ModuleManager;
 import org.jahia.services.render.RenderContext;
 import org.jahia.services.sites.JahiaSitesService;
 import org.jahia.services.templates.*;
+import org.jahia.settings.SettingsBean;
 import org.jahia.utils.i18n.Messages;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
@@ -123,8 +124,6 @@ public class ModuleManagementFlowHandler implements Serializable {
     private transient TemplatePackageRegistry templatePackageRegistry;
 
     private String moduleName;
-
-    private boolean autoStartOlderVersions;
 
     public boolean isInModule(RenderContext renderContext) {
         try {
@@ -337,7 +336,8 @@ public class ModuleManagementFlowHandler implements Serializable {
             String resolutionError = null;
 
             boolean shouldAutoStart = autoStart;
-            if (autoStart && !autoStartOlderVersions) {
+            if (autoStart &&
+                    !Boolean.valueOf(SettingsBean.getInstance().getPropertiesFile().getProperty("org.jahia.modules.autoStartOlderVersions"))) {
                 // verify that a newer version is not active already
                 JahiaTemplatesPackage currentActivePackage = templateManagerService.getTemplatePackageRegistry()
                         .lookupById(symbolicName);
@@ -929,10 +929,6 @@ public class ModuleManagementFlowHandler implements Serializable {
 
     public void uninstallModule(String moduleId, String moduleVersion, RequestContext requestContext) throws RepositoryException, BundleException {
         moduleManager.uninstall(BundleInfo.fromModuleInfo(moduleId, moduleVersion).getKey(), null);
-    }
-
-    public void setAutoStartOlderVersions(String autoStartOlderVersions) {
-        this.autoStartOlderVersions = Boolean.parseBoolean(autoStartOlderVersions);
     }
 
     private static class ModuleInstallationResult {
