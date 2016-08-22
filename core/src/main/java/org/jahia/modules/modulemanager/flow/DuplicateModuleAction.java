@@ -86,24 +86,27 @@ public class DuplicateModuleAction extends Action {
 
         try {
             JahiaTemplatesPackage newModule = jahiaTemplateManagerService.duplicateModule(newModuleName, newModuleId, newGroupId, srcPath, newScmUri, branchOrTag, moduleId, version, containsTypeDefinitions, newDstPath, areSourcesTemporary, session);
-            String newModuleStudioUrl = "/cms/studio/default/" + resource.getLocale() + "/modules/" + newModule.getId() + ".html";
+            String contextPath = renderContext.getRequest().getContextPath();
+            String newModuleStudioUrl = (StringUtils.equals(contextPath, "/") ? "" : contextPath) + "/cms/studio/default/" + resource.getLocale() +
+                    "/modules/" + newModule
+                    .getId() + ".html";
             JSONObject json = new JSONObject();
             json.put("newModuleStudioUrl", newModuleStudioUrl);
             return new ActionResult(HttpServletResponse.SC_OK, null, json);
         } catch (ScmUnavailableModuleIdException e) {
-            String message = Messages.getWithArgs("resources.JahiaServerSettings",
+            String message = Messages.getWithArgs("resources.ModuleManager",
                     "serverSettings.manageModules.duplicateModuleError.moduleExists", resource.getLocale(), newModuleName);
             JSONObject json = new JSONObject();
             json.put("error", message);
             return new ActionResult(HttpServletResponse.SC_OK, null, json);
         } catch (ScmWrongVersionException e) {
-            String message = Messages.get("resources.JahiaServerSettings",
+            String message = Messages.get("resources.ModuleManager",
                     "serverSettings.manageModules.downloadSourcesError.wrongVersion", resource.getLocale());
             JSONObject json = new JSONObject();
             json.put("error", message);
             return new ActionResult(HttpServletResponse.SC_OK, null, json);
         } catch (SourceControlException e) {
-            String message = Messages.getWithArgs("resources.JahiaServerSettings",
+            String message = Messages.getWithArgs("resources.ModuleManager",
                     "serverSettings.manageModules.downloadSourcesError", resource.getLocale(), version);
             JSONObject json = new JSONObject();
             json.put("error", message);
