@@ -70,6 +70,7 @@ public class DuplicateModuleAction extends Action {
 
     @Override
     public ActionResult doExecute(HttpServletRequest req, RenderContext renderContext, Resource resource, JCRSessionWrapper session, Map<String, List<String>> parameters, URLResolver urlResolver) throws Exception {
+
         String newModuleName = getParameter(parameters, "newModuleName");
         String newModuleId = getParameter(parameters, "newModuleId");
         String newGroupId = getParameter(parameters, "newGroupId");
@@ -83,13 +84,11 @@ public class DuplicateModuleAction extends Action {
         boolean containsTypeDefinitions = Boolean.valueOf(getParameter(parameters, "containsTypeDefinitions", "false"));
         boolean areSourcesTemporary = Boolean.valueOf(getParameter(parameters, "areSourcesTemporary", "false"));
 
-
         try {
             JahiaTemplatesPackage newModule = jahiaTemplateManagerService.duplicateModule(newModuleName, newModuleId, newGroupId, srcPath, newScmUri, branchOrTag, moduleId, version, containsTypeDefinitions, newDstPath, areSourcesTemporary, session);
             String contextPath = renderContext.getRequest().getContextPath();
             String newModuleStudioUrl = (StringUtils.equals(contextPath, "/") ? "" : contextPath) + "/cms/studio/default/" + resource.getLocale() +
-                    "/modules/" + newModule
-                    .getId() + ".html";
+                    "/modules/" + newModule.getId() + ".html";
             JSONObject json = new JSONObject();
             json.put("newModuleStudioUrl", newModuleStudioUrl);
             return new ActionResult(HttpServletResponse.SC_OK, null, json);
