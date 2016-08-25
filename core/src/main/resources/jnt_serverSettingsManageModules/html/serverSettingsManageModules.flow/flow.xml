@@ -176,6 +176,10 @@
     <action-state id="stopModule">
         <evaluate expression="flowHandler.stopModule(requestParameters.module,flowRequestContext)"/>
         <transition to="end"/>
+        <transition on-exception="java.lang.Exception" to="view">
+            <evaluate expression="flowHandler.handleError(rootCauseException, flowScope, messageContext)"/>
+            <evaluate expression="flowHandler.logError(rootCauseException)"/>
+        </transition>        
     </action-state>
 
     <action-state id="undeployModule">

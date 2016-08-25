@@ -635,8 +635,8 @@ public class ModuleManagementFlowHandler implements Serializable {
         }
         state.setSystemDependency(systemSiteRequiredModules.contains(moduleId));
 
-        if (registeredModules.containsKey(moduleId)
-                && registeredModules.get(moduleId).getVersion().equals(moduleVersion)) {
+        if (registeredModules.containsKey(moduleId) && registeredModules.get(moduleId).getVersion().equals(moduleVersion)
+                && pkg.getState().getState() == ModuleState.State.STARTED) {
             // this is the currently active version of a module
             state.setCanBeStopped(!state.isSystemDependency());
         } else {
@@ -815,7 +815,14 @@ public class ModuleManagementFlowHandler implements Serializable {
 
     public void stopModule(String moduleId, RequestContext requestContext) throws RepositoryException, BundleException {
         JahiaTemplatesPackage module = templatePackageRegistry.lookupById(moduleId);
-        moduleManager.stop(module.getBundleKey(), null);
+        if (module != null) {
+            moduleManager.stop(module.getBundleKey(), null);
+        } else {
+            Bundle bundle = BundleUtils.getBundleBySymbolicName(moduleId, null);
+            throw new ModuleManagementException(bundle == null || bundle.getState() == Bundle.ACTIVE
+                    ? "Module '" + moduleId + "' could not stopped as it was not found in the registry."
+                    : "Module '" + moduleId + "' was already stopped");
+        }
         requestContext.getExternalContext().getSessionMap().put("moduleHasBeenStopped", moduleId);
         storeTablesUUID(requestContext);
     }
