@@ -185,11 +185,19 @@
     <action-state id="undeployModule">
         <evaluate expression="flowHandler.uninstallModule(requestParameters.module,requestParameters.version,flowRequestContext)"/>
         <transition to="view"/>
+        <transition on-exception="java.lang.Exception" to="view">
+            <evaluate expression="flowHandler.handleError(rootCauseException, flowScope, messageContext)"/>
+            <evaluate expression="flowHandler.logError(rootCauseException)"/>
+        </transition>                
     </action-state>
 
     <action-state id="updateModule">
         <evaluate expression="flowHandler.updateModule(requestParameters.module,requestParameters.version)"/>
         <transition to="view"/>
+        <transition on-exception="java.lang.Exception" to="view">
+            <evaluate expression="flowHandler.handleError(rootCauseException, flowScope, messageContext)"/>
+            <evaluate expression="flowHandler.logError(rootCauseException)"/>
+        </transition>                
     </action-state>
 
     <action-state id="enableOnSite">
