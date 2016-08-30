@@ -367,9 +367,10 @@ public class ModuleManagementFlowHandler implements Serializable {
             JahiaTemplatesPackage module = BundleUtils.getModule(bundle);
 
             if (module.getState().getState() == ModuleState.State.WAITING_TO_BE_IMPORTED) {
+                // This only can happen in a cluster.
                 successMessage = "serverSettings.manageModules.install.waitingToBeImported";
             }
-            
+
             if (resolutionError != null) {
                 List<String> missingDeps = getMissingDependenciesFrom(module.getDepends(), providedBundles);
                 if (!missingDeps.isEmpty()) {
