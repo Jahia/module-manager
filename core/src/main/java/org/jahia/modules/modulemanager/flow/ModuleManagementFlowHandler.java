@@ -58,6 +58,7 @@ import org.jahia.exceptions.JahiaException;
 import org.jahia.modules.modulemanager.forge.ForgeService;
 import org.jahia.modules.modulemanager.forge.Module;
 import org.jahia.osgi.BundleUtils;
+import org.jahia.osgi.FrameworkService;
 import org.jahia.security.license.LicenseCheckerService;
 import org.jahia.services.content.JCRNodeWrapper;
 import org.jahia.services.content.JCRSessionWrapper;
@@ -735,10 +736,17 @@ public class ModuleManagementFlowHandler implements Serializable {
 
         if (!isStudio(renderContext)) {
             forgeService.loadModules();
-            final Object moduleHasBeenStarted = requestContext.getExternalContext().getSessionMap().get(
+            final Long moduleHasBeenStarted = (Long) requestContext.getExternalContext().getSessionMap().get(
                     "moduleHasBeenStarted");
             if (moduleHasBeenStarted != null) {
-                requestContext.getMessageContext().addMessage(new MessageBuilder().info().source(moduleHasBeenStarted).code("serverSettings.manageModules.module.started").arg(moduleHasBeenStarted).build());
+                Bundle b = BundleUtils.getBundle(moduleHasBeenStarted.longValue());
+                JahiaTemplatesPackage module = BundleUtils.getModule(b);
+                String msgKey = "serverSettings.manageModules.module.started";
+                if (module != null && module.getState().getState() == ModuleState.State.WAITING_TO_BE_IMPORTED) {
+                    msgKey = "serverSettings.manageModules.start.waitingToBeImported";
+                }
+                requestContext.getMessageContext().addMessage(new MessageBuilder().info().source(moduleHasBeenStarted)
+                        .code(msgKey).arg(b.getSymbolicName()).build());
                 requestContext.getExternalContext().getSessionMap().remove("moduleHasBeenStarted");
             }
             final Object moduleHasBeenStopped = requestContext.getExternalContext().getSessionMap().get(
@@ -813,7 +821,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         moduleManager.start(new BundleInfo(BundleUtils.getModuleGroupId(bundle), bundle.getSymbolicName(),
                 bundle.getVersion().toString()).getKey(), null);
         if (bundle.getState() == Bundle.ACTIVE) {
-            requestContext.getExternalContext().getSessionMap().put("moduleHasBeenStarted", moduleId);
+            requestContext.getExternalContext().getSessionMap().put("moduleHasBeenStarted", Long.valueOf(bundle.getBundleId()));
         }
         storeTablesUUID(requestContext);
     }
