@@ -736,23 +736,23 @@ public class ModuleManagementFlowHandler implements Serializable {
 
         if (!isStudio(renderContext)) {
             forgeService.loadModules();
-            final Long moduleHasBeenStarted = (Long) requestContext.getExternalContext().getSessionMap().get(
+            final Long startedBundleId = (Long) requestContext.getExternalContext().getSessionMap().get(
                     "moduleHasBeenStarted");
-            if (moduleHasBeenStarted != null) {
-                Bundle b = BundleUtils.getBundle(moduleHasBeenStarted.longValue());
+            if (startedBundleId != null) {
+                Bundle b = BundleUtils.getBundle(startedBundleId.longValue());
                 JahiaTemplatesPackage module = BundleUtils.getModule(b);
                 String msgKey = "serverSettings.manageModules.module.started";
                 if (module != null && module.getState().getState() == ModuleState.State.WAITING_TO_BE_IMPORTED) {
                     msgKey = "serverSettings.manageModules.start.waitingToBeImported";
                 }
-                requestContext.getMessageContext().addMessage(new MessageBuilder().info().source(moduleHasBeenStarted)
+                requestContext.getMessageContext().addMessage(new MessageBuilder().info().source(startedBundleId)
                         .code(msgKey).arg(b.getSymbolicName()).build());
                 requestContext.getExternalContext().getSessionMap().remove("moduleHasBeenStarted");
             }
-            final Object moduleHasBeenStopped = requestContext.getExternalContext().getSessionMap().get(
+            final Object stoppedBundleId = requestContext.getExternalContext().getSessionMap().get(
                     "moduleHasBeenStopped");
-            if (moduleHasBeenStopped != null) {
-                requestContext.getMessageContext().addMessage(new MessageBuilder().info().source(moduleHasBeenStopped).code("serverSettings.manageModules.module.stopped").arg(moduleHasBeenStopped).build());
+            if (stoppedBundleId != null) {
+                requestContext.getMessageContext().addMessage(new MessageBuilder().info().source(stoppedBundleId).code("serverSettings.manageModules.module.stopped").arg(stoppedBundleId).build());
                 requestContext.getExternalContext().getSessionMap().remove("moduleHasBeenStopped");
             }
             final List<String> missingDependencies = (List<String>) requestContext.getExternalContext().getSessionMap().get("missingDependencies");
