@@ -557,15 +557,29 @@ public class ModuleManagementFlowHandler implements Serializable {
         Map<String, Module> availableUpdate = new HashMap<String, Module>();
         Map<String, SortedMap<ModuleVersion, JahiaTemplatesPackage>> moduleStates = templateManagerService.getTemplatePackageRegistry().getAllModuleVersions();
         for (String key : moduleStates.keySet()) {
-            Module forgeModule = forgeService.findModule(key, moduleStates.get(key).get(moduleStates.get(key).firstKey()).getGroupId());
+            SortedMap<ModuleVersion, JahiaTemplatesPackage> moduleVersions = moduleStates.get(key);
+            Module forgeModule = forgeService.findModule(key, moduleVersions.get(moduleVersions.firstKey()).getGroupId());
             if (forgeModule != null) {
                 ModuleVersion forgeVersion = new ModuleVersion(forgeModule.getVersion());
-                if (!moduleStates.get(key).containsKey(forgeVersion) && forgeVersion.compareTo(moduleStates.get(key).lastKey()) > 0) {
+                if (!isSameOrNewerVersionPresent(key, forgeVersion)) {
                     availableUpdate.put(key, forgeModule);
                 }
             }
         }
         return availableUpdate;
+    }
+
+    private boolean isSameOrNewerVersionPresent(String symbolicName, ModuleVersion forgeVersion) {
+        for (Bundle bundle : FrameworkService.getBundleContext().getBundles()) {
+            String n = bundle.getSymbolicName();
+            if (StringUtils.equals(n, symbolicName)
+                    && forgeVersion.compareTo(new ModuleVersion(BundleUtils.getModuleVersion(bundle))) <= 0) {
+                // we've found either same or a new version present
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void populateModuleVersionStateInfo(RequestContext context, Map<String, List<String>> directSiteDep,
