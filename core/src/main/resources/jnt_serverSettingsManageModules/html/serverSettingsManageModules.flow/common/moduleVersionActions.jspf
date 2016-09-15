@@ -5,7 +5,7 @@
                                 <p><fmt:message key='serverSettings.manageModules.module.depends'/>: ${functions:join(moduleState.unresolvedDependencies, ', ')}</p>
                             </c:if>
                             <c:if test="${moduleState.canBeStarted || moduleState.canBeStopped || moduleState.canBeUninstalled}" var="actionsAllowed">
-                                <form style="margin: 0;" action="${flowExecutionUrl}" method="post">
+                                <form style="margin: 0;" action="${flowExecutionUrl}" method="post" onsubmit="workInProgress('${i18nWaiting}');">
                                     <input type="hidden" name="module" value="${version.value.id}"/>
                                     <input type="hidden" name="version" value="${version.key}"/>
                                     <c:if test="${not empty moduleState.unresolvedDependencies}">
