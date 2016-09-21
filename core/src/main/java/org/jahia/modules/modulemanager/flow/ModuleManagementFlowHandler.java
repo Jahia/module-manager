@@ -89,7 +89,6 @@ import org.springframework.webflow.execution.RequestContext;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.nodetype.NodeTypeIterator;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -655,13 +654,19 @@ public class ModuleManagementFlowHandler implements Serializable {
         }
         state.setSystemDependency(systemSiteRequiredModules.contains(moduleId));
 
+        Object details = pkg.getState().getDetails();
         if (registeredModules.containsKey(moduleId) && registeredModules.get(moduleId).getVersion().equals(moduleVersion)
                 && pkg.getState().getState() == ModuleState.State.STARTED) {
             // this is the currently active version of a module
             state.setCanBeStopped(!state.isSystemDependency());
+            if (details != null) {
+                String dspMsg = Messages.getWithArgs("resources.ModuleManager", "serverSettings.manageModules.startError", LocaleContextHolder.getLocale(),
+                        details.toString());
+                addError(moduleVersion, errors, moduleId, dspMsg);
+            }
         } else {
             // not currently active version of a module
-            Object details = pkg.getState().getDetails();
+
             if (pkg.getState().getState() == ModuleState.State.INCOMPATIBLE_VERSION) {
                 state.setCanBeStarted(false);
                 state.setInstalled(false);
