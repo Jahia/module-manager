@@ -43,7 +43,7 @@
         <transition on="undeployModule" to="undeployModule"/>
         <transition on="updateModule" to="updateModule"/>
         <transition on="upload" to="view">
-            <evaluate expression="flowHandler.uploadModule(moduleFile, messageContext, requestParameters.moduleForceUpdate != null, requestParameters.moduleAutoStart != null)"/>
+            <evaluate expression="flowHandler.uploadModule(moduleFile.moduleFile, messageContext, requestParameters.moduleForceUpdate != null, requestParameters.moduleAutoStart != null)"/>
         </transition>
         <transition on="installModule" to="view">
             <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, requestParameters.moduleAutoStart != null, messageContext)"/>
@@ -179,7 +179,7 @@
         <transition on-exception="java.lang.Exception" to="view">
             <evaluate expression="flowHandler.handleError(rootCauseException, flowScope, messageContext)"/>
             <evaluate expression="flowHandler.logError(rootCauseException)"/>
-        </transition>        
+        </transition>
     </action-state>
 
     <action-state id="undeployModule">
@@ -188,7 +188,7 @@
         <transition on-exception="java.lang.Exception" to="view">
             <evaluate expression="flowHandler.handleError(rootCauseException, flowScope, messageContext)"/>
             <evaluate expression="flowHandler.logError(rootCauseException)"/>
-        </transition>                
+        </transition>
     </action-state>
 
     <action-state id="updateModule">
@@ -197,7 +197,7 @@
         <transition on-exception="java.lang.Exception" to="view">
             <evaluate expression="flowHandler.handleError(rootCauseException, flowScope, messageContext)"/>
             <evaluate expression="flowHandler.logError(rootCauseException)"/>
-        </transition>                
+        </transition>
     </action-state>
 
     <action-state id="enableOnSite">

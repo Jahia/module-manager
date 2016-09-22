@@ -84,11 +84,13 @@ import org.springframework.binding.message.MessageContext;
 import org.springframework.binding.message.MessageResolver;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.webflow.core.collection.MutableAttributeMap;
 import org.springframework.webflow.execution.RequestContext;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.nodetype.NodeTypeIterator;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -163,8 +165,13 @@ public class ModuleManagementFlowHandler implements Serializable {
         return false;
     }
 
-    public boolean uploadModule(ModuleFile moduleFile, MessageContext context, boolean forceUpdate, boolean autoStart) {
-        String originalFilename = moduleFile.getModuleFile().getOriginalFilename();
+    public boolean uploadModule(MultipartFile moduleFile, MessageContext context, boolean forceUpdate, boolean autoStart) {
+        if (moduleFile == null) {
+            context.addMessage(new MessageBuilder().error().source("moduleFile")
+                    .code("serverSettings.manageModules.install.moduleFileRequired").build());
+            return false;
+        }
+        String originalFilename = moduleFile.getOriginalFilename();
         if (!FilenameUtils.isExtension(StringUtils.lowerCase(originalFilename), "jar")) {
             context.addMessage(new MessageBuilder().error().source("moduleFile")
                     .code("serverSettings.manageModules.install.wrongFormat").build());
@@ -173,10 +180,9 @@ public class ModuleManagementFlowHandler implements Serializable {
         File file = null;
         try {
             file = File.createTempFile("module-", "." + StringUtils.substringAfterLast(originalFilename, "."));
-            moduleFile.getModuleFile().transferTo(file);
+            moduleFile.transferTo(file);
             installBundles(file, context, originalFilename, forceUpdate, autoStart);
             return true;
-
         } catch (Exception e) {
             context.addMessage(new MessageBuilder().source("moduleFile")
                     .code("serverSettings.manageModules.install.failed")
