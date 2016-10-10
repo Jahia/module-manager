@@ -44,15 +44,14 @@
 package org.jahia.test.services.modulemanager;
 
 import org.apache.commons.io.FileUtils;
-import org.jahia.data.templates.JahiaTemplatesPackage;
 import org.jahia.registries.ServicesRegistry;
 import org.jahia.services.SpringContextSingleton;
 import org.jahia.services.content.JCRSessionWrapper;
 import org.jahia.services.content.JCRTemplate;
 import org.jahia.services.modulemanager.ModuleManager;
-import org.jahia.services.modulemanager.ModuleManagerHelper;
 import org.jahia.services.modulemanager.util.ModuleUtils;
 import org.jahia.services.templates.JahiaTemplateManagerService;
+import org.jahia.services.templates.ModuleVersion;
 import org.jahia.test.JahiaTestCase;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -112,7 +111,7 @@ public class ModuleManagerDeploymentTest extends JahiaTestCase {
         } catch (InterruptedException e) {
 
         }
-        assertTrue(ModuleManagerHelper.isModuleExists(managerService.getTemplatePackageRegistry(), "dummy1", "1.0", null));
+        assertTrue(managerService.getTemplatePackageRegistry().getAvailableVersionsForModule("dummy1").contains(new ModuleVersion("1.0")));
 
     }
 
