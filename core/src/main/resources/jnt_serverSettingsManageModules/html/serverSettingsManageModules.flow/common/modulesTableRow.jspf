@@ -53,9 +53,9 @@
                 	<fmt:param value="${availableUpdates[entry.key].version}"/>
                 </fmt:message>
                 <form style="margin: 0;" action="${flowExecutionUrl}" method="POST" onsubmit="workInProgress('${i18nWaiting}');">
-                    (<label for="moduleAutoStart">
+                    (<label for="moduleAutoStartVersion">
                         <fmt:message key="serverSettings.manageModules.upload.autoStart"/>&nbsp;
-                        <input type="checkbox" name="moduleAutoStart" id="moduleAutoStart" ${developmentMode ? 'checked="checked"' : ''}/>
+                        <input type="checkbox" name="moduleAutoStart" id="moduleAutoStartVersion" ${developmentMode ? 'checked="checked"' : ''}/>
                     </label>)
                     <input type="hidden" name="forgeId" value="${availableUpdates[entry.key].forgeId}"/>
                     <input type="hidden" name="moduleUrl" value="${availableUpdates[entry.key].downloadUrl}"/>
