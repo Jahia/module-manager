@@ -434,7 +434,7 @@ public class ModuleManagementFlowHandler implements Serializable {
 
     public void loadModuleInformation(RequestContext context) {
         String selectedModuleName = moduleName != null ? moduleName : (String) context.getFlowScope().get("selectedModule");
-        Map<ModuleVersion, JahiaTemplatesPackage> selectedModule = templateManagerService.getTemplatePackageRegistry().getAllModuleVersions().get(selectedModuleName);
+        Map<ModuleVersion, JahiaTemplatesPackage> selectedModule = getAllModuleVersions().get(selectedModuleName);
         if (selectedModule != null) {
             if (selectedModule.size() > 1) {
                 boolean foundActiveVersion = false;
@@ -560,7 +560,7 @@ public class ModuleManagementFlowHandler implements Serializable {
      */
     public Map<String, Module> getAvailableUpdates() {
         Map<String, Module> availableUpdate = new HashMap<String, Module>();
-        Map<String, SortedMap<ModuleVersion, JahiaTemplatesPackage>> moduleStates = templateManagerService.getTemplatePackageRegistry().getAllModuleVersions();
+        Map<String, SortedMap<ModuleVersion, JahiaTemplatesPackage>> moduleStates = getAllModuleVersions();
         for (String key : moduleStates.keySet()) {
             SortedMap<ModuleVersion, JahiaTemplatesPackage> moduleVersions = moduleStates.get(key);
             Module forgeModule = forgeService.findModule(key, moduleVersions.get(moduleVersions.firstKey()).getGroupId());
