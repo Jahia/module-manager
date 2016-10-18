@@ -250,7 +250,9 @@ public class ModuleManagementFlowHandler implements Serializable {
         }
 
         ModulesPackage pack = ModulesPackage.create(jarFile);
+
         try {
+
             List<String> providedBundles = new ArrayList<String>(pack.getModules().keySet());
             Map<Bundle, MessageResolver> collectedResolutionErrors = new LinkedHashMap<>();
             List<ModuleInstallationResult> installationResults = new LinkedList<>();
@@ -433,6 +435,7 @@ public class ModuleManagementFlowHandler implements Serializable {
     }
 
     public void loadModuleInformation(RequestContext context) {
+
         String selectedModuleName = moduleName != null ? moduleName : (String) context.getFlowScope().get("selectedModule");
         Map<ModuleVersion, JahiaTemplatesPackage> selectedModule = getAllModuleVersions().get(selectedModuleName);
         if (selectedModule != null) {
@@ -528,7 +531,6 @@ public class ModuleManagementFlowHandler implements Serializable {
         context.getRequestScope().put("sitesDirect", directSiteDep);
         context.getRequestScope().put("sitesTemplates", templateSiteDep);
         context.getRequestScope().put("sitesTransitive", transitiveSiteDep);
-
         populateModuleVersionStateInfo(context, directSiteDep, templateSiteDep, transitiveSiteDep);
         populateModulesWithNodetypesInfo(context);
     }
@@ -583,12 +585,12 @@ public class ModuleManagementFlowHandler implements Serializable {
                 return true;
             }
         }
-
         return false;
     }
 
     private void populateModuleVersionStateInfo(RequestContext context, Map<String, List<String>> directSiteDep,
                                                 Map<String, List<String>> templateSiteDep, Map<String, List<String>> transitiveSiteDep) {
+
         Map<String, Map<ModuleVersion, ModuleVersionState>> states = new TreeMap<String, Map<ModuleVersion, ModuleVersionState>>();
         Map<String, String> errors = new TreeMap<String, String>();
 
@@ -629,6 +631,7 @@ public class ModuleManagementFlowHandler implements Serializable {
     private ModuleVersionState getModuleVersionState(RequestContext context, ModuleVersion moduleVersion, JahiaTemplatesPackage pkg,
                                                      boolean multipleVersionsOfModuleInstalled, Map<String, List<String>> directSiteDep,
                                                      Map<String, List<String>> templateSiteDep, Map<String, List<String>> transitiveSiteDep, Set<String> systemSiteRequiredModules, Map<String, String> errors) {
+
         ModuleVersionState state = new ModuleVersionState();
         Map<String, JahiaTemplatesPackage> registeredModules = templateManagerService.getTemplatePackageRegistry()
                 .getRegisteredModules();
@@ -672,7 +675,6 @@ public class ModuleManagementFlowHandler implements Serializable {
             }
         } else {
             // not currently active version of a module
-
             if (pkg.getState().getState() == ModuleState.State.INCOMPATIBLE_VERSION) {
                 state.setCanBeStarted(false);
                 state.setInstalled(false);
@@ -699,7 +701,6 @@ public class ModuleManagementFlowHandler implements Serializable {
             } else if (state.getUnresolvedDependencies().isEmpty()) {
                 // no unresolved dependencies -> can start module version
                 state.setCanBeStarted(true);
-
                 // if the module is not used in sites or this is not the only version of a module installed -> allow to uninstall it
                 state.setCanBeUninstalled(state.getUsedInSites().isEmpty() || multipleVersionsOfModuleInstalled);
             } else {
@@ -729,7 +730,6 @@ public class ModuleManagementFlowHandler implements Serializable {
         }
         context.getRequestScope().put("bundleInfo", bundleInfo);
         context.getRequestScope().put("activeVersionDate", new Date(value.getBundle().getLastModified()));
-
         context.getRequestScope().put("dependantModules", templateManagerService.getTemplatePackageRegistry().getDependantModules(value));
     }
 
@@ -744,7 +744,6 @@ public class ModuleManagementFlowHandler implements Serializable {
                 }
             }
         }
-
         return modules;
     }
 
@@ -786,7 +785,6 @@ public class ModuleManagementFlowHandler implements Serializable {
             if (missingDependencies != null) {
                 createMessageForMissingDependencies(requestContext.getMessageContext(), missingDependencies);
                 requestContext.getExternalContext().getSessionMap().remove("missingDependencies");
-
             }
         }
     }
@@ -812,7 +810,6 @@ public class ModuleManagementFlowHandler implements Serializable {
         newModules.addAll(installedModule);
         return newModules;
     }
-
 
     /**
      * Logs the specified exception details.
@@ -876,7 +873,6 @@ public class ModuleManagementFlowHandler implements Serializable {
         if (requestContext.getExternalContext().getSessionMap().contains("adminModuleTableUUID") && !requestContext.getFlowScope().contains("adminModuleTableUUID")) {
             requestContext.getFlowScope().put("adminModuleTableUUID", requestContext.getExternalContext().getSessionMap().get("adminModuleTableUUID"));
             requestContext.getFlowScope().put("forgeModuleTableUUID", requestContext.getExternalContext().getSessionMap().get("forgeModuleTableUUID"));
-
             requestContext.getExternalContext().getSessionMap().remove("adminModuleTableUUID");
             requestContext.getExternalContext().getSessionMap().remove("forgeModuleTableUUID");
         }
@@ -961,7 +957,6 @@ public class ModuleManagementFlowHandler implements Serializable {
             FileUtils.deleteQuietly(tempSources);
         }
     }
-
 
     public void updateModule(String id, String version) throws RepositoryException {
         Bundle bundle = BundleUtils.getBundle(id, version);
