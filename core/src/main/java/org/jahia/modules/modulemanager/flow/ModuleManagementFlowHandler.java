@@ -596,7 +596,9 @@ public class ModuleManagementFlowHandler implements Serializable {
 
         Set<String> systemSiteRequiredModules = getSystemSiteRequiredModules();
         context.getRequestScope().put("systemSiteRequiredModules", systemSiteRequiredModules);
+
         for (Map.Entry<String, SortedMap<ModuleVersion, JahiaTemplatesPackage>> entry : getAllModuleVersions().entrySet()) {
+
             Map<ModuleVersion, ModuleVersionState> moduleVersions = states.get(entry.getKey());
             if (moduleVersions == null) {
                 moduleVersions = new TreeMap<ModuleVersion, ModuleVersionState>();
@@ -613,6 +615,7 @@ public class ModuleManagementFlowHandler implements Serializable {
                 moduleVersions.put(moduleVersionEntry.getKey(), state);
             }
         }
+
         context.getRequestScope().put("moduleStates", states);
         context.getRequestScope().put("errors", errors);
     }
