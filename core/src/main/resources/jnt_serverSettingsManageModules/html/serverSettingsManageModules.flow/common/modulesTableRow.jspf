@@ -70,16 +70,23 @@
 
 
         <c:if test="${not isStudio}">
-            <td>
-                <c:choose>
-                    <c:when test="${not empty currentModule}">
-                        <span class="label label-success"><strong>${i18nModuleActive}</strong></span>
-                    </c:when>
-                    <c:otherwise>
-                        <span class="label"><strong>${i18nModuleInactive}</strong></span>
-                    </c:otherwise>
-                </c:choose>
-            </td>
+            <c:if test="${empty currentModule}">
+                <td>
+                    <span class="label"><fmt:message key="serverSettings.manageModules.module.state.inactive"/></span>
+                </td>
+            </c:if>
+            <c:if test="${not empty currentModule}">
+                <td>
+                    <c:if test="${currentModule.state =='Started'}">
+                    <span class="label label-success">&nbsp;${currentModule.version}
+                    (<fmt:message key="serverSettings.manageModules.module.state.${fn:toLowerCase(currentModule.state.state)}"/>)</span>
+                    </c:if>
+                    <c:if test="${currentModule.state !='Started'}">
+                    <span class="label label-warning">&nbsp;${currentModule.version}
+                    (<fmt:message key="serverSettings.manageModules.module.state.${fn:toLowerCase(currentModule.state.state)}"/>)</span>
+                    </c:if>
+                </td>
+            </c:if>
 
             <c:if test="${developmentMode}">
             <td>

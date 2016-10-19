@@ -6,6 +6,11 @@
                             </c:if>
                             <c:if test="${moduleState.canBeStarted || moduleState.canBeStopped || moduleState.canBeUninstalled}" var="actionsAllowed">
                                 <form style="margin: 0;" action="${flowExecutionUrl}" method="post" onsubmit="workInProgress('${i18nWaiting}');">
+                                    <c:if test="${displayVersionAndState}">
+                                        &nbsp;${version.key}
+                                        (<fmt:message key="serverSettings.manageModules.module.state.${fn:toLowerCase(version.value.state.state)}"/>)
+                                    </c:if>
+
                                     <input type="hidden" name="module" value="${version.value.id}"/>
                                     <input type="hidden" name="version" value="${version.key}"/>
                                     <c:if test="${not empty moduleState.unresolvedDependencies}">
@@ -50,13 +55,9 @@
                                                 <i class="icon-ban-circle"></i>&nbsp;${i18nModuleUndeploy}
                                         </button>
                                     </c:if>
-                                    <c:if test="${displayVersionAndState}">
-                                    &nbsp;${version.key}
-                                        <%--(<fmt:message key="serverSettings.manageModules.module.state.${fn:toLowerCase(version.value.state.state)}"/>)--%>
-                                    </c:if>
                                 </form>
                             </c:if>
                             <c:if test="${displayVersionAndState && !actionsAllowed}">${version.key}
-                                <%--(<fmt:message key="serverSettings.manageModules.module.state.${fn:toLowerCase(version.value.state.state)}"/>)<c:if test="${not empty currentModule.state.details}">&nbsp;(${currentModule.state.details})</c:if><c:if test="${not empty defaultVersion.state.details}">&nbsp;(${defaultVersion.state.details})</c:if><br/>&nbsp;--%>
+                                (<fmt:message key="serverSettings.manageModules.module.state.${fn:toLowerCase(version.value.state.state)}"/>)<c:if test="${not empty currentModule.state.details}">&nbsp;(${currentModule.state.details})</c:if><c:if test="${not empty defaultVersion.state.details}">&nbsp;(${defaultVersion.state.details})</c:if><br/>&nbsp;
                             </c:if>
                             </div>
