@@ -281,7 +281,8 @@
                 <c:if test="${not isStudio}">
                     <td>
                      <c:set var="isActiveVersion" value="${version.key == activeVersion.version}"/>
-                     <%@include file="common/moduleVersionActions.jspf" %>
+                        <c:set var="showWiring" value="true"/>
+                        <%@include file="common/moduleVersionActions.jspf" %>
                     </td>
                 </c:if>
             </tr>

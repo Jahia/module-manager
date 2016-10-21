@@ -55,9 +55,52 @@
                                                 <i class="icon-ban-circle"></i>&nbsp;${i18nModuleUndeploy}
                                         </button>
                                     </c:if>
+
+                                    <c:if test="${showWiring}">
+                                    <c:set value="${version.value.moduleDependenciesWithVersion}" var="moduleDependenciesWithVersion"/>
+                                    <c:set value="${version.value.dependentModulesWithVersion}" var="dependentModulesWithVersion"/>
+                                    </c:if>
+                                <c:if test="${not empty moduleDependenciesWithVersion or not empty dependentModulesWithVersion}">
+                                    <button class="btn " type="button" title="${i18nModuleWiring}" onclick="$('#wiringInfo${version.value.bundle.bundleId}').toggle(100);return false;">
+                                        <i class=" icon-info-sign "></i>&nbsp;${i18nModuleWiring}
+                                    </button>
+                                    <button class="btn" type="submit" name="_eventId_refreshModule" id="refresh${version.value.bundle.bundleId}" style="display: none;"/>
+                                    </c:if>
+
+
+
                                 </form>
                             </c:if>
                             <c:if test="${displayVersionAndState && !actionsAllowed}">${version.key}
                                 (<fmt:message key="serverSettings.manageModules.module.state.${fn:toLowerCase(version.value.state.state)}"/>)<c:if test="${not empty currentModule.state.details}">&nbsp;(${currentModule.state.details})</c:if><c:if test="${not empty defaultVersion.state.details}">&nbsp;(${defaultVersion.state.details})</c:if><br/>&nbsp;
                             </c:if>
                             </div>
+
+                            <c:if test="${not isStudio}">
+
+                                <c:if test="${not empty moduleDependenciesWithVersion or not empty dependentModulesWithVersion}">
+                                    <div id="wiringInfo${version.value.bundle.bundleId}" style="display: none;">
+                                        <c:if test="${not empty moduleDependenciesWithVersion}">
+                                            ${i18nModuleWiringUses}
+                                            <ul>
+                                                <c:forEach items="${moduleDependenciesWithVersion}" var="dep">
+                                                    <li>${dep.name} (${dep.version})</li>
+                                                </c:forEach>
+                                            </ul>
+                                        </c:if>
+                                        <c:if test="${not empty dependentModulesWithVersion}">
+                                            ${i18nModuleWiringProvides}
+                                            <ul>
+                                                <c:forEach items="${dependentModulesWithVersion}" var="dep">
+                                                    <li>${dep.name} (${dep.version})</li>
+                                                </c:forEach>
+                                            </ul>
+                                        </c:if>
+                                        <button class="btn btn-danger" type="button" title="${i18nModuleRefresh}"
+                                                onclick="if (confirm('${functions:escapeJavaScript(i18nModuleRefreshConfirm)}${' '}${dependentModulesWithVersion}\n${functions:escapeJavaScript(i18nContinue)}')) { $('#refresh${version.value.bundle.bundleId}').click(); };">
+                                            <i class=" icon-refresh icon-white"></i>&nbsp;${i18nModuleRefresh}
+                                        </button>
+                                    </div>
+                                </c:if>
+                            </c:if>
+</div>
