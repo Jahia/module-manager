@@ -75,11 +75,7 @@ import org.jahia.services.templates.*;
 import org.jahia.settings.SettingsBean;
 import org.jahia.utils.i18n.Messages;
 import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.wiring.BundleWire;
-import org.osgi.framework.wiring.BundleWiring;
-import org.osgi.framework.wiring.FrameworkWiring;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,7 +85,6 @@ import org.springframework.binding.message.MessageResolver;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.FrameworkServlet;
 import org.springframework.webflow.core.collection.MutableAttributeMap;
 import org.springframework.webflow.execution.RequestContext;
 
@@ -983,8 +978,7 @@ public class ModuleManagementFlowHandler implements Serializable {
 
     public void refreshModule(String id, String version) throws RepositoryException {
         Bundle bundle = BundleUtils.getBundle(id, version);
-        moduleManager.refresh(new BundleInfo(BundleUtils.getModuleGroupId(bundle), bundle.getSymbolicName(),
-                bundle.getVersion().toString()).getKey(), null);
+        moduleManager.refresh(BundleInfo.fromBundle(bundle).getKey(), null);
     }
 
     public void uninstallModule(String moduleId, String moduleVersion, RequestContext requestContext) throws RepositoryException, BundleException {

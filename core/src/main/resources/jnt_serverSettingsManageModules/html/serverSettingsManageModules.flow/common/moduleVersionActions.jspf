@@ -1,4 +1,5 @@
                             <c:set var="moduleState" value="${moduleStates[version.value.id][version.key]}"/>
+                            <c:set var="bundleId" value="${version.value.bundle.bundleId}"/>
                             <div class="${!isActiveVersion ? 'inactive' : 'active'}-version">
                             <c:if test="${not empty moduleState.unresolvedDependencies}">
                                 <c:set var="unresolvedDependencies" value="${functions:join(moduleState.unresolvedDependencies, ', ')}"/>
@@ -61,10 +62,10 @@
                                     <c:set value="${version.value.dependentModulesWithVersion}" var="dependentModulesWithVersion"/>
                                     </c:if>
                                 <c:if test="${not empty moduleDependenciesWithVersion or not empty dependentModulesWithVersion}">
-                                    <button class="btn " type="button" title="${i18nModuleWiring}" onclick="$('#wiringInfo${version.value.bundle.bundleId}').toggle(100);return false;">
-                                        <i class=" icon-info-sign "></i>&nbsp;${i18nModuleWiring}
+                                    <button class="btn " type="button" title="${fn:escapeXml(i18nModuleWiring)}" onclick="$('#wiringInfo${bundleId}').toggle(100);return false;">
+                                        <i class="icon-info-sign"></i>&nbsp;${fn:escapeXml(i18nModuleWiring)}
                                     </button>
-                                    <button class="btn" type="submit" name="_eventId_refreshModule" id="refresh${version.value.bundle.bundleId}" style="display: none;"/>
+                                    <button class="btn" type="submit" name="_eventId_refreshModule" id="refresh${bundleId}" style="display: none;"/>
                                     </c:if>
 
 
@@ -79,7 +80,7 @@
                             <c:if test="${not isStudio}">
 
                                 <c:if test="${not empty moduleDependenciesWithVersion or not empty dependentModulesWithVersion}">
-                                    <div id="wiringInfo${version.value.bundle.bundleId}" style="display: none;">
+                                    <div id="wiringInfo${bundleId}" style="display: none;">
                                         <c:if test="${not empty moduleDependenciesWithVersion}">
                                             ${i18nModuleWiringUses}
                                             <ul>
@@ -97,7 +98,7 @@
                                             </ul>
                                         </c:if>
                                         <button class="btn btn-danger" type="button" title="${i18nModuleRefresh}"
-                                                onclick="if (confirm('${functions:escapeJavaScript(i18nModuleRefreshConfirm)}${' '}${dependentModulesWithVersion}\n${functions:escapeJavaScript(i18nContinue)}')) { $('#refresh${version.value.bundle.bundleId}').click(); };">
+                                                onclick="if (confirm('${functions:escapeJavaScript(i18nModuleRefreshConfirm)}${' '}${dependentModulesWithVersion}\n${functions:escapeJavaScript(i18nContinue)}')) { $('#refresh${bundleId}').click(); };">
                                             <i class=" icon-refresh icon-white"></i>&nbsp;${i18nModuleRefresh}
                                         </button>
                                     </div>
