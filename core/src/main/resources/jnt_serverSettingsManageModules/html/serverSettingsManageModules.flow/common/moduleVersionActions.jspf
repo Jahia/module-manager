@@ -97,9 +97,10 @@
                                                 </c:forEach>
                                             </ul>
                                         </c:if>
-                                        <button class="btn btn-danger" type="button" title="${i18nModuleRefresh}"
+                                        <fmt:message key ="label.refresh" var="i18nRefresh"/><c:set var="i18nRefresh" value="${fn:escapeXml(i18nRefresh)}"/>
+                                        <button class="btn btn-danger" type="button" title="${i18nRefresh}"
                                                 onclick="if (confirm('${functions:escapeJavaScript(i18nModuleRefreshConfirm)}${' '}${dependentModulesWithVersion}\n${functions:escapeJavaScript(i18nContinue)}')) { $('#refresh${bundleId}').click(); };">
-                                            <i class=" icon-refresh icon-white"></i>&nbsp;${i18nModuleRefresh}
+                                            <i class=" icon-refresh icon-white"></i>&nbsp;${i18nRefresh}
                                         </button>
                                     </div>
                                 </c:if>
