@@ -668,7 +668,8 @@ public class ModuleManagementFlowHandler implements Serializable {
 
         Object details = pkg.getState().getDetails();
         if (registeredModules.containsKey(moduleId) && registeredModules.get(moduleId).getVersion().equals(moduleVersion)
-                && pkg.getState().getState() == ModuleState.State.STARTED) {
+                && (pkg.getState().getState() == ModuleState.State.STARTED ||
+                pkg.getState().getState() == ModuleState.State.SPRING_STARTING)) {
             // this is the currently active version of a module
             state.setCanBeStopped(!state.isSystemDependency());
             if (details != null) {
