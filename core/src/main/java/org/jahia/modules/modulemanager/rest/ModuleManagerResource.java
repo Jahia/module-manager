@@ -70,6 +70,7 @@ import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.jahia.osgi.BundleState;
 import org.jahia.services.SpringContextSingleton;
+import org.jahia.services.modulemanager.InvalidModuleKeyException;
 import org.jahia.services.modulemanager.ModuleManagementInvalidArgumentException;
 import org.jahia.services.modulemanager.ModuleManager;
 import org.jahia.services.modulemanager.ModuleNotFoundException;
@@ -297,6 +298,8 @@ public class ModuleManagerResource {
     private BundleState getBundleLocalState(ModuleManager moduleManager, String bundleKey) {
         try {
             return moduleManager.getLocalState(bundleKey);
+        } catch (InvalidModuleKeyException e) {
+            throw new ClientErrorException(e.getMessage(), Status.BAD_REQUEST);
         } catch (ModuleNotFoundException e) {
             throw new ClientErrorException(e.getMessage(), Status.NOT_FOUND);
         }
