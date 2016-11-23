@@ -257,7 +257,7 @@ public class ModuleManagerResource {
      * @return current bundle state
      */
     @GET
-    @Path("/{bundleKey:.*}/_localState")
+    @Path("/{bundleKey:[^\\[\\]]*}/_localState")
     public Response getLocalState(@PathParam(value = "bundleKey") String bundleKey) {
         validateBundleOperation(bundleKey, "getLocalState");
         BundleState state = getBundleLocalState(getModuleManager(), bundleKey);
