@@ -46,10 +46,12 @@ package org.jahia.modules.modulemanager.rest;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.LinkedHashMap;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -66,6 +68,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.jahia.osgi.BundleState;
 import org.jahia.services.SpringContextSingleton;
 import org.jahia.services.modulemanager.ModuleManagementInvalidArgumentException;
 import org.jahia.services.modulemanager.ModuleManager;
@@ -247,10 +250,55 @@ public class ModuleManagerResource {
         }
     }
 
+    /**
+     * Get current local state of a single bundle.
+     *
+     * @param bundleKey the bundle key
+     * @return current bundle state
+     */
+    @GET
+    @Path("/{bundleKey:.*}/_localState")
+    public Response getLocalState(@PathParam(value = "bundleKey") String bundleKey) {
+        validateBundleOperation(bundleKey, "getLocalState");
+        BundleState state = getBundleLocalState(getModuleManager(), bundleKey);
+        return Response.ok(state).build();
+    }
+
+    /**
+     * Get current local states of multiple bundles.
+     *
+     * @param bundleKeys comma separated list of bundle keys
+     * @return a map of bundle states by bundle keys
+     */
+    @GET
+    @Path("/[{bundleKeys:.*}]/_localState")
+    public Response getLocalStates(@PathParam(value = "bundleKeys") String bundleKeys) {
+        String[] keys = StringUtils.split(bundleKeys, ',');
+        ModuleManager moduleManager = getModuleManager();
+        LinkedHashMap<String, BundleState> stateByKey = new LinkedHashMap<String, BundleState>();
+        for (String key : keys) {
+            key = key.trim();
+            if (StringUtils.isEmpty(key)) {
+                continue;
+            }
+            BundleState state = getBundleLocalState(moduleManager, key);
+            stateByKey.put(key, state);
+        }
+        return Response.ok(stateByKey).build();
+    }
+
     private void validateBundleOperation(String bundleKey, String serviceOperation) throws ClientErrorException {
         if (StringUtils.isBlank(bundleKey)) {
             throw new ClientErrorException("Bundle key is mandatory for " + serviceOperation + " operation.",
                     Status.BAD_REQUEST);
+        }
+    }
+
+    private BundleState getBundleLocalState(ModuleManager moduleManager, String bundleKey) {
+        try {
+            return moduleManager.getLocalState(bundleKey);
+        } catch (ModuleNotFoundException e) {
+            throw new ClientErrorException(e.getMessage(), Status.NOT_FOUND);
         }
     }
 }
