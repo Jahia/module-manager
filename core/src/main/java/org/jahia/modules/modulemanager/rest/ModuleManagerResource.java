@@ -68,6 +68,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.jahia.data.templates.ModuleState;
 import org.jahia.osgi.BundleState;
 import org.jahia.services.SpringContextSingleton;
 import org.jahia.services.modulemanager.InvalidModuleKeyException;
@@ -79,6 +80,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
  * The REST service implementation for module manager API.
@@ -261,7 +264,7 @@ public class ModuleManagerResource {
     @Path("/{bundleKey:[^\\[\\]]*}/_localState")
     public Response getLocalState(@PathParam(value = "bundleKey") String bundleKey) {
         validateBundleOperation(bundleKey, "getLocalState");
-        BundleState state = getBundleLocalState(getModuleManager(), bundleKey);
+        BundleState state = getLocalBundleState(getModuleManager(), bundleKey);
         return Response.ok(state).build();
     }
 
@@ -274,18 +277,59 @@ public class ModuleManagerResource {
     @GET
     @Path("/[{bundleKeys:.*}]/_localState")
     public Response getLocalStates(@PathParam(value = "bundleKeys") String bundleKeys) {
-        String[] keys = StringUtils.split(bundleKeys, ',');
-        ModuleManager moduleManager = getModuleManager();
-        LinkedHashMap<String, BundleState> stateByKey = new LinkedHashMap<String, BundleState>();
-        for (String key : keys) {
-            key = key.trim();
-            if (StringUtils.isEmpty(key)) {
-                continue;
+
+        final ModuleManager moduleManager = getModuleManager();
+        final LinkedHashMap<String, BundleState> stateByKey = new LinkedHashMap<String, BundleState>();
+
+        processBundleKeys(bundleKeys, new BundleKeyProcessor() {
+
+            @Override
+            public void process(String bundleKey) {
+                BundleState state = getLocalBundleState(moduleManager, bundleKey);
+                stateByKey.put(bundleKey, state);
             }
-            BundleState state = getBundleLocalState(moduleManager, key);
-            stateByKey.put(key, state);
-        }
+        });
+
         return Response.ok(stateByKey).build();
+    }
+
+    /**
+     * Get local info about a single bundle.
+     *
+     * @param bundleKey the bundle key
+     * @return local bundle info
+     */
+    @GET
+    @Path("/{bundleKey:[^\\[\\]]*}/_localInfo")
+    public Response getLocalInfo(@PathParam(value = "bundleKey") String bundleKey) {
+        validateBundleOperation(bundleKey, "getLocalInfo");
+        ModuleManager.LocalBundleInfo info = getLocalBundleInfo(getModuleManager(), bundleKey);
+        return Response.ok(new LocalBundleInfo(info)).build();
+    }
+
+    /**
+     * Get local info about multiple bundles.
+     *
+     * @param bundleKeys comma separated list of bundle keys
+     * @return a map of bundle info by bundle keys
+     */
+    @GET
+    @Path("/[{bundleKeys:.*}]/_localInfo")
+    public Response getLocalInfos(@PathParam(value = "bundleKeys") String bundleKeys) {
+
+        final ModuleManager moduleManager = getModuleManager();
+        final LinkedHashMap<String, LocalBundleInfo> infoByKey = new LinkedHashMap<String, LocalBundleInfo>();
+
+        processBundleKeys(bundleKeys, new BundleKeyProcessor() {
+
+            @Override
+            public void process(String bundleKey) {
+                ModuleManager.LocalBundleInfo info = getLocalBundleInfo(moduleManager, bundleKey);
+                infoByKey.put(bundleKey, new LocalBundleInfo(info));
+            }
+        });
+
+        return Response.ok(infoByKey).build();
     }
 
     private void validateBundleOperation(String bundleKey, String serviceOperation) throws ClientErrorException {
@@ -295,13 +339,63 @@ public class ModuleManagerResource {
         }
     }
 
-    private BundleState getBundleLocalState(ModuleManager moduleManager, String bundleKey) {
+    private BundleState getLocalBundleState(ModuleManager moduleManager, String bundleKey) {
         try {
             return moduleManager.getLocalState(bundleKey);
         } catch (InvalidModuleKeyException e) {
             throw new ClientErrorException(e.getMessage(), Status.BAD_REQUEST);
         } catch (ModuleNotFoundException e) {
             throw new ClientErrorException(e.getMessage(), Status.NOT_FOUND);
+        }
+    }
+
+    private ModuleManager.LocalBundleInfo getLocalBundleInfo(ModuleManager moduleManager, String bundleKey) {
+        try {
+            return moduleManager.getLocalInfo(bundleKey);
+        } catch (InvalidModuleKeyException e) {
+            throw new ClientErrorException(e.getMessage(), Status.BAD_REQUEST);
+        } catch (ModuleNotFoundException e) {
+            throw new ClientErrorException(e.getMessage(), Status.NOT_FOUND);
+        }
+    }
+
+    private void processBundleKeys(String bundleKeys, BundleKeyProcessor bundleKeyProcessor) {
+        String[] keys = StringUtils.split(bundleKeys, ',');
+        for (String key : keys) {
+            key = key.trim();
+            if (StringUtils.isEmpty(key)) {
+                continue;
+            }
+            bundleKeyProcessor.process(key);
+        }
+    }
+
+    private interface BundleKeyProcessor {
+
+        void process(String bundleKey);
+    }
+
+    private static class LocalBundleInfo {
+
+        private BundleState osgiState;
+        private ModuleState.State moduleState;
+
+        public LocalBundleInfo(ModuleManager.LocalBundleInfo bundleInfo) {
+            this.osgiState = bundleInfo.getOsgiState();
+            ModuleState moduleState = bundleInfo.getModuleState();
+            if (moduleState != null) {
+                this.moduleState = moduleState.getState();
+            }
+        }
+
+        @SuppressWarnings("unused")
+        public BundleState getOsgiState() {
+            return osgiState;
+        }
+
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        public ModuleState.State getModuleState() {
+            return moduleState;
         }
     }
 }
