@@ -47,6 +47,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.Consumes;
@@ -69,6 +70,7 @@ import org.apache.commons.lang.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.jahia.data.templates.ModuleState;
+import org.jahia.data.templates.ModuleState.State;
 import org.jahia.osgi.BundleState;
 import org.jahia.services.SpringContextSingleton;
 import org.jahia.services.modulemanager.InvalidModuleKeyException;
@@ -81,8 +83,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
 /**
  * The REST service implementation for module manager API.
  *
@@ -91,6 +91,54 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @Path("/api/bundles")
 @Produces({ MediaType.APPLICATION_JSON })
 public class ModuleManagerResource {
+
+    /**
+     * A (part of) REST response representing local info about a bundle.
+     */
+    public static class LocalBundleInfoDto {
+
+        private BundleState osgiState;
+        private boolean module;
+        private ModuleState.State moduleState;
+
+        /**
+         * Create an instance representing info about a standalone OSGi bundle.
+         */
+        public LocalBundleInfoDto(BundleState osgiState) {
+            this.osgiState = osgiState;
+            this.module = false;
+        }
+
+        /**
+         * Create an instance representing info about an OSGi bundle which is a DX module.
+         */
+        public LocalBundleInfoDto(BundleState osgiState, State moduleState) {
+            this.osgiState = osgiState;
+            this.module = true;
+            this.moduleState = moduleState;
+        }
+
+        /**
+         * @return local state of the bundle in OSGi terms
+         */
+        public BundleState getOsgiState() {
+            return osgiState;
+        }
+
+        /**
+         * @return whether the bundle is a DX module
+         */
+        public boolean isModule() {
+            return module;
+        }
+
+        /**
+         * @return local state of the module bundle in DX terms; null in case the bundle is not a DX module
+         */
+        public ModuleState.State getModuleState() {
+            return moduleState;
+        }
+    }
 
     private static final Logger log = LoggerFactory.getLogger(ModuleManagerResource.class);
 
@@ -262,10 +310,10 @@ public class ModuleManagerResource {
      */
     @GET
     @Path("/{bundleKey:[^\\[\\]]*}/_localState")
-    public Response getLocalState(@PathParam(value = "bundleKey") String bundleKey) {
+    public BundleState getLocalState(@PathParam(value = "bundleKey") String bundleKey) {
         validateBundleOperation(bundleKey, "getLocalState");
         BundleState state = getLocalBundleState(getModuleManager(), bundleKey);
-        return Response.ok(state).build();
+        return state;
     }
 
     /**
@@ -276,7 +324,7 @@ public class ModuleManagerResource {
      */
     @GET
     @Path("/[{bundleKeys:.*}]/_localState")
-    public Response getLocalStates(@PathParam(value = "bundleKeys") String bundleKeys) {
+    public Map<String, BundleState> getLocalStates(@PathParam(value = "bundleKeys") String bundleKeys) {
 
         final ModuleManager moduleManager = getModuleManager();
         final LinkedHashMap<String, BundleState> stateByKey = new LinkedHashMap<String, BundleState>();
@@ -290,7 +338,7 @@ public class ModuleManagerResource {
             }
         });
 
-        return Response.ok(stateByKey).build();
+        return stateByKey;
     }
 
     /**
@@ -301,10 +349,10 @@ public class ModuleManagerResource {
      */
     @GET
     @Path("/{bundleKey:[^\\[\\]]*}/_localInfo")
-    public Response getLocalInfo(@PathParam(value = "bundleKey") String bundleKey) {
+    public LocalBundleInfoDto getLocalInfo(@PathParam(value = "bundleKey") String bundleKey) {
         validateBundleOperation(bundleKey, "getLocalInfo");
-        ModuleManager.LocalBundleInfo info = getLocalBundleInfo(getModuleManager(), bundleKey);
-        return Response.ok(new LocalBundleInfo(info)).build();
+        LocalBundleInfoDto info = getLocalBundleInfo(getModuleManager(), bundleKey);
+        return info;
     }
 
     /**
@@ -315,21 +363,21 @@ public class ModuleManagerResource {
      */
     @GET
     @Path("/[{bundleKeys:.*}]/_localInfo")
-    public Response getLocalInfos(@PathParam(value = "bundleKeys") String bundleKeys) {
+    public Map<String, LocalBundleInfoDto> getLocalInfos(@PathParam(value = "bundleKeys") String bundleKeys) {
 
         final ModuleManager moduleManager = getModuleManager();
-        final LinkedHashMap<String, LocalBundleInfo> infoByKey = new LinkedHashMap<String, LocalBundleInfo>();
+        final LinkedHashMap<String, LocalBundleInfoDto> infoByKey = new LinkedHashMap<String, LocalBundleInfoDto>();
 
         processBundleKeys(bundleKeys, new BundleKeyProcessor() {
 
             @Override
             public void process(String bundleKey) {
-                ModuleManager.LocalBundleInfo info = getLocalBundleInfo(moduleManager, bundleKey);
-                infoByKey.put(bundleKey, new LocalBundleInfo(info));
+                LocalBundleInfoDto info = getLocalBundleInfo(moduleManager, bundleKey);
+                infoByKey.put(bundleKey, info);
             }
         });
 
-        return Response.ok(infoByKey).build();
+        return infoByKey;
     }
 
     private void validateBundleOperation(String bundleKey, String serviceOperation) throws ClientErrorException {
@@ -349,13 +397,22 @@ public class ModuleManagerResource {
         }
     }
 
-    private ModuleManager.LocalBundleInfo getLocalBundleInfo(ModuleManager moduleManager, String bundleKey) {
+    private LocalBundleInfoDto getLocalBundleInfo(ModuleManager moduleManager, String bundleKey) {
+
+        ModuleManager.LocalBundleInfo info;
         try {
-            return moduleManager.getLocalInfo(bundleKey);
+            info = moduleManager.getLocalInfo(bundleKey);
         } catch (InvalidModuleKeyException e) {
             throw new ClientErrorException(e.getMessage(), Status.BAD_REQUEST);
         } catch (ModuleNotFoundException e) {
             throw new ClientErrorException(e.getMessage(), Status.NOT_FOUND);
+        }
+
+        if (info instanceof ModuleManager.LocalModuleInfo) {
+            ModuleState moduleState = ((ModuleManager.LocalModuleInfo) info).getModuleState();
+            return new LocalBundleInfoDto(info.getOsgiState(), (moduleState == null ? null : moduleState.getState()));
+        } else {
+            return new LocalBundleInfoDto(info.getOsgiState());
         }
     }
 
@@ -373,29 +430,5 @@ public class ModuleManagerResource {
     private interface BundleKeyProcessor {
 
         void process(String bundleKey);
-    }
-
-    private static class LocalBundleInfo {
-
-        private BundleState osgiState;
-        private ModuleState.State moduleState;
-
-        public LocalBundleInfo(ModuleManager.LocalBundleInfo bundleInfo) {
-            this.osgiState = bundleInfo.getOsgiState();
-            ModuleState moduleState = bundleInfo.getModuleState();
-            if (moduleState != null) {
-                this.moduleState = moduleState.getState();
-            }
-        }
-
-        @SuppressWarnings("unused")
-        public BundleState getOsgiState() {
-            return osgiState;
-        }
-
-        @JsonInclude(JsonInclude.Include.NON_NULL)
-        public ModuleState.State getModuleState() {
-            return moduleState;
-        }
     }
 }
