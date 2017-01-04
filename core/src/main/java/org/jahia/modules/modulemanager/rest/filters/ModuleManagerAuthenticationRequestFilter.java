@@ -58,7 +58,6 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.security.Principal;
 
@@ -66,7 +65,6 @@ import java.security.Principal;
  * JAX-RS Filter that filters only users that match the required permission
  */
 
-@Provider
 @Priority(Priorities.AUTHENTICATION)
 public class ModuleManagerAuthenticationRequestFilter implements ContainerRequestFilter {
 

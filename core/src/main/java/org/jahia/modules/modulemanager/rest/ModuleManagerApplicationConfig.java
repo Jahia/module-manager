@@ -47,6 +47,7 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
+import org.jahia.modules.modulemanager.rest.filters.HeadersResponseFilter;
 import org.jahia.modules.modulemanager.rest.filters.ModuleManagerAuthenticationRequestFilter;
 
 /**
@@ -61,6 +62,13 @@ public class ModuleManagerApplicationConfig extends ResourceConfig {
      * Initializes an instance of this class providing a list of classes to be registered.
      */
     public ModuleManagerApplicationConfig() {
-        super(MultiPartFeature.class, ModuleManagerResource.class, JacksonJaxbJsonProvider.class, ModuleManagerExceptionMapper.class, ModuleManagerAuthenticationRequestFilter.class);
+        super(
+                MultiPartFeature.class,
+                ModuleManagerResource.class,
+                JacksonJaxbJsonProvider.class,
+                ModuleManagerExceptionMapper.class,
+                ModuleManagerAuthenticationRequestFilter.class,
+                HeadersResponseFilter.class
+        );
     }
 }
