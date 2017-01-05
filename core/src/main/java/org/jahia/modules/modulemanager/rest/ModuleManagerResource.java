@@ -100,7 +100,7 @@ public class ModuleManagerResource {
         /**
          * Regular OSGi bundle.
          */
-        NORMAL,
+        BUNDLE,
 
         /**
          * OSGi bundle, which is a DX module in addition.
@@ -121,7 +121,7 @@ public class ModuleManagerResource {
          * Create an instance representing info about a standalone OSGi bundle.
          */
         public LocalBundleInfoDto(BundleState osgiState) {
-            this.type = BundleType.NORMAL;
+            this.type = BundleType.BUNDLE;
             this.osgiState = osgiState;
         }
 
