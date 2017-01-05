@@ -93,29 +93,52 @@ import org.springframework.core.io.Resource;
 public class ModuleManagerResource {
 
     /**
+     * OSGi bundle type.
+     */
+    public enum BundleType {
+
+        /**
+         * Regular OSGi bundle.
+         */
+        NORMAL,
+
+        /**
+         * OSGi bundle, which is a DX module in addition.
+         */
+        MODULE
+    }
+
+    /**
      * A (part of) REST response representing local info about a bundle.
      */
     public static class LocalBundleInfoDto {
 
+        private BundleType type;
         private BundleState osgiState;
-        private boolean module;
         private ModuleState.State moduleState;
 
         /**
          * Create an instance representing info about a standalone OSGi bundle.
          */
         public LocalBundleInfoDto(BundleState osgiState) {
+            this.type = BundleType.NORMAL;
             this.osgiState = osgiState;
-            this.module = false;
         }
 
         /**
          * Create an instance representing info about an OSGi bundle which is a DX module.
          */
         public LocalBundleInfoDto(BundleState osgiState, State moduleState) {
+            this.type = BundleType.MODULE;
             this.osgiState = osgiState;
-            this.module = true;
             this.moduleState = moduleState;
+        }
+
+        /**
+         * @return bundle type
+         */
+        public BundleType getType() {
+            return type;
         }
 
         /**
@@ -123,13 +146,6 @@ public class ModuleManagerResource {
          */
         public BundleState getOsgiState() {
             return osgiState;
-        }
-
-        /**
-         * @return whether the bundle is a DX module
-         */
-        public boolean isModule() {
-            return module;
         }
 
         /**
