@@ -1,6 +1,6 @@
 # DX Module Manager
 DX module that provides enterprise level module management functionality
-- API base url: http://{dx.host}:{dx.host}/{dx.tomcat.contextPath}/modules/api/bundles
+- API base url: http://{dx.host}:{dx.port}/{dx.tomcat.contextPath}/modules/api/bundles
 - user should have the `adminTemplates` permission in DX to be able to use this API
 - The `target` parameter is optional, the value of the `target` group of cluster nodes could be specified as `null`, meaning the default group is concerned, which includes all cluster nodes.
 
