@@ -60,7 +60,7 @@ public class ModuleManagerExceptionMapper implements ExceptionMapper<Exception> 
 
     @XmlRootElement
     @XmlType(propOrder = { "status", "reasonPhrase", "message", "cause" })
-    static private class ErrorInfo {
+    static public class ErrorInfo {
 
         private final String cause;
         private final String message;
@@ -93,7 +93,7 @@ public class ModuleManagerExceptionMapper implements ExceptionMapper<Exception> 
         }
     }
 
-    private ErrorInfo getErrorInfo(Exception ex) {
+    public static ErrorInfo getErrorInfo(Exception ex) {
         int statusCode = ex instanceof WebApplicationException
                 ? ((WebApplicationException) ex).getResponse().getStatus()
                 : Status.INTERNAL_SERVER_ERROR.getStatusCode();
