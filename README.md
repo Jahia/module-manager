@@ -1,10 +1,12 @@
 # DX Module Manager
 DX module that provides enterprise level module management functionality
 - API base url: http://{dx.host}:{dx.port}/{dx.tomcat.contextPath}/modules/api/bundles
-- user should have the `adminTemplates` permission in DX to be able to use this API
+- User should have the `adminTemplates` permission in DX to be able to use this API
 - The `target` parameter is optional, the value of the `target` group of cluster nodes could be specified as `null`, meaning the default group is concerned, which includes all cluster nodes.
+- Available actions: [Install a bundle](#install) / [Start a bundle](#start) / [Stop a bundle](#stop) / [Uninstall a bundle](#uninstall) / [Get the local state for one bundle](#getLocalState1) / [Get the local state for multiple bundles](#getLocalState2)
 
-**Install bundle**
+
+<a name="install"></a>**Install bundle**
 ----
   Install the specified bundle, optionally starting it right after and return the operation result.
 
@@ -51,7 +53,7 @@ DX module that provides enterprise level module management functionality
   curl -s --user jon:password --form bundle=@/Users/jon/Projects/article/target/article-2.0.3-SNAPSHOT.jar --form start=true http://localhost:8080/modules/api/bundles
   ```
 
-**Start bundle**
+<a name="start"></a>**Start bundle**
 ----
   Starts the specified bundle and return the operation result.
 
@@ -92,7 +94,7 @@ DX module that provides enterprise level module management functionality
   curl -s --user jon:root1234 --data --request POST http://localhost:8080/modules/api/bundles/org.jahia.modules/article/2.0.3.SNAPSHOT/_start
   ```
 
-**Stop bundle**
+<a name="stop"></a>**Stop bundle**
 ----
   Stops the specified bundle and return the operation result.
 
@@ -133,7 +135,7 @@ DX module that provides enterprise level module management functionality
   curl -s --user jon:root1234 --data --request POST http://localhost:8080/modules/api/bundles/org.jahia.modules/article/2.0.3.SNAPSHOT/_stop
   ```
 
-**Uninstall bundle**
+<a name="uninstall"></a>**Uninstall bundle**
 ----
   Uninstalls the specified bundle and return the operation result.
 
@@ -174,7 +176,7 @@ DX module that provides enterprise level module management functionality
   curl -s --user jon:root1234 --data --request POST http://localhost:8080/modules/api/bundles/org.jahia.modules/article/2.0.3.SNAPSHOT/_uninstall
   ```
 
-**Get local state for one bundle**
+<a name="getLocalState1"></a>**Get local state for one bundle**
 ----
   Get the current local state of a single bundle.
 
@@ -214,7 +216,7 @@ DX module that provides enterprise level module management functionality
   curl -s --user jon:password --request GET http://localhost:8080/modules/api/bundles/org.jahia.modules/article/2.0.3.SNAPSHOT/_localState
   ```
 
-**Get local states for multiple bundles**
+<a name="getLocalState2"></a>**Get local states for multiple bundles**
 ----
   Get the current local states of multiple bundles.
 
