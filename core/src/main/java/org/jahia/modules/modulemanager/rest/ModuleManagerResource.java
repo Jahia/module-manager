@@ -76,14 +76,14 @@ import org.jahia.data.templates.ModuleState;
 import org.jahia.data.templates.ModuleState.State;
 import org.jahia.osgi.BundleState;
 import org.jahia.services.SpringContextSingleton;
-import org.jahia.services.modulemanager.ClusterNodeCommunicationException;
 import org.jahia.services.modulemanager.InvalidModuleKeyException;
 import org.jahia.services.modulemanager.InvalidTargetException;
+import org.jahia.services.modulemanager.ModuleManagementException;
 import org.jahia.services.modulemanager.ModuleManagementInvalidArgumentException;
 import org.jahia.services.modulemanager.ModuleManager;
 import org.jahia.services.modulemanager.ModuleNotFoundException;
 import org.jahia.services.modulemanager.OperationResult;
-import org.jahia.services.modulemanager.UnsupportedAuthenticationTypeException;
+import org.jahia.services.modulemanager.InvalidOriginalRequestException;
 import org.jahia.services.modulemanager.spi.BundleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -329,7 +329,8 @@ public class ModuleManagerResource {
      * Get info about a single bundle.
      *
      * @param bundleKey the bundle key
-     * @return bundle info
+     * @param target the group of cluster nodes targeted by this operation
+     * @return a map of bundle info by cluster node name; each map value is either a BundleInfoDto object or a ModuleManagerExceptionMapper.ErrorInfo in case there was an error communicating with corresponding cluster node
      */
     @GET
     @Path("/{bundleKey:[^\\[\\]]*}/_info")
@@ -355,7 +356,8 @@ public class ModuleManagerResource {
      * Get info about multiple bundles.
      *
      * @param bundleKeys comma separated list of bundle keys
-     * @return a map of bundle info by bundle keys
+     * @param target the group of cluster nodes targeted by this operation
+     * @return a map of bundle info by cluster node name; each map value is either a nested map of BundleInfoDto by bundle key or a ModuleManagerExceptionMapper.ErrorInfo in case there was an error communicating with corresponding cluster node
      */
     @GET
     @Path("/[{bundleKeys:.*}]/_info")
@@ -481,7 +483,7 @@ public class ModuleManagerResource {
         Map<String, I> infoByHost;
         try {
             infoByHost = infoRetrievalHandler.getBundleInfo(bundleKeys, target);
-        } catch (InvalidModuleKeyException | InvalidTargetException | UnsupportedAuthenticationTypeException e) {
+        } catch (InvalidModuleKeyException | InvalidTargetException | InvalidOriginalRequestException e) {
             throw new ClientErrorException(e.getMessage(), Status.BAD_REQUEST);
         }
 
@@ -492,7 +494,7 @@ public class ModuleManagerResource {
             try {
                 D bundleInfoDto = infoRetrievalHandler.getBundleInfoDto(bundleInfo);
                 result.put(hostName, bundleInfoDto);
-            } catch (ClusterNodeCommunicationException e) {
+            } catch (ModuleManagementException e) {
                 ModuleManagerExceptionMapper.ErrorInfo errorInfo = ModuleManagerExceptionMapper.getErrorInfo(e);
                 result.put(hostName, errorInfo);
             }

@@ -58,6 +58,9 @@ import javax.xml.bind.annotation.XmlType;
  */
 public class ModuleManagerExceptionMapper implements ExceptionMapper<Exception> {
 
+    /**
+     * A (part of) REST response representing an error handling the REST call.
+     */
     @XmlRootElement
     @XmlType(propOrder = { "status", "reasonPhrase", "message", "cause" })
     static public class ErrorInfo {
@@ -66,33 +69,58 @@ public class ModuleManagerExceptionMapper implements ExceptionMapper<Exception> 
         private final String message;
         private final Status status;
 
+        /**
+         * Create an error info instance.
+         *
+         * @param status HTTP response status
+         * @param message Error message
+         * @param cause Error cause if any
+         */
         public ErrorInfo(Status status, String message, String cause) {
             this.status = status;
             this.message = message;
             this.cause = cause;
         }
 
+        /**
+         * @return Error cause if any
+         */
         @XmlElement
         public String getCause() {
             return cause;
         }
 
+        /**
+         * @return Error message
+         */
         @XmlElement
         public String getMessage() {
             return message;
         }
 
+        /**
+         * @return HTTP response status description
+         */
         @XmlElement
         public String getReasonPhrase() {
             return status.getReasonPhrase();
         }
 
+        /**
+         * @return HTTP response status
+         */
         @XmlElement
         public int getStatus() {
             return status.getStatusCode();
         }
     }
 
+    /**
+     * Convert an exception to an error info
+     *
+     * @param ex Exception
+     * @return Error info
+     */
     public static ErrorInfo getErrorInfo(Exception ex) {
         int statusCode = ex instanceof WebApplicationException
                 ? ((WebApplicationException) ex).getResponse().getStatus()
