@@ -4,16 +4,16 @@ DX module that provides enterprise level module management functionality
 - User should have the `adminTemplates` permission in DX to be able to use this API
 - The `target` parameter is optional, the value of the `target` group of cluster nodes could be specified as `null`, meaning the default group is concerned, which includes all cluster nodes.
 - Available actions:
--- [Install a bundle](#install)
--- [Start a bundle](#start)
--- [Stop a bundle](#stop)
--- [Uninstall a bundle](#uninstall)
--- [Get info about a single bundle (since DX 7.2.0.2)](#getInfo1)
--- [Get info about multiple bundles (since DX 7.2.0.2)](#getInfo2)
--- [Get local info about a single bundle (since DX 7.2.0.2)](#getLocalInfo1)
--- [Get local info about multiple bundles (since DX 7.2.0.2)](#getLocalInfo2)
--- [Get local state of a single bundle](#getLocalState1)
--- [Get local state of multiple bundles](#getLocalState2)
+ - [Install a bundle](#install)
+ - [Start a bundle](#start)
+ - [Stop a bundle](#stop)
+ - [Uninstall a bundle](#uninstall)
+ - [Get info about a single bundle (since DX 7.2.0.2)](#getInfo1)
+ - [Get info about multiple bundles (since DX 7.2.0.2)](#getInfo2)
+ - [Get local info about a single bundle (since DX 7.2.0.2)](#getLocalInfo1)
+ - [Get local info about multiple bundles (since DX 7.2.0.2)](#getLocalInfo2)
+ - [Get local state of a single bundle](#getLocalState1)
+ - [Get local state of multiple bundles](#getLocalState2)
 
 
 <a name="install"></a>**Install bundle**
