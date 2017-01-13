@@ -368,7 +368,7 @@ DX module that provides enterprise level module management functionality
 
   * **Code:** 200 <br />
     **Content:** `"STATE"` <br />
-    **Possible values:**: `UNINSTALLED`, `INSTALLED`, `RESOLVED`, `STARTING`, `STOPPING`, `ACTIVE`
+    **Possible values:** `UNINSTALLED`, `INSTALLED`, `RESOLVED`, `STARTING`, `STOPPING`, `ACTIVE`
 
 * **Error Response:**
 
