@@ -203,8 +203,8 @@ DX module that provides enterprise level module management functionality
 
 * **Error Response:**
 
-  * **Code:** 400 BAD REQUEST <br />
-    **Content:** `{"status":400,"reasonPhrase":"Bad Request","message":"Invalid module key: article/2.0.3.SPSHOT"}`
+  * **Code:** 404 NOT FOUND <br />
+    **Content:** `{"status":404,"reasonPhrase":"Not Found","message":"Unable to find a module bundle corresponding to the key: article/2.0.3.SPSHOT"}`
 
   OR
 
@@ -244,8 +244,8 @@ DX module that provides enterprise level module management functionality
 
 * **Error Response:**
 
-  * **Code:** 400 BAD REQUEST <br />
-    **Content:** `{"status":400,"reasonPhrase":"Bad Request","message":"Invalid module key: article/2.0.3.SPSHOT"}`
+  * **Code:** 404 NOT FOUND <br />
+    **Content:** `{"status":404,"reasonPhrase":"Not Found","message":"Unable to find a module bundle corresponding to the key: article/2.0.3.SPSHOT"}`
 
   OR
 
@@ -283,8 +283,8 @@ DX module that provides enterprise level module management functionality
 
 * **Error Response:**
 
-  * **Code:** 400 BAD REQUEST <br />
-    **Content:** `{"status":400,"reasonPhrase":"Bad Request","message":"Invalid module key: article/2.0.3.SPSHOT"}`
+  * **Code:** 404 NOT FOUND <br />
+    **Content:** `{"status":404,"reasonPhrase":"Not Found","message":"Unable to find a module bundle corresponding to the key: article/2.0.3.SPSHOT"}`
 
   OR
 
@@ -322,8 +322,8 @@ DX module that provides enterprise level module management functionality
 
 * **Error Response:**
 
-  * **Code:** 400 BAD REQUEST <br />
-    **Content:** `{"status":400,"reasonPhrase":"Bad Request","message":"Invalid module key: article/2.0.3.SPSHOT"}`
+  * **Code:** 404 NOT FOUND <br />
+    **Content:** `{"status":404,"reasonPhrase":"Not Found","message":"Unable to find a module bundle corresponding to the key: article/2.0.3.SPSHOT"}`
 
   OR
 
@@ -362,8 +362,8 @@ DX module that provides enterprise level module management functionality
 
 * **Error Response:**
 
-  * **Code:** 400 BAD REQUEST <br />
-    **Content:** `{"status":400,"reasonPhrase":"Bad Request","message":"Invalid module key: article/2.0.3.SPSHOT"}`
+  * **Code:** 404 NOT FOUND <br />
+    **Content:** `{"status":404,"reasonPhrase":"Not Found","message":"Unable to find a module bundle corresponding to the key: article/2.0.3.SPSHOT"}`
 
   OR
 
@@ -401,8 +401,8 @@ DX module that provides enterprise level module management functionality
 
 * **Error Response:**
 
-  * **Code:** 400 BAD REQUEST <br />
-    **Content:** `{"status":400,"reasonPhrase":"Bad Request","message":"Invalid module key: article/2.0.3.SPSHOT"}`
+  * **Code:** 404 NOT FOUND <br />
+    **Content:** `{"status":404,"reasonPhrase":"Not Found","message":"Unable to find a module bundle corresponding to the key: article/2.0.3.SPSHOT"}`
 
   OR
 
