@@ -3,7 +3,7 @@ DX module that provides enterprise level module management functionality
 - API base url: http://{dx.host}:{dx.port}/{dx.tomcat.contextPath}/modules/api/bundles
 - User should have the `adminTemplates` permission in DX to be able to use this API
 - The `target` parameter is optional, the value of the `target` group of cluster nodes could be specified as `null`, meaning the default group is concerned, which includes all cluster nodes.
-- Available actions: [Install a bundle](#install) / [Start a bundle](#start) / [Stop a bundle](#stop) / [Uninstall a bundle](#uninstall) / [Get the local state for one bundle](#getLocalState1) / [Get the local state for multiple bundles](#getLocalState2)
+- Available actions: [Install a bundle](#install) / [Start a bundle](#start) / [Stop a bundle](#stop) / [Uninstall a bundle](#uninstall) / [Get info about a single bundle (since DX 7.2.0.2)](#getInfo1) / [Get info about multiple bundles (since DX 7.2.0.2)](#getInfo2) / [Get local info about a single bundle (since DX 7.2.0.2)](#getLocalInfo1) / [Get local info about multiple bundles (since DX 7.2.0.2)](#getLocalInfo2) / [Get local state of a single bundle](#getLocalState1) / [Get local state of multiple bundles](#getLocalState2)
 
 
 <a name="install"></a>**Install bundle**
@@ -176,9 +176,169 @@ DX module that provides enterprise level module management functionality
   curl -s --user jon:root1234 --data --request POST http://localhost:8080/modules/api/bundles/org.jahia.modules/article/2.0.3.SNAPSHOT/_uninstall
   ```
 
-<a name="getLocalState1"></a>**Get local state for one bundle**
+<a name="getInfo1"></a>**Get info about a single bundle (since DX 7.2.0.2)**
 ----
-  Get the current local state of a single bundle.
+  Get info about a single bundle.
+
+* **URL**
+
+  /:bundleKey/_info
+
+* **Method:**
+
+  `GET`
+
+*  **Params**
+
+   `target=[string]`: The group of cluster nodes targeted by the operation
+
+   **Required:**
+
+   `bundleKey=[string]`: the bundle key
+
+* **Success Response:**
+
+  * **Code:** 200 <br />
+    **Content:** `{"10.8.33.55":{"type":"MODULE","osgiState":"ACTIVE","moduleState":"STARTED"},"10.8.33.62":{"type":"MODULE","osgiState":"ACTIVE","moduleState":"STARTED"}` <br />
+
+* **Error Response:**
+
+  * **Code:** 400 BAD REQUEST <br />
+    **Content:** `{"status":400,"reasonPhrase":"Bad Request","message":"Invalid module key: article/2.0.3.SPSHOT"}`
+
+  OR
+
+  * **Code:** 401 UNAUTHORIZED <br />
+    **Content:** `user /users/hj/di/ac/bill is not allowed to access Module Manager HTTP API`
+
+* **Sample Call:**
+
+  ```sh
+  curl -s --user jon:password --request GET http://localhost:8080/modules/api/bundles/article/2.0.3.SNAPSHOT/_info
+  ```
+
+<a name="getInfo2"></a>**Get info about multiple bundles (since DX 7.2.0.2)**
+----
+  Get current info about multiple bundles.
+
+* **URL**
+
+  /[:bundleKeys]/_info
+
+* **Method:**
+
+  `GET`
+
+*  **Params**
+
+   `target=[string]`: The group of cluster nodes targeted by the operation
+
+   **Required:**
+
+   `bundleKeys=[string]`: comma separated list of bundle keys
+
+* **Success Response:**
+
+  * **Code:** 200 <br />
+    **Content:** `{"10.8.33.55":{"article/2.0.2":{"type":"MODULE","osgiState":"ACTIVE","moduleState":"STARTED"},"news/2.0.3":{"type":"type":"MODULE","osgiState":"ACTIVE","moduleState":"STARTED"}},"10.8.33.62":{"article/2.0.2":{"type":"MODULE","osgiState":"ACTIVE","moduleState":"STARTED"},"news/2.0.3":{"type":"MODULE","osgiState":"ACTIVE","moduleState":"STARTED"}}}`
+
+* **Error Response:**
+
+  * **Code:** 400 BAD REQUEST <br />
+    **Content:** `{"status":400,"reasonPhrase":"Bad Request","message":"Invalid module key: article/2.0.3.SPSHOT"}`
+
+  OR
+
+  * **Code:** 401 UNAUTHORIZED <br />
+    **Content:** `user /users/hj/di/ac/bill is not allowed to access Module Manager HTTP API`
+
+* **Sample Call:**
+
+  ```sh
+  curl -g -s --user jon:password --request GET http://localhost:8090/modules/api/bundles/\[article/2.0.3.SNAPSHOT,news/2.0.3\]/_info
+  ```
+
+<a name="getLocalInfo1"></a>**Get local info about a single bundle (since DX 7.2.0.2)**
+----
+  Get local info about a single bundle.
+
+* **URL**
+
+  /:bundleKey/_localInfo
+
+* **Method:**
+
+  `GET`
+
+*  **Params**
+
+   **Required:**
+
+   `bundleKey=[string]`: the bundle key
+
+* **Success Response:**
+
+  * **Code:** 200 <br />
+    **Content:** `{"type":"MODULE","osgiState":"ACTIVE","moduleState":"STARTED"}` <br />
+
+* **Error Response:**
+
+  * **Code:** 400 BAD REQUEST <br />
+    **Content:** `{"status":400,"reasonPhrase":"Bad Request","message":"Invalid module key: article/2.0.3.SPSHOT"}`
+
+  OR
+
+  * **Code:** 401 UNAUTHORIZED <br />
+    **Content:** `user /users/hj/di/ac/bill is not allowed to access Module Manager HTTP API`
+
+* **Sample Call:**
+
+  ```sh
+  curl -s --user jon:password --request GET http://localhost:8080/modules/api/bundles/article/2.0.3.SNAPSHOT/_localInfo
+  ```
+
+<a name="getLocalInfo2"></a>**Get local info about multiple bundles (since DX 7.2.0.2)**
+----
+  Get current local info about multiple bundles.
+
+* **URL**
+
+  /[:bundleKeys]/_localInfo
+
+* **Method:**
+
+  `GET`
+
+*  **Params**
+
+   **Required:**
+
+   `bundleKeys=[string]`: comma separated list of bundle keys
+
+* **Success Response:**
+
+  * **Code:** 200 <br />
+    **Content:** `{"article/2.0.3.SNAPSHOT":{"type":"MODULE","osgiState":"ACTIVE","moduleState":"STARTED"},"news/2.0.3":{"type":"MODULE","osgiState":"ACTIVE","moduleState":"STARTED"}}`
+
+* **Error Response:**
+
+  * **Code:** 400 BAD REQUEST <br />
+    **Content:** `{"status":400,"reasonPhrase":"Bad Request","message":"Invalid module key: article/2.0.3.SPSHOT"}`
+
+  OR
+
+  * **Code:** 401 UNAUTHORIZED <br />
+    **Content:** `user /users/hj/di/ac/bill is not allowed to access Module Manager HTTP API`
+
+* **Sample Call:**
+
+  ```sh
+  curl -g -s --user jon:password --request GET http://localhost:8090/modules/api/bundles/\[article/2.0.3.SNAPSHOT,news/2.0.3\]/_localInfo
+  ```
+
+<a name="getLocalState1"></a>**Get local state of a single bundle**
+----
+  Get current local state of a single bundle.
 
 * **URL**
 
@@ -203,7 +363,7 @@ DX module that provides enterprise level module management functionality
 * **Error Response:**
 
   * **Code:** 400 BAD REQUEST <br />
-    **Content:** `{"status":400,"reasonPhrase":"Bad Request","message":"Invalid module key: org.jahia.modules/article/2.0.3.SPSHOT"}`
+    **Content:** `{"status":400,"reasonPhrase":"Bad Request","message":"Invalid module key: article/2.0.3.SPSHOT"}`
 
   OR
 
@@ -213,12 +373,12 @@ DX module that provides enterprise level module management functionality
 * **Sample Call:**
 
   ```sh
-  curl -s --user jon:password --request GET http://localhost:8080/modules/api/bundles/org.jahia.modules/article/2.0.3.SNAPSHOT/_localState
+  curl -s --user jon:password --request GET http://localhost:8080/modules/api/bundles/article/2.0.3.SNAPSHOT/_localState
   ```
 
-<a name="getLocalState2"></a>**Get local states for multiple bundles**
+<a name="getLocalState2"></a>**Get local state of multiple bundles**
 ----
-  Get the current local states of multiple bundles.
+  Get current local state of multiple bundles.
 
 * **URL**
 
@@ -237,12 +397,12 @@ DX module that provides enterprise level module management functionality
 * **Success Response:**
 
   * **Code:** 200 <br />
-    **Content:** `{"org.jahia.modules/article/2.0.3.SNAPSHOT":"ACTIVE","org.jahia.modules/news/2.0.3":"ACTIVE"}`
+    **Content:** `{"article/2.0.3.SNAPSHOT":"ACTIVE","news/2.0.3":"ACTIVE"}`
 
 * **Error Response:**
 
   * **Code:** 400 BAD REQUEST <br />
-    **Content:** `{"status":400,"reasonPhrase":"Bad Request","message":"Invalid module key: org.jahia.modules/article/2.0.3.SPSHOT"}`
+    **Content:** `{"status":400,"reasonPhrase":"Bad Request","message":"Invalid module key: article/2.0.3.SPSHOT"}`
 
   OR
 
@@ -252,5 +412,5 @@ DX module that provides enterprise level module management functionality
 * **Sample Call:**
 
   ```sh
-  curl -g -s --user jon:password --request GET http://localhost:8090/modules/api/bundles/\[org.jahia.modules/article/2.0.3.SNAPSHOT,org.jahia.modules/news/2.0.3\]/_localState
+  curl -g -s --user jon:password --request GET http://localhost:8090/modules/api/bundles/\[article/2.0.3.SNAPSHOT,news/2.0.3\]/_localState
   ```
