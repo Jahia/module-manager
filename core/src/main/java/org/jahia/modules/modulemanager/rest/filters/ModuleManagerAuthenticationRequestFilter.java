@@ -58,29 +58,27 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+
 import java.io.IOException;
 import java.security.Principal;
 
 /**
  * JAX-RS Filter that filters only users that match the required permission
  */
-
 @Priority(Priorities.AUTHENTICATION)
 public class ModuleManagerAuthenticationRequestFilter implements ContainerRequestFilter {
 
     @Context
     HttpServletRequest httpServletRequest;
 
-    final private static String REQUIRED_PERMISSON = "adminTemplates";
-
+    private static final String REQUIRED_PERMISSON = "adminTemplates";
     private static final Logger log = LoggerFactory.getLogger(ModuleManagerAuthenticationRequestFilter.class);
-
-    public ModuleManagerAuthenticationRequestFilter() {
-    }
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
+
         try {
+
             JCRSessionWrapper currentUserSession = JCRSessionFactory.getInstance().getCurrentUserSession();
             final JahiaUser jahiaUser = currentUserSession.getUser();
             if (!currentUserSession.getRootNode().hasPermission(REQUIRED_PERMISSON)) {
@@ -92,6 +90,7 @@ public class ModuleManagerAuthenticationRequestFilter implements ContainerReques
             }
 
             requestContext.setSecurityContext(new SecurityContext() {
+
                 @Override
                 public Principal getUserPrincipal() {
                     return jahiaUser;

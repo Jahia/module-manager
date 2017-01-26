@@ -52,7 +52,6 @@ import org.jahia.modules.modulemanager.rest.filters.ModuleManagerAuthenticationR
 
 /**
  * Application configuration component.
- * Register jersey components.
  *
  * @author bdjiba
  */
