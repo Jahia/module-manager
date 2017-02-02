@@ -209,7 +209,7 @@ DX module that provides enterprise level module management functionality
 * **Success Response:**
 
   * **Code:** 200 <br />
-    **Content:** `{"10.8.33.55":{"type":"MODULE","osgiState":"ACTIVE","moduleState":"STARTED"},"10.8.33.62":{"type":"MODULE","osgiState":"ACTIVE","moduleState":"STARTED"}` <br />
+    **Content:** `{"jahiaNode1":{"type":"MODULE","osgiState":"ACTIVE","moduleState":"STARTED"},"jahiaNode2":{"type":"MODULE","osgiState":"ACTIVE","moduleState":"STARTED"}` <br />
 
 * **Error Response:**
 
@@ -250,7 +250,7 @@ DX module that provides enterprise level module management functionality
 * **Success Response:**
 
   * **Code:** 200 <br />
-    **Content:** `{"10.8.33.55":{"article/2.0.2":{"type":"MODULE","osgiState":"ACTIVE","moduleState":"STARTED"},"news/2.0.3":{"type":"type":"MODULE","osgiState":"ACTIVE","moduleState":"STARTED"}},"10.8.33.62":{"article/2.0.2":{"type":"MODULE","osgiState":"ACTIVE","moduleState":"STARTED"},"news/2.0.3":{"type":"MODULE","osgiState":"ACTIVE","moduleState":"STARTED"}}}`
+    **Content:** `{"jahiaNode1":{"article/2.0.2":{"type":"MODULE","osgiState":"ACTIVE","moduleState":"STARTED"},"news/2.0.3":{"type":"type":"MODULE","osgiState":"ACTIVE","moduleState":"STARTED"}},"jahiaNode2":{"article/2.0.2":{"type":"MODULE","osgiState":"ACTIVE","moduleState":"STARTED"},"news/2.0.3":{"type":"MODULE","osgiState":"ACTIVE","moduleState":"STARTED"}}}`
 
 * **Error Response:**
 

@@ -51,6 +51,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
+
 /**
  * Provide a mapping of the module management related exception into a displayable client response.
  *
@@ -63,7 +65,7 @@ public class ModuleManagerExceptionMapper implements ExceptionMapper<Exception> 
      */
     @XmlRootElement
     @XmlType(propOrder = { "status", "reasonPhrase", "message", "cause" })
-    static public class ErrorInfo {
+    private static class ErrorInfo {
 
         private final String cause;
         private final String message;
@@ -121,14 +123,14 @@ public class ModuleManagerExceptionMapper implements ExceptionMapper<Exception> 
      * @param ex Exception
      * @return Error info
      */
-    public static ErrorInfo getErrorInfo(Exception ex) {
+    private static ErrorInfo getErrorInfo(Exception ex) {
         int statusCode = ex instanceof WebApplicationException
                 ? ((WebApplicationException) ex).getResponse().getStatus()
                 : Status.INTERNAL_SERVER_ERROR.getStatusCode();
-        String cause = Response.Status.Family.familyOf(statusCode) == Response.Status.Family.SERVER_ERROR && ex.getCause() != null
-                ? ex.getCause().toString()
+        Throwable cause = Response.Status.Family.familyOf(statusCode) == Response.Status.Family.SERVER_ERROR
+                ? ExceptionUtils.getRootCause(ex)
                 : null;
-        return new ErrorInfo(Status.fromStatusCode(statusCode), ex.getMessage(), cause);
+        return new ErrorInfo(Status.fromStatusCode(statusCode), ex.getMessage(), (cause == null ? null : cause.toString()));
     }
 
     @Override

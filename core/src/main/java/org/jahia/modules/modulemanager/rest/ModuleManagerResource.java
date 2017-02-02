@@ -70,6 +70,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.jahia.data.templates.ModuleState;
@@ -83,7 +84,6 @@ import org.jahia.services.modulemanager.ModuleManagementInvalidArgumentException
 import org.jahia.services.modulemanager.ModuleManager;
 import org.jahia.services.modulemanager.ModuleNotFoundException;
 import org.jahia.services.modulemanager.OperationResult;
-import org.jahia.services.modulemanager.InvalidOriginalRequestException;
 import org.jahia.services.modulemanager.spi.BundleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -483,7 +483,7 @@ public class ModuleManagerResource {
         Map<String, I> infoByHost;
         try {
             infoByHost = infoRetrievalHandler.getBundleInfo(bundleKeys, target);
-        } catch (InvalidModuleKeyException | InvalidTargetException | InvalidOriginalRequestException e) {
+        } catch (InvalidModuleKeyException | InvalidTargetException e) {
             throw new ClientErrorException(e.getMessage(), Status.BAD_REQUEST);
         }
 
@@ -495,7 +495,8 @@ public class ModuleManagerResource {
                 D bundleInfoDto = infoRetrievalHandler.getBundleInfoDto(bundleInfo);
                 result.put(hostName, bundleInfoDto);
             } catch (ModuleManagementException e) {
-                ModuleManagerExceptionMapper.ErrorInfo errorInfo = ModuleManagerExceptionMapper.getErrorInfo(e);
+                Throwable cause = ExceptionUtils.getRootCause(e);
+                ErrorInfoDto errorInfo = new ErrorInfoDto(e.getMessage(), (cause == null ? null : cause.toString()));
                 result.put(hostName, errorInfo);
             }
         }
@@ -556,5 +557,26 @@ public class ModuleManagerResource {
     private interface BundleKeyProcessor {
 
         void process(String bundleKey);
+    }
+
+    private static class ErrorInfoDto {
+
+        private final String message;
+        private final String cause;
+
+        public ErrorInfoDto(String message, String cause) {
+            this.message = message;
+            this.cause = cause;
+        }
+
+        @SuppressWarnings("unused")
+        public String getMessage() {
+            return message;
+        }
+
+        @SuppressWarnings("unused")
+        public String getCause() {
+            return cause;
+        }
     }
 }
