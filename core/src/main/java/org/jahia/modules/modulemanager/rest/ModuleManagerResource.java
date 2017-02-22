@@ -46,7 +46,10 @@ package org.jahia.modules.modulemanager.rest;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.Consumes;
@@ -57,6 +60,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -66,15 +70,21 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.jahia.data.templates.ModuleState;
+import org.jahia.data.templates.ModuleState.State;
 import org.jahia.osgi.BundleState;
 import org.jahia.services.SpringContextSingleton;
 import org.jahia.services.modulemanager.InvalidModuleKeyException;
+import org.jahia.services.modulemanager.InvalidTargetException;
+import org.jahia.services.modulemanager.ModuleManagementException;
 import org.jahia.services.modulemanager.ModuleManagementInvalidArgumentException;
 import org.jahia.services.modulemanager.ModuleManager;
 import org.jahia.services.modulemanager.ModuleNotFoundException;
 import org.jahia.services.modulemanager.OperationResult;
+import org.jahia.services.modulemanager.spi.BundleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
@@ -88,6 +98,70 @@ import org.springframework.core.io.Resource;
 @Path("/api/bundles")
 @Produces({ MediaType.APPLICATION_JSON })
 public class ModuleManagerResource {
+
+    /**
+     * OSGi bundle type.
+     */
+    public enum BundleType {
+
+        /**
+         * Regular OSGi bundle.
+         */
+        BUNDLE,
+
+        /**
+         * OSGi bundle, which is a DX module in addition.
+         */
+        MODULE
+    }
+
+    /**
+     * A (part of) REST response representing info about a bundle.
+     */
+    public static class BundleInfoDto {
+
+        private BundleType type;
+        private BundleState osgiState;
+        private ModuleState.State moduleState;
+
+        /**
+         * Create an instance representing info about a standalone OSGi bundle.
+         */
+        public BundleInfoDto(BundleState osgiState) {
+            this.type = BundleType.BUNDLE;
+            this.osgiState = osgiState;
+        }
+
+        /**
+         * Create an instance representing info about an OSGi bundle which is a DX module.
+         */
+        public BundleInfoDto(BundleState osgiState, State moduleState) {
+            this.type = BundleType.MODULE;
+            this.osgiState = osgiState;
+            this.moduleState = moduleState;
+        }
+
+        /**
+         * @return bundle type
+         */
+        public BundleType getType() {
+            return type;
+        }
+
+        /**
+         * @return state of the bundle in OSGi terms
+         */
+        public BundleState getOsgiState() {
+            return osgiState;
+        }
+
+        /**
+         * @return state of the module bundle in DX terms; null in case the bundle is not a DX module
+         */
+        public ModuleState.State getModuleState() {
+            return moduleState;
+        }
+    }
 
     private static final Logger log = LoggerFactory.getLogger(ModuleManagerResource.class);
 
@@ -174,7 +248,7 @@ public class ModuleManagerResource {
      */
     @POST
     @Path("/{bundleKey:.*}/_start")
-    public Response start(@PathParam(value = "bundleKey") String bundleKey, @FormParam("target") String target)
+    public Response start(@PathParam("bundleKey") String bundleKey, @FormParam("target") String target)
             throws WebApplicationException {
 
         validateBundleOperation(bundleKey, "start");
@@ -203,7 +277,7 @@ public class ModuleManagerResource {
      */
     @POST
     @Path("/{bundleKey:.*}/_stop")
-    public Response stop(@PathParam(value = "bundleKey") String bundleKey, @FormParam("target") String target)
+    public Response stop(@PathParam("bundleKey") String bundleKey, @FormParam("target") String target)
             throws WebApplicationException {
 
         validateBundleOperation(bundleKey, "stop");
@@ -232,7 +306,7 @@ public class ModuleManagerResource {
      */
     @POST
     @Path("/{bundleKey:.*}/_uninstall")
-    public Response uninstall(@PathParam(value = "bundleKey") String bundleKey, @FormParam("target") String target)
+    public Response uninstall(@PathParam("bundleKey") String bundleKey, @FormParam("target") String target)
             throws WebApplicationException {
 
         validateBundleOperation(bundleKey, "stop");
@@ -252,6 +326,74 @@ public class ModuleManagerResource {
     }
 
     /**
+     * Get info about a single bundle.
+     *
+     * @param bundleKey the bundle key
+     * @param target the group of cluster nodes targeted by this operation
+     * @return a map of bundle info by cluster node name; each map value is either a BundleInfoDto object or a ModuleManagerExceptionMapper.ErrorInfo in case there was an error communicating with corresponding cluster node
+     */
+    @GET
+    @Path("/{bundleKey:[^\\[\\]]*}/_info")
+    public Map<String, Object> getInfo(@PathParam("bundleKey") String bundleKey, @QueryParam("target") String target) {
+
+        validateBundleOperation(bundleKey, "getInfo");
+
+        return getBundleInfo(bundleKey, target, new BundleInfoRetrievalHandler<String, BundleService.BundleInformation, BundleInfoDto>() {
+
+            @Override
+            public Map<String, BundleService.BundleInformation> getBundleInfo(String bundleKey, String target) {
+                return getModuleManager().getInfo(bundleKey, target);
+            }
+
+            @Override
+            public BundleInfoDto getBundleInfoDto(BundleService.BundleInformation bundleInfo) {
+                return bundleInfoToDto(bundleInfo);
+            }
+        });
+    }
+
+    /**
+     * Get info about multiple bundles.
+     *
+     * @param bundleKeys comma separated list of bundle keys
+     * @param target the group of cluster nodes targeted by this operation
+     * @return a map of bundle info by cluster node name; each map value is either a nested map of BundleInfoDto by bundle key or a ModuleManagerExceptionMapper.ErrorInfo in case there was an error communicating with corresponding cluster node
+     */
+    @GET
+    @Path("/[{bundleKeys:.*}]/_info")
+    public Map<String, Object> getInfos(@PathParam("bundleKeys") String bundleKeys, @QueryParam("target") String target) {
+
+        final LinkedHashSet<String> keys = new LinkedHashSet<String>();
+        processBundleKeys(bundleKeys, new BundleKeyProcessor() {
+
+            @Override
+            public void process(String bundleKey) {
+                keys.add(bundleKey);
+            }
+        });
+
+        return getBundleInfo(keys, target, new BundleInfoRetrievalHandler<Collection<String>, Map<String, BundleService.BundleInformation>, Map<String, BundleInfoDto>>() {
+
+            @Override
+            public Map<String, Map<String, BundleService.BundleInformation>> getBundleInfo(Collection<String> bundleKeys, String target) {
+                return getModuleManager().getInfos(bundleKeys, target);
+            }
+
+            @Override
+            public Map<String, BundleInfoDto> getBundleInfoDto(Map<String, BundleService.BundleInformation> bundleInfoByBundleKey) {
+                LinkedHashMap<String, BundleInfoDto> result = new LinkedHashMap<String, BundleInfoDto>(bundleInfoByBundleKey.size());
+                for (Map.Entry<String, BundleService.BundleInformation> entry : bundleInfoByBundleKey.entrySet()) {
+                    String bundleKey = entry.getKey();
+                    BundleService.BundleInformation bundleInfo = entry.getValue();
+                    BundleInfoDto bundleInfoDto = bundleInfoToDto(bundleInfo);
+                    result.put(bundleKey, bundleInfoDto);
+                }
+                return result;
+            }
+        });
+    }
+
+    /**
      * Get current local state of a single bundle.
      *
      * @param bundleKey the bundle key
@@ -259,10 +401,10 @@ public class ModuleManagerResource {
      */
     @GET
     @Path("/{bundleKey:[^\\[\\]]*}/_localState")
-    public Response getLocalState(@PathParam(value = "bundleKey") String bundleKey) {
+    public BundleState getLocalState(@PathParam("bundleKey") String bundleKey) {
         validateBundleOperation(bundleKey, "getLocalState");
-        BundleState state = getBundleLocalState(getModuleManager(), bundleKey);
-        return Response.ok(state).build();
+        BundleState state = getLocalBundleState(getModuleManager(), bundleKey);
+        return state;
     }
 
     /**
@@ -273,19 +415,60 @@ public class ModuleManagerResource {
      */
     @GET
     @Path("/[{bundleKeys:.*}]/_localState")
-    public Response getLocalStates(@PathParam(value = "bundleKeys") String bundleKeys) {
-        String[] keys = StringUtils.split(bundleKeys, ',');
-        ModuleManager moduleManager = getModuleManager();
-        LinkedHashMap<String, BundleState> stateByKey = new LinkedHashMap<String, BundleState>();
-        for (String key : keys) {
-            key = key.trim();
-            if (StringUtils.isEmpty(key)) {
-                continue;
+    public Map<String, BundleState> getLocalStates(@PathParam("bundleKeys") String bundleKeys) {
+
+        final ModuleManager moduleManager = getModuleManager();
+        final LinkedHashMap<String, BundleState> stateByKey = new LinkedHashMap<String, BundleState>();
+
+        processBundleKeys(bundleKeys, new BundleKeyProcessor() {
+
+            @Override
+            public void process(String bundleKey) {
+                BundleState state = getLocalBundleState(moduleManager, bundleKey);
+                stateByKey.put(bundleKey, state);
             }
-            BundleState state = getBundleLocalState(moduleManager, key);
-            stateByKey.put(key, state);
-        }
-        return Response.ok(stateByKey).build();
+        });
+
+        return stateByKey;
+    }
+
+    /**
+     * Get local info about a single bundle.
+     *
+     * @param bundleKey the bundle key
+     * @return local bundle info
+     */
+    @GET
+    @Path("/{bundleKey:[^\\[\\]]*}/_localInfo")
+    public BundleInfoDto getLocalInfo(@PathParam("bundleKey") String bundleKey) {
+        validateBundleOperation(bundleKey, "getLocalInfo");
+        BundleInfoDto info = getLocalBundleInfo(getModuleManager(), bundleKey);
+        return info;
+    }
+
+    /**
+     * Get local info about multiple bundles.
+     *
+     * @param bundleKeys comma separated list of bundle keys
+     * @return a map of bundle info by bundle keys
+     */
+    @GET
+    @Path("/[{bundleKeys:.*}]/_localInfo")
+    public Map<String, BundleInfoDto> getLocalInfos(@PathParam("bundleKeys") String bundleKeys) {
+
+        final ModuleManager moduleManager = getModuleManager();
+        final LinkedHashMap<String, BundleInfoDto> infoByKey = new LinkedHashMap<String, BundleInfoDto>();
+
+        processBundleKeys(bundleKeys, new BundleKeyProcessor() {
+
+            @Override
+            public void process(String bundleKey) {
+                BundleInfoDto info = getLocalBundleInfo(moduleManager, bundleKey);
+                infoByKey.put(bundleKey, info);
+            }
+        });
+
+        return infoByKey;
     }
 
     private void validateBundleOperation(String bundleKey, String serviceOperation) throws ClientErrorException {
@@ -295,13 +478,105 @@ public class ModuleManagerResource {
         }
     }
 
-    private BundleState getBundleLocalState(ModuleManager moduleManager, String bundleKey) {
+    private <K, I, D> Map<String, Object> getBundleInfo(K bundleKeys, String target, BundleInfoRetrievalHandler<K, I, D> infoRetrievalHandler) {
+
+        Map<String, I> infoByHost;
+        try {
+            infoByHost = infoRetrievalHandler.getBundleInfo(bundleKeys, target);
+        } catch (InvalidModuleKeyException | InvalidTargetException e) {
+            throw new ClientErrorException(e.getMessage(), Status.BAD_REQUEST);
+        }
+
+        Map<String, Object> result = new LinkedHashMap<String, Object>(infoByHost.size());
+        for (Map.Entry<String, I> entry : infoByHost.entrySet()) {
+            String hostName = entry.getKey();
+            I bundleInfo = entry.getValue();
+            try {
+                D bundleInfoDto = infoRetrievalHandler.getBundleInfoDto(bundleInfo);
+                result.put(hostName, bundleInfoDto);
+            } catch (ModuleManagementException e) {
+                Throwable cause = ExceptionUtils.getRootCause(e);
+                ErrorInfoDto errorInfo = new ErrorInfoDto(e.getMessage(), (cause == null ? null : cause.toString()));
+                result.put(hostName, errorInfo);
+            }
+        }
+
+        return result;
+    }
+
+    private interface BundleInfoRetrievalHandler<K, I, D> {
+
+        Map<String, I> getBundleInfo(K bundleKeys, String target);
+        D getBundleInfoDto(I bundleInfo);
+    }
+
+    private BundleState getLocalBundleState(ModuleManager moduleManager, String bundleKey) {
         try {
             return moduleManager.getLocalState(bundleKey);
         } catch (InvalidModuleKeyException e) {
             throw new ClientErrorException(e.getMessage(), Status.BAD_REQUEST);
         } catch (ModuleNotFoundException e) {
             throw new ClientErrorException(e.getMessage(), Status.NOT_FOUND);
+        }
+    }
+
+    private BundleInfoDto getLocalBundleInfo(ModuleManager moduleManager, String bundleKey) {
+
+        BundleService.BundleInformation info;
+        try {
+            info = moduleManager.getLocalInfo(bundleKey);
+        } catch (InvalidModuleKeyException e) {
+            throw new ClientErrorException(e.getMessage(), Status.BAD_REQUEST);
+        } catch (ModuleNotFoundException e) {
+            throw new ClientErrorException(e.getMessage(), Status.NOT_FOUND);
+        }
+
+        return bundleInfoToDto(info);
+    }
+
+    private BundleInfoDto bundleInfoToDto(BundleService.BundleInformation info) {
+        if (info instanceof BundleService.ModuleInformation) {
+            ModuleState.State moduleState = ((BundleService.ModuleInformation) info).getModuleState();
+            return new BundleInfoDto(info.getOsgiState(), moduleState);
+        } else {
+            return new BundleInfoDto(info.getOsgiState());
+        }
+    }
+
+    private void processBundleKeys(String bundleKeys, BundleKeyProcessor bundleKeyProcessor) {
+        String[] keys = StringUtils.split(bundleKeys, ',');
+        for (String key : keys) {
+            key = key.trim();
+            if (StringUtils.isEmpty(key)) {
+                continue;
+            }
+            bundleKeyProcessor.process(key);
+        }
+    }
+
+    private interface BundleKeyProcessor {
+
+        void process(String bundleKey);
+    }
+
+    private static class ErrorInfoDto {
+
+        private final String message;
+        private final String cause;
+
+        public ErrorInfoDto(String message, String cause) {
+            this.message = message;
+            this.cause = cause;
+        }
+
+        @SuppressWarnings("unused")
+        public String getMessage() {
+            return message;
+        }
+
+        @SuppressWarnings("unused")
+        public String getCause() {
+            return cause;
         }
     }
 }

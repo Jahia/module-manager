@@ -51,6 +51,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
+
 /**
  * Provide a mapping of the module management related exception into a displayable client response.
  *
@@ -58,49 +60,77 @@ import javax.xml.bind.annotation.XmlType;
  */
 public class ModuleManagerExceptionMapper implements ExceptionMapper<Exception> {
 
+    /**
+     * A (part of) REST response representing an error handling the REST call.
+     */
     @XmlRootElement
     @XmlType(propOrder = { "status", "reasonPhrase", "message", "cause" })
-    static private class ErrorInfo {
+    private static class ErrorInfo {
 
         private final String cause;
         private final String message;
         private final Status status;
 
+        /**
+         * Create an error info instance.
+         *
+         * @param status HTTP response status
+         * @param message Error message
+         * @param cause Error cause if any
+         */
         public ErrorInfo(Status status, String message, String cause) {
             this.status = status;
             this.message = message;
             this.cause = cause;
         }
 
+        /**
+         * @return Error cause if any
+         */
         @XmlElement
         public String getCause() {
             return cause;
         }
 
+        /**
+         * @return Error message
+         */
         @XmlElement
         public String getMessage() {
             return message;
         }
 
+        /**
+         * @return HTTP response status description
+         */
         @XmlElement
         public String getReasonPhrase() {
             return status.getReasonPhrase();
         }
 
+        /**
+         * @return HTTP response status
+         */
         @XmlElement
         public int getStatus() {
             return status.getStatusCode();
         }
     }
 
-    private ErrorInfo getErrorInfo(Exception ex) {
+    /**
+     * Convert an exception to an error info
+     *
+     * @param ex Exception
+     * @return Error info
+     */
+    private static ErrorInfo getErrorInfo(Exception ex) {
         int statusCode = ex instanceof WebApplicationException
                 ? ((WebApplicationException) ex).getResponse().getStatus()
                 : Status.INTERNAL_SERVER_ERROR.getStatusCode();
-        String cause = Response.Status.Family.familyOf(statusCode) == Response.Status.Family.SERVER_ERROR && ex.getCause() != null
-                ? ex.getCause().toString()
+        Throwable cause = Response.Status.Family.familyOf(statusCode) == Response.Status.Family.SERVER_ERROR
+                ? ExceptionUtils.getRootCause(ex)
                 : null;
-        return new ErrorInfo(Status.fromStatusCode(statusCode), ex.getMessage(), cause);
+        return new ErrorInfo(Status.fromStatusCode(statusCode), ex.getMessage(), (cause == null ? null : cause.toString()));
     }
 
     @Override

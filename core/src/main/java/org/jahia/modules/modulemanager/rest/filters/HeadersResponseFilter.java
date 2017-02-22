@@ -41,33 +41,31 @@
  *     If you are unsure which license is appropriate for your use,
  *     please contact the sales department at sales@jahia.com.
  */
-package org.jahia.modules.modulemanager.rest;
+package org.jahia.modules.modulemanager.rest.filters;
 
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-
-import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
-import org.jahia.modules.modulemanager.rest.filters.HeadersResponseFilter;
-import org.jahia.modules.modulemanager.rest.filters.ModuleManagerAuthenticationRequestFilter;
+import javax.annotation.Priority;
+import javax.ws.rs.Priorities;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerResponseContext;
+import javax.ws.rs.container.ContainerResponseFilter;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedMap;
+import java.io.IOException;
 
 /**
- * Application configuration component.
- *
- * @author bdjiba
+ * JAX-RS Filter that handles commons headers in responses.
  */
-public class ModuleManagerApplicationConfig extends ResourceConfig {
+@Priority(Priorities.HEADER_DECORATOR)
+public class HeadersResponseFilter implements ContainerResponseFilter {
 
-    /**
-     * Initializes an instance of this class providing a list of classes to be registered.
-     */
-    public ModuleManagerApplicationConfig() {
-        super(
-                MultiPartFeature.class,
-                ModuleManagerResource.class,
-                JacksonJaxbJsonProvider.class,
-                ModuleManagerExceptionMapper.class,
-                ModuleManagerAuthenticationRequestFilter.class,
-                HeadersResponseFilter.class
-        );
+    @Override
+    public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws
+            IOException {
+
+        final MultivaluedMap<String, Object> headers = responseContext.getHeaders();
+
+        // Tell the client to not cache the response.
+        headers.add(HttpHeaders.CACHE_CONTROL, "no-cache");
+        headers.add("Pragma", "no-cache");
     }
 }
