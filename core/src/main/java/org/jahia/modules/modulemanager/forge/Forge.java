@@ -47,6 +47,8 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.lang.StringUtils;
 import org.apache.xerces.impl.dv.util.Base64;
+import org.jahia.services.SpringContextSingleton;
+import org.jahia.services.notification.HttpClientService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.binding.message.MessageBuilder;
@@ -101,7 +103,7 @@ public class Forge implements Serializable {
             try {
                 GetMethod httpMethod = new GetMethod(url + "/contents/modules-repository.moduleList.json");
                 httpMethod.addRequestHeader("Authorization", "Basic " + Base64.encode((user + ":" + password).getBytes()));
-                HttpClient httpClient = new HttpClient();
+                HttpClient httpClient = ((HttpClientService) SpringContextSingleton.getBean("HttpClientService")).getHttpClient();
                 int i = httpClient.executeMethod(httpMethod);
                 if (i != 200) {
                     context.getMessageContext().addMessage(new MessageBuilder()
