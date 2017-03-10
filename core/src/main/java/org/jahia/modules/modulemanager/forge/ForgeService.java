@@ -287,7 +287,7 @@ public class ForgeService {
             if (forgeId.equals(forge.getId())) {
                 GetMethod httpMethod = new GetMethod(url);
                 httpMethod.addRequestHeader("Authorization", "Basic " + Base64.encode((forge.getUser() + ":" + forge.getPassword()).getBytes()));
-                HttpClient httpClient = httpClientService.getHttpClient();
+                HttpClient httpClient = httpClientService.getHttpClient(url);
                 try {
                     int status = httpClient.executeMethod(httpMethod);
                     if (status == HttpServletResponse.SC_OK) {

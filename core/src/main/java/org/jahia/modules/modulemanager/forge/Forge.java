@@ -103,7 +103,7 @@ public class Forge implements Serializable {
             try {
                 GetMethod httpMethod = new GetMethod(url + "/contents/modules-repository.moduleList.json");
                 httpMethod.addRequestHeader("Authorization", "Basic " + Base64.encode((user + ":" + password).getBytes()));
-                HttpClient httpClient = ((HttpClientService) SpringContextSingleton.getBean("HttpClientService")).getHttpClient();
+                HttpClient httpClient = ((HttpClientService) SpringContextSingleton.getBean("HttpClientService")).getHttpClient(url);
                 int i = httpClient.executeMethod(httpMethod);
                 if (i != 200) {
                     context.getMessageContext().addMessage(new MessageBuilder()
