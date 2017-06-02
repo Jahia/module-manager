@@ -46,9 +46,11 @@ package org.jahia.modules.modulemanager.rest;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.ClientErrorException;
@@ -68,13 +70,14 @@ import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.jahia.data.templates.ModuleState;
 import org.jahia.data.templates.ModuleState.State;
+import org.jahia.exceptions.JahiaRuntimeException;
 import org.jahia.osgi.BundleState;
 import org.jahia.services.SpringContextSingleton;
 import org.jahia.services.modulemanager.InvalidModuleKeyException;
@@ -187,7 +190,7 @@ public class ModuleManagerResource {
     /**
      * Install the given bundle on the specified group of nodes. If nodes parameter is empty then deploy to default group.
      *
-     * @param bundleInputStream the bundle to deploy file input stream
+     * @param bundleParts parts of the request body containing binaries of modules to install
      * @param target the group of cluster nodes targeted by the install operation
      * @param start whether the installed bundle should be started right away
      * @return the operation result
@@ -195,24 +198,53 @@ public class ModuleManagerResource {
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response install(@FormDataParam("bundle") InputStream bundleInputStream,
-            @FormDataParam("bundle") FormDataContentDisposition fileDisposition, @FormDataParam("target") String target,
-            @FormDataParam("start") boolean start) throws WebApplicationException {
+    public Response install(@FormDataParam("bundle")List<FormDataBodyPart> bundleParts, @FormDataParam("target") String target, @FormDataParam("start") boolean start) throws WebApplicationException {
 
-        if (bundleInputStream == null) {
-            throw new ClientErrorException("The bundle file could not be null", Response.Status.BAD_REQUEST);
+        if (bundleParts == null || bundleParts.isEmpty()) {
+            throw new ClientErrorException("At least one bundle file is required", Response.Status.BAD_REQUEST);
         }
 
         long startTime = System.currentTimeMillis();
-        log.info("Received request to install bundle {} on target {}. Should start the bundle after: {}",
-                new Object[] { fileDisposition.getFileName(), target, start });
-
-        Resource bundleResource = null;
+        log.info("Received request to install {} bundles on target {}. Should start the bundles after: {}",
+                new Object[] { bundleParts.size(), target, start });
 
         try {
-            bundleResource = getUploadedFileAsResource(bundleInputStream, fileDisposition.getFileName());
-            OperationResult result = getModuleManager().install(bundleResource, target, start);
-            return Response.ok(result).build();
+
+            ArrayList<Resource> bundleResources = new ArrayList<>(bundleParts.size());
+
+            try {
+
+                for (FormDataBodyPart bundlePart : bundleParts) {
+                    FormDataContentDisposition fileDisposition = bundlePart.getFormDataContentDisposition();
+                    InputStream bundleInputStream = bundlePart.getValueAs(InputStream.class);
+                    try {
+                        Resource bundleResource = getUploadedFileAsResource(bundleInputStream, fileDisposition.getFileName());
+                        bundleResources.add(bundleResource);
+                    } finally {
+                        try {
+                            bundleInputStream.close();
+                        } catch (IOException e) {
+                            throw new JahiaRuntimeException(e);
+                        }
+                    }
+                }
+
+                OperationResult result = getModuleManager().install(bundleResources, target, start);
+                return Response.ok(result).build();
+            } finally {
+                for (Resource bundleResource : bundleResources) {
+                    try {
+                        File bundleFile = bundleResource.getFile();
+                        bundleFile.delete();
+                    } catch (Exception e) {
+                        if (log.isDebugEnabled()) {
+                            log.warn("Unable to clean installed bundle file. Cause: " + e.getMessage(), e);
+                        } else {
+                            log.warn("Unable to clean installed bundle file (details in DEBUG logging level). Cause: " + e.getMessage());
+                        }
+                    }
+                }
+            }
         } catch (ModuleManagementInvalidArgumentException e) {
             log.error("Unable to install module. Cause: " + e.getMessage());
             throw new ClientErrorException("Unable to install module. Cause: " + e.getMessage(), Response.Status.BAD_REQUEST, e);
@@ -220,21 +252,7 @@ public class ModuleManagerResource {
             log.error("Module management exception when installing module", e);
             throw new InternalServerErrorException("Error while installing bundle", e);
         } finally {
-            IOUtils.closeQuietly(bundleInputStream);
             log.info("Operation completed in {} ms", System.currentTimeMillis() - startTime);
-            if (bundleResource != null) {
-                try {
-                    File bundleFile = bundleResource.getFile();
-                    FileUtils.deleteQuietly(bundleFile);
-                } catch (IOException e) {
-                    if (log.isDebugEnabled()) {
-                        log.warn("Unable to clean installed bundle file. Cause: " + e.getMessage(), e);
-                    } else {
-                        log.warn("Unable to clean installed bundle file (details in DEBUG logging level). Cause: "
-                                + e.getMessage());
-                    }
-                }
-            }
         }
     }
 
