@@ -4,7 +4,7 @@ DX module that provides enterprise level module management functionality
 - User should have the `adminTemplates` permission in DX to be able to use this API
 - The `target` parameter is optional, the value of the `target` group of cluster nodes could be specified as `null`, meaning the default group is concerned, which includes all cluster nodes.
 - Available actions:
- - [Install a bundle](#install)
+ - [Install one or multiple bundle(s)](#install)
  - [Start a bundle](#start)
  - [Stop a bundle](#stop)
  - [Uninstall a bundle](#uninstall)
@@ -16,9 +16,13 @@ DX module that provides enterprise level module management functionality
  - [Get local state of multiple bundles](#getLocalState2)
 
 
-<a name="install"></a>**Install bundle**
+<a name="install"></a>**Install one or multiple bundle(s)**
 ----
-  Install the specified bundle, optionally starting it right after and return the operation result.
+  Install the specified bundle(s), optionally starting it/them right after and return the operation result(s). 
+  
+ 
+  In case you need to deploy multiple bundles at the same time, you can do it in one call to avoid multiple "refresh" of dependencies,
+  for that you just need one "bundle" parameter for each bundle you want to deploy.
 
 * **URL**
 
@@ -40,12 +44,15 @@ DX module that provides enterprise level module management functionality
 
    **Required:**
 
-   `bundle=[file]`: the bundle to deploy file input stream
+   `bundle=[file]`: a bundle to be deploy, this parameter can be repeat for each bundle that need to be deploy, at least one bundle is required
 
 * **Success Response:**
 
   * **Code:** 200 <br />
     **Content:** `{"bundleInfos":[{"groupId":"org.jahia.modules","symbolicName":"article","version":"2.0.3.SNAPSHOT","key":"org.jahia.modules/article/2.0.3.SNAPSHOT"}],"message":"Operation successful"}`
+
+  * **Code:** 200 <br />
+    **Content:** `{"bundleInfos":[{"groupId":"org.jahia.modules","symbolicName":"article","version":"3.0.0.SNAPSHOT","key":"org.jahia.modules/article/3.0.0.SNAPSHOT"},{"groupId":"org.jahia.modules","symbolicName":"news","version":"2.0.2.SNAPSHOT","key":"org.jahia.modules/news/2.0.2.SNAPSHOT"}],"message":"Operation successful"}`
 
 * **Error Response:**
 
@@ -61,6 +68,10 @@ DX module that provides enterprise level module management functionality
 
   ```sh
   curl -s --user jon:password --form bundle=@/Users/jon/Projects/article/target/article-2.0.3-SNAPSHOT.jar --form start=true http://localhost:8080/modules/api/bundles
+  ```
+  
+  ```sh
+  curl -s --user jon:password --form bundle=@/Users/jon/Projects/article/target/article-3.0.0-SNAPSHOT.jar --form bundle=@/Users/jon/Projects/news/target/news-2.0.2-SNAPSHOT.jar --form start=true http://localhost:8080/modules/api/bundles
   ```
 
 <a name="start"></a>**Start bundle**
