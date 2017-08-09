@@ -18,9 +18,9 @@ DX module that provides enterprise level module management functionality
 
 <a name="install"></a>**Install one or multiple bundle(s)**
 ----
-  Install the specified bundle(s), optionally starting it/them right after and return the operation result(s). 
-  
- 
+  Install the specified bundle(s), optionally starting it/them right after and return the operation result(s).
+
+
   In case you need to deploy multiple bundles at the same time, you can do it in one call to avoid multiple "refresh" of dependencies,
   for that you just need one "bundle" parameter for each bundle you want to deploy.
 
@@ -69,7 +69,7 @@ DX module that provides enterprise level module management functionality
   ```sh
   curl -s --user jon:password --form bundle=@/Users/jon/Projects/article/target/article-2.0.3-SNAPSHOT.jar --form start=true http://localhost:8080/modules/api/bundles
   ```
-  
+
   ```sh
   curl -s --user jon:password --form bundle=@/Users/jon/Projects/article/target/article-3.0.0-SNAPSHOT.jar --form bundle=@/Users/jon/Projects/news/target/news-2.0.2-SNAPSHOT.jar --form start=true http://localhost:8080/modules/api/bundles
   ```
@@ -224,8 +224,8 @@ DX module that provides enterprise level module management functionality
 
 * **Error Response:**
 
-  * **Code:** 404 NOT FOUND <br />
-    **Content:** `{"status":404,"reasonPhrase":"Not Found","message":"Unable to find a module bundle corresponding to the key: article/2.0.3.SPSHOT"}`
+  * **Code:** 200 <br />
+    **Content:** `{"jahiaNode1":{"message":"Error retrieving bundle info from cluster node jahiaNode1","cause":"org.jahia.services.modulemanager.ModuleNotFoundException: Unable to find a module bundle corresponding to the key: article/2.0.3.SPSHOT"},"jahiaNode2":{"message":"Error retrieving bundle info from cluster node jahiaNode2","cause":"org.jahia.services.modulemanager.ModuleNotFoundException: Unable to find a module bundle corresponding to the key: article/2.0.3.SPSHOT"}`
 
   OR
 
@@ -265,8 +265,8 @@ DX module that provides enterprise level module management functionality
 
 * **Error Response:**
 
-  * **Code:** 404 NOT FOUND <br />
-    **Content:** `{"status":404,"reasonPhrase":"Not Found","message":"Unable to find a module bundle corresponding to the key: article/2.0.3.SPSHOT"}`
+  * **Code:** 200 <br />
+    **Content:** `{"jahiaNode1":{"message":"Error retrieving bundle info from cluster node jahiaNode1","cause":"org.jahia.services.modulemanager.ModuleNotFoundException: Unable to find a module bundle corresponding to the key: article/2.0.3.SPSHOT"},"jahiaNode2":{"message":"Error retrieving bundle info from cluster node jahiaNode2","cause":"org.jahia.services.modulemanager.ModuleNotFoundException: Unable to find a module bundle corresponding to the key: article/2.0.3.SPSHOT"}`
 
   OR
 
