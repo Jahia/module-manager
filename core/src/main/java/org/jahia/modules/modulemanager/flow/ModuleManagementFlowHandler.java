@@ -1,4 +1,4 @@
-/**
+/*
  * ==========================================================================================
  * =                   JAHIA'S DUAL LICENSING - IMPORTANT INFORMATION                       =
  * ==========================================================================================
@@ -229,7 +229,7 @@ public class ModuleManagementFlowHandler implements Serializable {
     }
 
     private void handlePackage(JarFile jarFile, Attributes manifestAttributes, String originalFilename,
-            boolean forceUpdate, boolean autoStart, MessageContext context) throws IOException, BundleException {
+                               boolean forceUpdate, boolean autoStart, MessageContext context) throws IOException, BundleException {
 
         // check package name validity
         String jahiaPackageName = manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_NAME);
@@ -241,7 +241,7 @@ public class ModuleManagementFlowHandler implements Serializable {
 
         //Check license
         String licenseFeature = manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_LICENSE);
-        if (licenseFeature != null && !LicenseCheckerService.Stub.isAllowed(licenseFeature)){
+        if (licenseFeature != null && !LicenseCheckerService.Stub.isAllowed(licenseFeature)) {
             context.addMessage(new MessageBuilder().source("moduleFile")
                     .code("serverSettings.manageModules.install.package.missing.license")
                     .args(originalFilename, licenseFeature)
@@ -264,7 +264,7 @@ public class ModuleManagementFlowHandler implements Serializable {
             }
             if (!collectedResolutionErrors.isEmpty()) {
                 // double-check the resolution issues after all bundles were installed
-                for(Iterator<Map.Entry<Bundle, MessageResolver>> resolutionErrorIterator = collectedResolutionErrors.entrySet().iterator(); resolutionErrorIterator.hasNext();) {
+                for (Iterator<Map.Entry<Bundle, MessageResolver>> resolutionErrorIterator = collectedResolutionErrors.entrySet().iterator(); resolutionErrorIterator.hasNext(); ) {
                     Entry<Bundle, MessageResolver> resolutionErrorEntry = resolutionErrorIterator.next();
                     if (resolutionErrorEntry.getKey().getState() >= Bundle.RESOLVED) {
                         // the bundle is successfully resolved now
@@ -316,27 +316,6 @@ public class ModuleManagementFlowHandler implements Serializable {
             }
             String version = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_IMPL_VERSION);
             String groupId = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_GROUP_ID);
-            if (templateManagerService.differentModuleWithSameIdExists(symbolicName, groupId)) {
-                context.addMessage(new MessageBuilder().source("moduleFile")
-                        .code("serverSettings.manageModules.install.moduleWithSameIdExists")
-                        .arg(symbolicName)
-                        .error()
-                        .build());
-                return null;
-            }
-            ModuleVersion moduleVersion = new ModuleVersion(version);
-            Set<ModuleVersion> allVersions = templatePackageRegistry.getAvailableVersionsForModule(symbolicName);
-            if (!forceUpdate) {
-                if (!moduleVersion.isSnapshot()) {
-                    if (allVersions.contains(moduleVersion)) {
-                        context.addMessage(new MessageBuilder().source("moduleExists")
-                                .code("serverSettings.manageModules.install.moduleExists")
-                                .args(symbolicName, version)
-                                .build());
-                        return null;
-                    }
-                }
-            }
 
             String successMessage = (autoStart
                     ? "serverSettings.manageModules.install.uploadedAndStarted"
@@ -344,16 +323,42 @@ public class ModuleManagementFlowHandler implements Serializable {
             String resolutionError = null;
 
             boolean shouldAutoStart = autoStart;
-            if (autoStart &&
-                    !Boolean.valueOf(SettingsBean.getInstance().getPropertiesFile().getProperty("org.jahia.modules.autoStartOlderVersions"))) {
-                // verify that a newer version is not active already
-                JahiaTemplatesPackage currentActivePackage = templateManagerService.getTemplatePackageRegistry()
-                        .lookupById(symbolicName);
-                ModuleVersion currentVersion = currentActivePackage != null ? currentActivePackage.getVersion() : null;
-                if (currentActivePackage != null && moduleVersion.compareTo(currentVersion) < 0) {
-                    // we do not start the uploaded older version automatically
-                    shouldAutoStart = false;
-                    successMessage = "serverSettings.manageModules.install.uploadedNotStartedDueToNewerVersionActive";
+
+            if (groupId != null) {
+                // GroupId set only for jahia modules
+                if (templateManagerService.differentModuleWithSameIdExists(symbolicName, groupId)) {
+                    context.addMessage(new MessageBuilder().source("moduleFile")
+                            .code("serverSettings.manageModules.install.moduleWithSameIdExists")
+                            .arg(symbolicName)
+                            .error()
+                            .build());
+                    return null;
+                }
+                ModuleVersion moduleVersion = new ModuleVersion(version);
+                Set<ModuleVersion> allVersions = templatePackageRegistry.getAvailableVersionsForModule(symbolicName);
+                if (!forceUpdate) {
+                    if (!moduleVersion.isSnapshot()) {
+                        if (allVersions.contains(moduleVersion)) {
+                            context.addMessage(new MessageBuilder().source("moduleExists")
+                                    .code("serverSettings.manageModules.install.moduleExists")
+                                    .args(symbolicName, version)
+                                    .build());
+                            return null;
+                        }
+                    }
+                }
+
+                if (autoStart &&
+                        !Boolean.valueOf(SettingsBean.getInstance().getPropertiesFile().getProperty("org.jahia.modules.autoStartOlderVersions"))) {
+                    // verify that a newer version is not active already
+                    JahiaTemplatesPackage currentActivePackage = templateManagerService.getTemplatePackageRegistry()
+                            .lookupById(symbolicName);
+                    ModuleVersion currentVersion = currentActivePackage != null ? currentActivePackage.getVersion() : null;
+                    if (currentActivePackage != null && moduleVersion.compareTo(currentVersion) < 0) {
+                        // we do not start the uploaded older version automatically
+                        shouldAutoStart = false;
+                        successMessage = "serverSettings.manageModules.install.uploadedNotStartedDueToNewerVersionActive";
+                    }
                 }
             }
 
@@ -371,36 +376,39 @@ public class ModuleManagementFlowHandler implements Serializable {
             }
 
             Bundle bundle = BundleUtils.getBundle(symbolicName, version);
+            if (BundleUtils.isJahiaBundle(bundle)) {
+                JahiaTemplatesPackage module = BundleUtils.getModule(bundle);
 
-            JahiaTemplatesPackage module = BundleUtils.getModule(bundle);
-
-            if (module.getState().getState() == ModuleState.State.WAITING_TO_BE_IMPORTED) {
-                // This only can happen in a cluster.
-                successMessage = "serverSettings.manageModules.install.waitingToBeImported";
-            }
-
-            if (resolutionError != null) {
-                List<String> missingDeps = getMissingDependenciesFrom(module.getDepends(), providedBundles);
-                if (!missingDeps.isEmpty()) {
-                    createMessageForMissingDependencies(context, missingDeps);
-                } else {
-                    MessageResolver errorMessage = new MessageBuilder().source("moduleFile")
-                            .code("serverSettings.manageModules.resolutionError").arg(resolutionError).error().build();
-                    if (collectedResolutionErrors != null) {
-                        // we just collect the resolution errors for multiple module to double-check them after all modules are installed
-                        collectedResolutionErrors.put(bundle, errorMessage);
-                        return new ModuleInstallationResult(bundle, successMessage);
-                    } else {
-                        // we directly add error message
-                        context.addMessage(errorMessage);
-                    }
+                if (module.getState().getState() == ModuleState.State.WAITING_TO_BE_IMPORTED) {
+                    // This only can happen in a cluster.
+                    successMessage = "serverSettings.manageModules.install.waitingToBeImported";
                 }
-            } else if (module.getState().getState() == ModuleState.State.ERROR_WITH_DEFINITIONS) {
-                context.addMessage(new MessageBuilder().source("moduleFile")
-                        .code("serverSettings.manageModules.errorWithDefinitions")
-                        .arg(((Exception)module.getState().getDetails()).getCause().getMessage())
-                        .error()
-                        .build());
+
+                if (resolutionError != null) {
+                    List<String> missingDeps = getMissingDependenciesFrom(module.getDepends(), providedBundles);
+                    if (!missingDeps.isEmpty()) {
+                        createMessageForMissingDependencies(context, missingDeps);
+                    } else {
+                        MessageResolver errorMessage = new MessageBuilder().source("moduleFile")
+                                .code("serverSettings.manageModules.resolutionError").arg(resolutionError).error().build();
+                        if (collectedResolutionErrors != null) {
+                            // we just collect the resolution errors for multiple module to double-check them after all modules are installed
+                            collectedResolutionErrors.put(bundle, errorMessage);
+                            return new ModuleInstallationResult(bundle, successMessage);
+                        } else {
+                            // we directly add error message
+                            context.addMessage(errorMessage);
+                        }
+                    }
+                } else if (module.getState().getState() == ModuleState.State.ERROR_WITH_DEFINITIONS) {
+                    context.addMessage(new MessageBuilder().source("moduleFile")
+                            .code("serverSettings.manageModules.errorWithDefinitions")
+                            .arg(((Exception) module.getState().getDetails()).getCause().getMessage())
+                            .error()
+                            .build());
+                } else {
+                    return new ModuleInstallationResult(bundle, successMessage);
+                }
             } else {
                 return new ModuleInstallationResult(bundle, successMessage);
             }
@@ -466,7 +474,7 @@ public class ModuleManagementFlowHandler implements Serializable {
                 if (module.getId().equals(selectedModuleName)) {
                     populateActiveVersion(context, module);
                     final List<String> missing = getMissingDependenciesFrom(module.getDepends(), null);
-                    if(!missing.isEmpty()) {
+                    if (!missing.isEmpty()) {
                         createMessageForMissingDependencies(context.getMessageContext(), missing);
                     }
                     break;
@@ -723,7 +731,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         if (errors.containsKey(moduleId)) {
             errors.put(moduleId, errors.get(moduleId) + "\n\n" + moduleVersion + " : " + dspMsg);
         } else {
-            errors.put(moduleId,  moduleVersion + " : " + dspMsg);
+            errors.put(moduleId, moduleVersion + " : " + dspMsg);
         }
     }
 
