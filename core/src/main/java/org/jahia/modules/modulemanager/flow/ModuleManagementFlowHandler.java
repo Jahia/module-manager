@@ -320,7 +320,6 @@ public class ModuleManagementFlowHandler implements Serializable {
             String successMessage = (autoStart
                     ? "serverSettings.manageModules.install.uploadedAndStarted"
                     : "serverSettings.manageModules.install.uploaded");
-            String resolutionError = null;
 
             boolean shouldAutoStart = autoStart;
 
@@ -362,6 +361,8 @@ public class ModuleManagementFlowHandler implements Serializable {
                 }
             }
 
+            String resolutionError = null;
+
             try {
                 moduleManager.install(new FileSystemResource(file), null, shouldAutoStart);
             } catch (ModuleManagementException e) {
@@ -376,7 +377,9 @@ public class ModuleManagementFlowHandler implements Serializable {
             }
 
             Bundle bundle = BundleUtils.getBundle(symbolicName, version);
+
             if (BundleUtils.isJahiaBundle(bundle)) {
+
                 JahiaTemplatesPackage module = BundleUtils.getModule(bundle);
 
                 if (module.getState().getState() == ModuleState.State.WAITING_TO_BE_IMPORTED) {
@@ -797,7 +800,7 @@ public class ModuleManagementFlowHandler implements Serializable {
                 requestContext.getMessageContext().addMessage(new MessageBuilder().info().source(stoppedBundleId).code("serverSettings.manageModules.module.stopped").arg(stoppedBundleId).build());
                 requestContext.getExternalContext().getSessionMap().remove("moduleHasBeenStopped");
             }
-            final List<String> missingDependencies = (List<String>) requestContext.getExternalContext().getSessionMap().get("missingDependencies");
+            @SuppressWarnings("unchecked") final List<String> missingDependencies = (List<String>) requestContext.getExternalContext().getSessionMap().get("missingDependencies");
             if (missingDependencies != null) {
                 createMessageForMissingDependencies(requestContext.getMessageContext(), missingDependencies);
                 requestContext.getExternalContext().getSessionMap().remove("missingDependencies");
@@ -836,7 +839,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         logger.error(e.getMessage(), e);
     }
 
-    public void handleError(Exception exception, MutableAttributeMap flowScope, MessageContext messageContext) {
+    public void handleError(Exception exception, MutableAttributeMap<?> flowScope, MessageContext messageContext) {
         if (exception instanceof ScmUnavailableModuleIdException) {
             messageContext.addMessage(new MessageBuilder().error().code(
                     "serverSettings.manageModules.duplicateModuleError.moduleExists").arg(flowScope.get("newModuleName")).build());
@@ -916,17 +919,17 @@ public class ModuleManagementFlowHandler implements Serializable {
         return branchOrTag != null ? branchOrTag : defaultBranchOrTag;
     }
 
-    public void validateScmInfo(String scmUri, String branchOrTag, String moduleVersion, MutableAttributeMap flashScope) throws IOException {
+    public void validateScmInfo(String scmUri, String branchOrTag, String moduleVersion, MutableAttributeMap<Object> flowScope) throws IOException {
         if ((StringUtils.startsWith(scmUri, "scm:git:") && StringUtils.isBlank(branchOrTag))
                 || (StringUtils.startsWith(scmUri, "scm:svn:") && StringUtils.contains(scmUri, "/trunk/"))) {
             Map<String, String> branchTagInfos = listBranchOrTags(moduleVersion, scmUri);
-            flashScope.put("branchTagInfos", branchTagInfos);
+            flowScope.put("branchTagInfos", branchTagInfos);
             branchOrTag = guessBranchOrTag(moduleVersion, scmUri, branchTagInfos, null);
-            flashScope.put("branchOrTag", branchOrTag);
+            flowScope.put("branchOrTag", branchOrTag);
         }
     }
 
-    public JCRNodeWrapper checkoutModule(MutableAttributeMap flowScope, JCRSessionWrapper session) throws RepositoryException, XmlPullParserException, DocumentException, IOException, BundleException {
+    public JCRNodeWrapper checkoutModule(MutableAttributeMap<Object> flowScope, JCRSessionWrapper session) throws RepositoryException, XmlPullParserException, DocumentException, IOException, BundleException {
         String scmUri = (String) flowScope.get("scmUri");
         String branchOrTag = (String) flowScope.get("branchOrTag");
         String module = (String) flowScope.get("module");
@@ -947,7 +950,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         }
     }
 
-    public File checkoutTempModule(MutableAttributeMap flowScope) throws RepositoryException, XmlPullParserException, DocumentException, IOException {
+    public File checkoutTempModule(MutableAttributeMap<Object> flowScope) throws RepositoryException, XmlPullParserException, DocumentException, IOException {
         String scmUri = (String) flowScope.get("scmUri");
         String branchOrTag = (String) flowScope.get("branchOrTag");
         String module = (String) flowScope.get("module");
