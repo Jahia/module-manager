@@ -278,7 +278,7 @@ public class ModuleManagementFlowHandler implements Serializable {
 
             // add info about installed bundles
             for (ModuleInstallationResult installationResult : installationResults) {
-                if (!collectedResolutionErrors.containsKey(installationResult)) {
+                if (!collectedResolutionErrors.containsKey(installationResult.getBundle())) {
                     addModuleInstallationMessage(installationResult, context);
                 }
             }
@@ -413,6 +413,18 @@ public class ModuleManagementFlowHandler implements Serializable {
                     return new ModuleInstallationResult(bundle, successMessage);
                 }
             } else {
+                successMessage = (autoStart
+                        ? "serverSettings.manageModules.install.uploadedAndStarted.bundle"
+                        : "serverSettings.manageModules.install.uploaded.bundle");
+
+                if (resolutionError != null) {
+                    MessageResolver errorMessage = new MessageBuilder().source("moduleFile")
+                            .code("serverSettings.manageModules.resolutionError.bundle").arg(resolutionError).error().build();
+                    if (collectedResolutionErrors != null) {
+                        // we just collect the resolution errors for multiple module to double-check them after all modules are installed
+                        collectedResolutionErrors.put(bundle, errorMessage);
+                    }
+                }
                 return new ModuleInstallationResult(bundle, successMessage);
             }
         } finally {
