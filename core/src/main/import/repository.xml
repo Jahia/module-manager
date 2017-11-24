@@ -1,18 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <content xmlns:j="http://www.jahia.org/jahia/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0">
     <modules jcr:primaryType="jnt:modules">
-        <module-manager j:dependencies="default serverSettings"
+        <module-manager j:dependencies="default jaxrs-osgi-extender serverSettings"
                       j:installedModules="module-manager"
                       j:modulePriority="0"
                       j:moduleType="module"
                       j:title="DX Module Manager"
                       jcr:mixinTypes="jmix:hasExternalProviderExtension"
                       jcr:primaryType="jnt:module">
+                <sources jcr:mixinTypes="jmix:hasExternalProviderExtension jmix:sourceControl"
+                  jcr:primaryType="jnt:moduleVersionFolder"
+                  j:staticMountPointProviderKey="module-module-manager-1.1.2-SNAPSHOT">
+                    <src jcr:mixinTypes="jmix:hasExternalProviderExtension jmix:sourceControl"
+                 jcr:primaryType="jnt:folder">
+                        <main jcr:mixinTypes="jmix:hasExternalProviderExtension jmix:sourceControl"
+                     jcr:primaryType="jnt:folder">
+                            <resources jcr:mixinTypes="jmix:hasExternalProviderExtension jmix:sourceControl"
+                             jcr:primaryType="jnt:folder">
+                                <jnt_serverSettingsManageModules jcr:mixinTypes="jmix:hasExternalProviderExtension jmix:sourceControl"
+                                                      jcr:primaryType="jnt:nodeTypeFolder">
+                                    <html jcr:mixinTypes="jmix:hasExternalProviderExtension jmix:sourceControl"
+                              jcr:primaryType="jnt:templateTypeFolder">
+                                        <serverSettingsManageModules.flow jcr:mixinTypes="jmix:hasExternalProviderExtension jmix:sourceControl"
+                                                             jcr:primaryType="jnt:folder">
+                                            <detailedView.jsp jcr:mixinTypes="jmix:sourceControl" jcr:primaryType="jnt:viewFile"/>
+                                        </serverSettingsManageModules.flow>
+                                    </html>
+                                </jnt_serverSettingsManageModules>
+                            </resources>
+                        </main>
+                    </src>
+                </sources>
                 
                 <portlets jcr:primaryType="jnt:portletFolder"/>
                 <files jcr:primaryType="jnt:folder"/>
                 <contents jcr:primaryType="jnt:contentFolder"/>
-            <templates j:rootTemplatePath="/" jcr:primaryType="jnt:templatesFolder">
+                <templates j:rootTemplatePath="/" jcr:primaryType="jnt:templatesFolder">
                     <files jcr:primaryType="jnt:folder">
                         <serveradmin jcr:primaryType="jnt:folder">
                             <system_x0020_components jcr:primaryType="jnt:folder">
@@ -29,15 +52,16 @@
                             </system_x0020_components>
                         </serveradmin>
                     </files>
-                <contents jcr:primaryType="jnt:contentFolder"/>
+                    <contents jcr:primaryType="jnt:contentFolder"/>
                     <server-settings-base j:view="serverSettings"
-                                jcr:mixinTypes="jmix:useUILocale"
-                                jcr:primaryType="jnt:template">
+                                  jcr:mixinTypes="jmix:useUILocale"
+                                  jcr:primaryType="jnt:template">
                         <system-components j:hiddenTemplate="false"
-                                j:titleKey="serverSettings.systemComponents"
-                                jcr:mixinTypes="jmix:rbTitle"
-                                jcr:primaryType="jnt:template">
+                                  j:titleKey="serverSettings.systemComponents"
+                                  jcr:mixinTypes="jmix:rbTitle"
+                                  jcr:primaryType="jnt:template">
                             <manageModules j:applyOn="jnt:globalSettings"
+                                 j:modulePriority="1"
                                  j:defaultTemplate="false"
                                  j:hiddenTemplate="false"
                                  j:icon="/modules/module-manager/templates/files/serveradmin/system_x0020_components/modules/modules.png"
@@ -50,9 +74,33 @@
                                 </pagecontent>
                             </manageModules>
                         </system-components>
-                </server-settings-base>
-            </templates>
+                    </server-settings-base>
+                    <server-settings-base-jahia-anthracite j:view="settingsBootstrap3GoogleMaterialStyle"
+                                                   jcr:mixinTypes="jmix:useUILocale"
+                                                   jcr:primaryType="jnt:template">
+                        <system-components j:hiddenTemplate="false"
+                                  j:titleKey="serverSettings.systemComponents"
+                                  jcr:mixinTypes="jmix:rbTitle"
+                                  jcr:primaryType="jnt:template">
+                            <manageModules-jahia-anthracite j:applyOn="jnt:globalSettings"
+                                 j:modulePriority="0"
+                                 j:defaultTemplate="false"
+                                 j:hiddenTemplate="false"
+                                 j:icon="/modules/module-manager/templates/files/serveradmin/system_x0020_components/modules/modules.png"
+                                 j:requiredPermissionNames="adminTemplates"
+                                 j:titleKey="serverSettings.manageModules"
+                                 jcr:mixinTypes="jmix:rbTitle"
+                                 jcr:primaryType="jnt:contentTemplate">
+                                <pagecontent jcr:primaryType="jnt:contentList">
+                                    <manage-modules j:view="settingsBootstrap3GoogleMaterialStyle"
+                                        jcr:mixinTypes="jmix:renderable"
+                                        jcr:primaryType="jnt:serverSettingsManageModules"/>
+                                </pagecontent>
+                            </manageModules-jahia-anthracite>
+                        </system-components>
+                    </server-settings-base-jahia-anthracite>
+                </templates>
                 
-        </module-manager>
+            </module-manager>
     </modules>
 </content>
