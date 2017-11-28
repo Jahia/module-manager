@@ -54,7 +54,7 @@
         <relativePath />
     </parent>
     <artifactId>module-manager-parent</artifactId>
-    <version>1.1.2-SNAPSHOT</version>
+    <version>1.1.2-backlog_7328-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Module Manager Parent</name>
     <description>DX Module Management module</description>
