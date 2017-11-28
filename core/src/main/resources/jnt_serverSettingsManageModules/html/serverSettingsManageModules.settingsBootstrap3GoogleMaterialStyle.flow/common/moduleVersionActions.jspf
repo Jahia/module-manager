@@ -13,9 +13,7 @@
                                     </c:if>
                                 </c:set>
                                 <form class="form-inline" action="${flowExecutionUrl}" method="post" onsubmit="workInProgress('${i18nWaiting}');">
-                                    <label>${moduleLabel}</label>
-
-
+                                    <small>${moduleLabel}</small>
                                     <input type="hidden" name="module" value="${version.value.id}"/>
                                     <input type="hidden" name="version" value="${version.key}"/>
                                     <c:if test="${not empty moduleState.unresolvedDependencies}">
@@ -66,7 +64,7 @@
                                     <c:set value="${version.value.dependentModulesWithVersion}" var="dependentModulesWithVersion"/>
                                     </c:if>
                                     <c:if test="${not empty moduleDependenciesWithVersion or not empty dependentModulesWithVersion}">
-                                        <button class="btn btn-sm" type="button" data-toggle="tooltip" data-placement="bottom" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="" data-original-title="${fn:escapeXml(i18nModuleWiring)}" onclick="$('#wiringInfo${bundleId}').toggle(100);return false;">
+                                        <button class="btn btn-sm" type="button" data-toggle="tooltip" data-placement="bottom" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${fn:escapeXml(i18nModuleWiring)}" onclick="$('#wiringInfo${bundleId}').toggle(100);return false;">
                                             <i class="material-icons">autorenew</i>
                                         </button>
                                         <button data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${i18nRefresh}" class="btn btn-sm" type="submit" name="_eventId_refreshModule" id="refresh${bundleId}" style="display: none;">

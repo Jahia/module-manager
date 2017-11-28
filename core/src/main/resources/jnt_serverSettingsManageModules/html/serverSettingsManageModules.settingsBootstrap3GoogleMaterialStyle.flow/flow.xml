@@ -48,6 +48,12 @@
         <transition on="installModule" to="view">
             <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, requestParameters.moduleAutoStart != null, messageContext)"/>
         </transition>
+        <transition on="installModuleAndStart" to="view">
+            <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, true, messageContext)"/>
+        </transition>
+        <transition on="installModuleOnly" to="view">
+            <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, false, messageContext)"/>
+        </transition>
         <transition on="reloadModules" to="view">
             <evaluate expression="flowHandler.reloadModules()"/>
         </transition>

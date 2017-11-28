@@ -2,7 +2,8 @@
 <c:if test="${not isStudio or not empty currentModule.sourcesFolder}">
     <tr>
         <td>
-            <strong>${currentModule != null ? currentModule.name : defaultVersion.name}</strong>
+            <strong  data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${currentModule.groupId}">${currentModule != null ? currentModule.name : defaultVersion.name} (${entry.key})</strong>
+            <span class="hidden">${currentModule.groupId}</span>
             <c:if test="${isMandatoryDependency}">
                 <span class="text-error" title="${i18nMandatoryDependency}"><a href="#mandatory-dependency" class="text-error"><strong>*</strong></a></span>
             </c:if>
@@ -10,8 +11,6 @@
                 <div class="alert alert-danger"><strong>${fn:replace(errors[entry.key],newLineChar,'<br/>')}</strong></div>
             </c:if>
         </td>
-        <td>${entry.key}</td>
-        <td>${currentModule.groupId}</td>
         <td>
             <c:if test="${isStudio}">
                 <c:url var="urlDetails" value="${url.base}/modules/${currentModule.id}.html"/>
@@ -50,31 +49,21 @@
                 <fmt:message key="serverSettings.manageModules.updateAvailable" var="updateMessage">
                 	<fmt:param value="${availableUpdates[entry.key].version}"/>
                 </fmt:message>
-            <form action="${flowExecutionUrl}" method="POST" onsubmit="workInProgress('${i18nWaiting}');"
-                  class="form-inline">
-                <div class="form-group">
-                    <button data-toggle="tooltip" data-placement="bottom" title=""
-                            data-original-title="${updateMessage}" class="btn btn-sm button-download" type="submit"
-                            name="_eventId_installModule">
-                        <i class="material-icons">new_releases</i>
-                        <i class="material-icons">system_update_alt</i>
-                    </button>
+            <form action="${flowExecutionUrl}" method="POST" onsubmit="workInProgress('${i18nWaiting}');" class="form-inline">
+                    <span class="label label-primary">${updateMessage}</span>
+                <div class="btn-group">
+                        <button class="btn btn-default btn-xs" type="submit" onclick="" name="_eventId_installModuleOnly">
+                            <fmt:message key="serverSettings.manageModules.module.installModuleOnly"/>
+                        </button>
+                        <button  class="btn btn-default btn-xs" type="submit" onclick="" name="_eventId_installModuleAndStart">
+                            <fmt:message key="serverSettings.manageModules.module.installModuleAndStart"/>
+                        </button>
                 </div>
                 <fmt:message key="serverSettings.manageModules.upload.autoStart" var="autoStartMessage"/>
-                <div class="form-group">
-                    <div class="checkbox" data-toggle="tooltip" data-placement="bottom" title=""
-                         data-original-title="${autoStartMessage}" >
-                        <label class="control-label" for="moduleAutoStart>${entry.key}">
-                            <input  id="moduleAutoStart>${entry.key}" type="checkbox"
-                                   name="moduleAutoStart" ${developmentMode ? 'checked="checked"' : ''}/>
-                        </label>
-                    </div>
-
+                    <input type="hidden" name="moduleAutoStart"/>
                     <input type="hidden" name="forgeId" value="${availableUpdates[entry.key].forgeId}"/>
                     <input type="hidden" name="moduleUrl" value="${availableUpdates[entry.key].downloadUrl}"/>
-                </div>
             </form>
-
             </c:if>
         </td>
 
