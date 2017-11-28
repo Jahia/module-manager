@@ -128,38 +128,39 @@
                     <fmt:message key="serverSettings.manageModules.upload.force.info"/>
                 </div>
             </c:if>
-            <div class="well well-sm">
-                <div class="form-group is-empty is-fileinput label-floating">
-                    <input type="file" id="moduleFileUpload" name="moduleFile" />
-                    <div class="input-group">
-                        <label class="control-label"><fmt:message key="serverSettings.manageModules.upload.module"/></label>
-                        <input class="form-control" type="text" readonly />
+            <div class="form-group is-empty is-fileinput label-floating">
+                <input type="file" id="moduleFileUpload" name="moduleFile"/>
+                <div class="input-group">
+                    <label class="control-label"><fmt:message key="serverSettings.manageModules.upload.module"/></label>
+                    <input class="form-control" type="text" readonly/>
                         <span class="input-group-btn">
                             <button class="btn btn-sm btn-primary">
                                 <fmt:message key='label.chooseFile'/>
                             </button>
-                        </span>
-                    </div>
-                    <span class="material-input"></span>
+                            <button class="btn btn-sm btn-primary" type="submit" name="_eventId_upload">
+                                <fmt:message key='label.upload'/>
+                            </button>
+                    </span>
                 </div>
-
+                <span class="material-input"></span>
+            </div>
+            <div class="form-group">
                 <div class="checkbox">
                     <label for="moduleAutoStart">
-                        <input id="moduleAutoStart" type="checkbox" name="moduleAutoStart" ${developmentMode ? 'checked="checked"' : ''}/>
-                       <fmt:message key="serverSettings.manageModules.upload.autoStart"/>
+                        <input id="moduleAutoStart" type="checkbox"
+                               name="moduleAutoStart" ${developmentMode ? 'checked="checked"' : ''}/>
+                        <fmt:message key="serverSettings.manageModules.upload.autoStart"/>
                     </label>
+
+                    <c:if test="${forceUpdateDisplay eq 'true'}">
+                        <label for="moduleForceUpdate">
+                            <input type="checkbox" name="moduleForceUpdate" id="moduleForceUpdate"/>
+                            <fmt:message key="serverSettings.manageModules.upload.force"/>
+                        </label>
+                    </c:if>
                 </div>
-           
-                <c:if test="${forceUpdateDisplay eq 'true'}">
-                    <label class="control-label" for="moduleForceUpdate"><fmt:message key="serverSettings.manageModules.upload.force"/></label>
-                    <input type="checkbox" name="moduleForceUpdate" class="form-control" id="moduleForceUpdate"/>
-                </c:if>
-                <span class="input-group-btn">
-                    <button class="btn btn-sm btn-primary" type="submit" name="_eventId_upload">
-                        <fmt:message key='label.upload'/>
-                    </button>
-                </span>
             </div>
+
         </form:form>
         <%@include file="common/moduleLabels.jspf" %>
         <table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered" id="${moduleTableId}">
@@ -200,5 +201,6 @@
             </tbody>
         </table>
         <p><a id="mandatory-dependency">&nbsp;</a><span class="text-error"><strong>*</strong></span>&nbsp;-&nbsp;${i18nMandatoryDependency}</p>
+        </div>
     </div>
 </div>

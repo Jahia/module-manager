@@ -15,14 +15,14 @@
         <td>
             <c:if test="${isStudio}">
                 <c:url var="urlDetails" value="${url.base}/modules/${currentModule.id}.html"/>
-                <button title="${i18nModuleDetails}" class="btn btn-info" type="button" onclick='window.location.assign("${urlDetails}")'>
+                <button data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${i18nModuleDetails}" class="btn btn-info" type="button" onclick='window.location.assign("${urlDetails}")'>
                     <i class="material-icons">info_outline</i>
                 </button>
             </c:if>
             <c:if test="${not isStudio}">
                 <form style="margin: 0;" action="${flowExecutionUrl}" method="POST">
                     <input type="hidden" name="selectedModule" value="${entry.key}"/>
-                    <button title="${i18nModuleDetails}" class="btn btn-info" type="submit" name="_eventId_viewDetails" onclick="">
+                    <button data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${i18nModuleDetails}" class="btn btn-info" type="submit" name="_eventId_viewDetails" onclick="">
                         <i class="material-icons">info_outline</i>
                     </button>
                 </form>
@@ -46,31 +46,37 @@
                 </c:if>
             </c:forEach>
             <c:if test="${not empty availableUpdates[entry.key] and not functions:contains(systemSiteRequiredModules,entry.key)}">
-                <br/>
-                <fmt:message key="serverSettings.manageModules.updateAvailable">
+
+                <fmt:message key="serverSettings.manageModules.updateAvailable" var="updateMessage">
                 	<fmt:param value="${availableUpdates[entry.key].version}"/>
                 </fmt:message>
-                <form style="display: inline-block; margin: 0;" action="${flowExecutionUrl}" method="POST" onsubmit="workInProgress('${i18nWaiting}');">
-                    <div class="form-group">
-                        <div class="checkbox">
-                             <label class="control-label" for="moduleAutoStartVersion">
-                                 <input id="moduleAutoStart" type="checkbox" name="moduleAutoStart" ${developmentMode ? 'checked="checked"' : ''}/>
-                                 <fmt:message key="serverSettings.manageModules.upload.autoStart"/>
-                             </label>
-                         </div>
-                
-                        <input type="hidden" name="forgeId" value="${availableUpdates[entry.key].forgeId}"/>
-                        <input type="hidden" name="moduleUrl" value="${availableUpdates[entry.key].downloadUrl}"/>
-                        <fmt:message key="serverSettings.manageModules.download" var="downloadNewVersion"/>
-                        <button title="${downloadNewVersion}" style="display: inline-block;" class="btn btn-sm button-download" type="submit" name="_eventId_installModule" onclick="">
-                            <i class="material-icons">system_update_alt</i>
-                        </button>
+            <form action="${flowExecutionUrl}" method="POST" onsubmit="workInProgress('${i18nWaiting}');"
+                  class="form-inline">
+                <div class="form-group">
+                    <button data-toggle="tooltip" data-placement="bottom" title=""
+                            data-original-title="${updateMessage}" class="btn btn-sm button-download" type="submit"
+                            name="_eventId_installModule">
+                        <i class="material-icons">new_releases</i>
+                        <i class="material-icons">system_update_alt</i>
+                    </button>
+                </div>
+                <fmt:message key="serverSettings.manageModules.upload.autoStart" var="autoStartMessage"/>
+                <div class="form-group">
+                    <div class="checkbox" data-toggle="tooltip" data-placement="bottom" title=""
+                         data-original-title="${autoStartMessage}" >
+                        <label class="control-label" for="moduleAutoStart>${entry.key}">
+                            <input  id="moduleAutoStart>${entry.key}" type="checkbox"
+                                   name="moduleAutoStart" ${developmentMode ? 'checked="checked"' : ''}/>
+                        </label>
                     </div>
-                </form>
+
+                    <input type="hidden" name="forgeId" value="${availableUpdates[entry.key].forgeId}"/>
+                    <input type="hidden" name="moduleUrl" value="${availableUpdates[entry.key].downloadUrl}"/>
+                </div>
+            </form>
 
             </c:if>
         </td>
-
 
         <c:if test="${not isStudio}">
             <c:if test="${empty currentModule}">
@@ -97,7 +103,7 @@
                     <c:when test="${not empty currentModule.sourcesFolder}">
                         <c:url var="urlToStudio" value="/cms/studio/default/${currentResource.locale}/modules/${currentModule.id}.html"/>
                         <fmt:message key="serverSettings.manageModules.goToStudio" var="goToStudio"/>
-                        <button title="${goToStudio}" class="btn btn-sm" type="button" onclick='window.parent.location.assign("${urlToStudio}")'>
+                        <button data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${goToStudio}" class="btn btn-sm" type="button" onclick='window.parent.location.assign("${urlToStudio}")'>
                             <i class="material-icons">code</i>
                         </button>
                     </c:when>
@@ -116,7 +122,7 @@
                                 <input type="hidden" name="scmUri" value="${currentModule.scmURI}"/>
                                 <input type="hidden" name="version" value="${currentModule.version}"/>
                                 <input type="hidden" name="branchOrTag" value="${currentModule.scmTag}"/>
-                                <button title="${i18nDownloadSources}" class="btn btn-sm button-download" type="submit" name="_eventId_downloadSources" onclick="">
+                                <button data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${i18nDownloadSources}" class="btn btn-sm button-download" type="submit" name="_eventId_downloadSources" onclick="">
                                     <i class="material-icons">file_download</i>
                                 </button>
                             </form>
@@ -130,7 +136,7 @@
                                     <input type="hidden" name="scmUri" value="${defaultVersion.scmURI}"/>
                                     <input type="hidden" name="version" value="${defaultVersion.version}"/>
                                     <input type="hidden" name="branchOrTag" value="${defaultVersion.scmTag}"/>
-                                    <button title="${i18nDownloadSources}" class="btn btn-sm button-download" type="submit" name="_eventId_downloadSources" onclick="">
+                                    <button data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${i18nDownloadSources}" class="btn btn-sm button-download" type="submit" name="_eventId_downloadSources" onclick="">
                                         <i class="material-icons">file_download</i>
                                     </button>
                                 </form>
@@ -145,7 +151,7 @@
                         <form style="display: inline-block; margin: 0;" action="${flowExecutionUrl}" method="POST">
                             <input type="hidden" name="module" value="${entry.key}"/>
                             <input type="hidden" name="scmUri" value="scm:git:"/>
-                            <button title="${i18nDownloadSources}" class="btn btn-sm btn-block" type="submit" name="_eventId_viewDownloadForm" onclick="">
+                            <button data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${i18nDownloadSources}" class="btn btn-sm btn-block" type="submit" name="_eventId_viewDownloadForm" onclick="">
                                 <i class="material-icons">file_download</i>
                             </button>
                         </form>
@@ -165,7 +171,7 @@
                             <input type="hidden" name="groupId" value="${currentModule.groupId}"/>
                             <input type="hidden" name="version" value="${currentModule.version}"/>
                             <input type="hidden" name="srcPath" value="${currentModule.sourcesFolder.path}"/>
-                            <button title="${i18nDuplicateModule}" class="btn btn-sm button-download" type="submit" name="_eventId_duplicateModuleForm">
+                            <button data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${i18nDuplicateModule}" class="btn btn-sm button-download" type="submit" name="_eventId_duplicateModuleForm">
                                 <i class="material-icons">content_copy</i>
                             </button>
                         </form>
@@ -177,7 +183,7 @@
                             <input type="hidden" name="groupId" value="${defaultVersion.groupId}"/>
                             <input type="hidden" name="version" value="${defaultVersion.version}"/>
                             <input type="hidden" name="srcPath" value="${defaultVersion.sourcesFolder.path}"/>
-                            <button title="${i18nDuplicateModule}" class="btn btn-sm button-download" type="submit" name="_eventId_duplicateModuleForm">
+                            <button data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${i18nDuplicateModule}" class="btn btn-sm button-download" type="submit" name="_eventId_duplicateModuleForm">
                                 <i class="material-icons">content_copy</i>
                             </button>
                         </form>
@@ -191,7 +197,7 @@
                                 <input type="hidden" name="version" value="${currentModule.version}"/>
                                 <input type="hidden" name="scmUri" value="${currentModule.scmURI}"/>
                                 <input type="hidden" name="branchOrTag" value="${currentModule.scmTag}"/>
-                                <button title="${i18nDuplicateModule}" class="btn btn-sm button-download" type="submit" name="_eventId_downloadTempSources">
+                                <button data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${i18nDuplicateModule}" class="btn btn-sm button-download" type="submit" name="_eventId_downloadTempSources">
                                     <i class="material-icons">content_copy</i>
                                 </button>
                             </form>
@@ -206,7 +212,7 @@
                                 <input type="hidden" name="version" value="${defaultVersion.version}"/>
                                 <input type="hidden" name="scmUri" value="${defaultVersion.scmURI}"/>
                                 <input type="hidden" name="branchOrTag" value="${defaultVersion.scmTag}"/>
-                                <button title="${i18nDuplicateModule}" class="btn btn-sm button-download" type="submit" name="_eventId_downloadTempSources">
+                                <button data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${i18nDuplicateModule}" class="btn btn-sm button-download" type="submit" name="_eventId_downloadTempSources">
                                     <i class="material-icons">content_copy</i>
                                 </button>
                             </form>

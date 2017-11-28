@@ -98,25 +98,26 @@
 </ul>
 
 <div class="tab-content">
-    <div id="moduleDetailsModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="moduleDetailsModalLabel" aria-hidden="true" style="width:960px; margin-left:-480px;">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h3 id="moduleDetailsModalLabel"><fmt:message key="serverSettings.manageModules.details"/></h3>
-        </div>
-        <div class="modal-body" style="padding:0; height:480px; max-height:480px">
-            <iframe id="modalframe" frameborder="0" style="width:100%; height:99%"></iframe>
-        </div>
-    </div>
-        
+
     <div class="panel panel-default">
         <div class="panel-body">
-            <div class="well well-sm">
+            <div id="moduleDetailsModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="moduleDetailsModalLabel" style="width:960px; margin-left:40px;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h3 id="moduleDetailsModalLabel"><fmt:message key="serverSettings.manageModules.details"/></h3>
+                    </div>
+                    <div class="modal-body" style="padding:0; height:480px; max-height:480px">
+                        <iframe id="modalframe" frameborder="0" style="width:100%; height:99%"></iframe>
+                    </div>
+                    </div>
+            </div>
+            <div class="checkbox">
                 <label for="globalModuleAutoStart">
-                    <fmt:message key="serverSettings.manageModules.download.autoStart"/>&nbsp;
                     <input type="checkbox" name="globalModuleAutoStart" id="globalModuleAutoStart" ${developmentMode ? 'checked="checked"' : ''}/>
+                    <fmt:message key="serverSettings.manageModules.download.autoStart"/>&nbsp;
                 </label>
             </div>
-        
             <table class="table table-bordered table-striped table-hover" id="${moduleTableId}">
                 <thead>
                 <tr>
@@ -168,11 +169,12 @@
                                         <fmt:message key="serverSettings.manageModules.module.alreadyInstalled" />
                                     </c:when>
                                     <c:otherwise>
+                                        <fmt:message key="serverSettings.manageModules.download" var="downloadLabel"/>
                                         <form style="margin: 0;" action="${flowExecutionUrl}" method="POST" onsubmit="this.elements.namedItem('moduleAutoStart').value=document.getElementById('globalModuleAutoStart').checked; workInProgress('${i18nWaiting}');">
                                             <input type="hidden" name="forgeId" value="${module.forgeId}"/>
                                             <input type="hidden" name="moduleUrl" value="${module.downloadUrl}"/>
                                             <input type="hidden" name="moduleAutoStart" value="${developmentMode}"/>
-                                            <button class="btn btn-block button-download" type="submit" name="_eventId_installForgeModule">
+                                            <button data-toggle="tooltip" data-placement="bottom" title="${downloadLabel}" data-original-title="" class="btn btn-block button-download" type="submit" name="_eventId_installForgeModule">
                                                 <i class="material-icons">file_download</i>
                                             </button>
                                         </form>

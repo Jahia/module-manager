@@ -6,11 +6,15 @@
                                 <p><fmt:message key='serverSettings.manageModules.module.depends'/>: ${functions:join(moduleState.unresolvedDependencies, ', ')}</p>
                             </c:if>
                             <c:if test="${moduleState.canBeStarted || moduleState.canBeStopped || moduleState.canBeUninstalled}" var="actionsAllowed">
-                                <form style="margin: 0;" action="${flowExecutionUrl}" method="post" onsubmit="workInProgress('${i18nWaiting}');">
+                                <c:set var="moduleLabel">
                                     <c:if test="${displayVersionAndState}">
                                         &nbsp;${version.key}
                                         (<fmt:message key="serverSettings.manageModules.module.state.${fn:toLowerCase(version.value.state.state)}"/>)
                                     </c:if>
+                                </c:set>
+                                <form class="form-inline" action="${flowExecutionUrl}" method="post" onsubmit="workInProgress('${i18nWaiting}');">
+                                    <label>${moduleLabel}</label>
+
 
                                     <input type="hidden" name="module" value="${version.value.id}"/>
                                     <input type="hidden" name="version" value="${version.key}"/>
@@ -18,12 +22,12 @@
                                         <fmt:message key="serverSettings.manageModules.module.unresolvedDependencies" var="i18nUnresolvedDependencies">
                                             <fmt:param value="${unresolvedDependencies}"/>
                                         </fmt:message>
-                                        <button title="${i18nModuleStart}" style="display: inline-block;" class="btn btn-sm btn-success" type="submit" disabled="true" title="${fn:escapeXml(i18nUnresolvedDependencies)}">
+                                        <button  data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${i18nModuleStart}" style="display: inline-block;" class="btn btn-sm btn-success" type="submit" disabled="true" title="${fn:escapeXml(i18nUnresolvedDependencies)}">
                                             <i class="material-icons">play_arrow</i>
                                         </button>
                                     </c:if>
                                     <c:if test="${moduleState.canBeStarted}">
-                                        <button title="${i18nModuleStart}" style="display: inline-block;" class="btn btn-sm btn-success" type="submit" name="_eventId_startModule" onclick="">
+                                        <button data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${i18nModuleStart}" style="display: inline-block;" class="btn btn-sm btn-success" type="submit" name="_eventId_startModule" onclick="">
                                             <i class="material-icons">play_arrow</i>
                                         </button>
                                     </c:if>
@@ -37,13 +41,13 @@
                                             </fmt:message></c:set>
                                         </c:if>
 
-                                        <button title="${i18nModuleStop}" class="btn btn-sm btn-danger" type="submit" name="_eventId_stopModule"
+                                        <button data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${i18nModuleStop}" class="btn btn-sm btn-danger" type="submit" name="_eventId_stopModule"
                                             onclick="return confirm('${functions:escapeJavaScript(i18nModuleStopConfirm)}${' '}${functions:escapeJavaScript(i18nContinue)}');">
                                             <i class="material-icons">stop</i>
                                         </button>
                                     </c:if>
                                     <c:if test="${moduleState.canBeReinstalled}">
-                                        <button title="${i18nModuleReinstall}" class="btn btn-sm" type="submit" name="_eventId_updateModule" >
+                                        <button data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${i18nModuleReinstall}" class="btn btn-sm" type="submit" name="_eventId_updateModule" >
                                             <i class="material-icons">rotate_90_degrees_ccw</i>
                                         </button>
                                     </c:if>
@@ -51,7 +55,7 @@
                                         <fmt:message key="serverSettings.manageModules.undeployModule.confirm" var="i18nModuleUndeployConfirm">
                                             <fmt:param value="${version.value.name} (${version.key})"/>
                                         </fmt:message>
-                                        <button title="${i18nModuleUndeploy}" class="btn btn-sm" type="submit" name="_eventId_undeployModule"
+                                        <button data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${i18nModuleUndeploy}" class="btn btn-sm" type="submit" name="_eventId_undeployModule"
                                             onclick="return confirm('${functions:escapeJavaScript(i18nModuleUndeployConfirm)}${' '}${functions:escapeJavaScript(i18nContinue)}');">
                                             <i class="material-icons">delete</i>
                                         </button>
@@ -62,10 +66,10 @@
                                     <c:set value="${version.value.dependentModulesWithVersion}" var="dependentModulesWithVersion"/>
                                     </c:if>
                                     <c:if test="${not empty moduleDependenciesWithVersion or not empty dependentModulesWithVersion}">
-                                        <button class="btn btn-sm" type="button" title="${fn:escapeXml(i18nModuleWiring)}" onclick="$('#wiringInfo${bundleId}').toggle(100);return false;">
+                                        <button class="btn btn-sm" type="button" data-toggle="tooltip" data-placement="bottom" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="" data-original-title="${fn:escapeXml(i18nModuleWiring)}" onclick="$('#wiringInfo${bundleId}').toggle(100);return false;">
                                             <i class="material-icons">autorenew</i>
                                         </button>
-                                        <button title="${i18nRefresh}" class="btn btn-sm" type="submit" name="_eventId_refreshModule" id="refresh${bundleId}" style="display: none;">
+                                        <button data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${i18nRefresh}" class="btn btn-sm" type="submit" name="_eventId_refreshModule" id="refresh${bundleId}" style="display: none;">
                                             <i class="material-icons">refresh</i>
                                         </button>
                                     </c:if>
@@ -97,7 +101,7 @@
                                             </ul>
                                         </c:if>
                                         <fmt:message key ="label.refresh" var="i18nRefresh"/><c:set var="i18nRefresh" value="${fn:escapeXml(i18nRefresh)}"/>
-                                        <button class="btn btn-sm btn-danger" type="button" title="${i18nRefresh}"
+                                        <button class="btn btn-sm btn-danger" type="button" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${i18nRefresh}"
                                                 onclick="if (confirm('${functions:escapeJavaScript(i18nModuleRefreshConfirm)}${' '}${dependentModulesWithVersion}\n${functions:escapeJavaScript(i18nContinue)}')) { $('#refresh${bundleId}').click(); };">
                                             <i class="material-icons">refresh</i>
                                         </button>
