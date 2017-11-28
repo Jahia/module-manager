@@ -63,6 +63,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -88,6 +89,7 @@ import org.jahia.services.modulemanager.ModuleManager;
 import org.jahia.services.modulemanager.ModuleNotFoundException;
 import org.jahia.services.modulemanager.OperationResult;
 import org.jahia.services.modulemanager.spi.BundleService;
+import org.jahia.settings.readonlymode.ReadOnlyModeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
@@ -249,8 +251,13 @@ public class ModuleManagerResource {
             log.error("Unable to install module. Cause: " + e.getMessage());
             throw new ClientErrorException("Unable to install module. Cause: " + e.getMessage(), Response.Status.BAD_REQUEST, e);
         } catch (Exception e) {
-            log.error("Module management exception when installing module", e);
-            throw new InternalServerErrorException("Error while installing bundle", e);
+            Throwable cause = ExceptionUtils.getRootCause(e);
+            if (cause instanceof ReadOnlyModeException) {
+                throw new ServerErrorException(cause.getMessage(), Response.Status.SERVICE_UNAVAILABLE, e);
+            } else {
+                log.error("Module management exception when installing module", e);
+                throw new InternalServerErrorException("Error while installing bundle", e);
+            }
         } finally {
             log.info("Operation completed in {} ms", System.currentTimeMillis() - startTime);
         }
@@ -280,8 +287,13 @@ public class ModuleManagerResource {
         } catch (ModuleManagementInvalidArgumentException e) {
             throw new ClientErrorException(e.getMessage(), Status.BAD_REQUEST, e);
         } catch (Exception e) {
-            log.error("Error while starting bundle " + bundleKey, e);
-            throw new InternalServerErrorException("Error while starting bundle " + bundleKey, e);
+            Throwable cause = ExceptionUtils.getRootCause(e);
+            if (cause instanceof ReadOnlyModeException) {
+                throw new ServerErrorException(cause.getMessage(), Response.Status.SERVICE_UNAVAILABLE, e);
+            } else {
+                log.error("Error while starting bundle " + bundleKey, e);
+                throw new InternalServerErrorException("Error while starting bundle " + bundleKey, e);
+            }
         }
     }
 
@@ -309,8 +321,14 @@ public class ModuleManagerResource {
         } catch (ModuleManagementInvalidArgumentException e) {
             throw new ClientErrorException(e.getMessage(), Status.BAD_REQUEST, e);
         } catch (Exception e) {
-            log.error("Error while stopping bundle " + bundleKey, e);
-            throw new InternalServerErrorException("Error while stopping bundle " + bundleKey, e);
+            Throwable cause = ExceptionUtils.getRootCause(e);
+            if (cause instanceof ReadOnlyModeException) {
+                throw new ServerErrorException(cause.getMessage(), Response.Status.SERVICE_UNAVAILABLE, e);
+            } else {
+                log.error("Error while stopping bundle " + bundleKey, e);
+                throw new InternalServerErrorException("Error while stopping bundle " + bundleKey, e);
+
+            }
         }
     }
 
@@ -338,8 +356,13 @@ public class ModuleManagerResource {
         } catch (ModuleManagementInvalidArgumentException e) {
             throw new ClientErrorException(e.getMessage(), Status.BAD_REQUEST, e);
         } catch (Exception e) {
-            log.error("Error while uninstalling bundle " + bundleKey, e);
-            throw new InternalServerErrorException("Error while uninstalling bundle " + bundleKey, e);
+            Throwable cause = ExceptionUtils.getRootCause(e);
+            if (cause instanceof ReadOnlyModeException) {
+                throw new ServerErrorException(cause.getMessage(), Response.Status.SERVICE_UNAVAILABLE, e);
+            } else {
+                log.error("Error while uninstalling bundle " + bundleKey, e);
+                throw new InternalServerErrorException("Error while uninstalling bundle " + bundleKey, e);
+            }
         }
     }
 
