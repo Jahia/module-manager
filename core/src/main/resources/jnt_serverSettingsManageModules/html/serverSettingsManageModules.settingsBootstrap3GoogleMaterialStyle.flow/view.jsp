@@ -128,22 +128,32 @@
                     <fmt:message key="serverSettings.manageModules.upload.force.info"/>
                 </div>
             </c:if>
-            <div class="form-group is-empty is-fileinput label-floating">
-                <input type="file" id="moduleFileUpload" name="moduleFile"/>
-                <div class="input-group">
-                    <label class="control-label"><fmt:message key="serverSettings.manageModules.upload.module"/></label>
-                    <input class="form-control" type="text" readonly/>
-                        <span class="input-group-btn">
-                            <button class="btn btn-sm btn-primary">
-                                <fmt:message key='label.chooseFile'/>
-                            </button>
-                            <button class="btn btn-sm btn-primary" type="submit" name="_eventId_upload">
-                                <fmt:message key='label.upload'/>
-                            </button>
-                    </span>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group is-empty is-fileinput label-floating">
+                        <input type="file" id="moduleFileUpload" name="moduleFile"/>
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="material-icons">touch_app</i></span>
+                            <label class="control-label"><fmt:message key="serverSettings.manageModules.upload.module"/></label>
+                            <input class="form-control" type="text" readonly>
+                        </div>
+                        <span class="material-input"></span>
+                    </div>
                 </div>
-                <span class="material-input"></span>
+                <div class="col-md-2">
+                    <div class="form-group is-empty label-floating">
+                        <div class="input-group">
+                            <span class="input-group-btn">
+                                <button class="btn btn-sm btn-primary" type="submit" name="_eventId_upload">
+                                    <fmt:message key='label.upload'/>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
             </div>
+
             <div class="form-group">
                 <div class="checkbox">
                     <label for="moduleAutoStart">
