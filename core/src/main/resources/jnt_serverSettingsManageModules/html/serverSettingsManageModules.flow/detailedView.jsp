@@ -44,20 +44,32 @@
             resizable: false,
             height:250,
             modal: true,
-            buttons: {
-                "<fmt:message key='serverSettings.manageModules.module.disable.purgeContent.button.yes'/>": function() {
-                    $('#'+selectedForm + ' input[name=purge]').val(true);
-                    $('#'+selectedForm).submit();
-                    $( this ).dialog( "close" );
+            open: function(event, ui) {
+                $('#cancelDialog').focus();
+            },
+            buttons: [
+                {
+                    text: "<fmt:message key='serverSettings.manageModules.module.disable.purgeContent.button.yes'/>",
+                    click: function() {
+                        $('#'+selectedForm + ' input[name=purge]').val(true);
+                        $('#'+selectedForm).submit();
+                        $( this ).dialog( "close" );
+                    }
                 },
-                "<fmt:message key='serverSettings.manageModules.module.disable.purgeContent.button.no'/>": function() {
-                    $('#'+selectedForm).submit();
-                    $( this ).dialog( "close" );
+                {
+                    text: "<fmt:message key='serverSettings.manageModules.module.disable.purgeContent.button.no'/>",
+                    click: function () {
+                        $('#' + selectedForm).submit();
+                        $(this).dialog("close");
+                    }
                 },
-                "<fmt:message key='label.cancel'/>": function() {
-                    $( this ).dialog( "close" );
-                }
-            }
+                {
+                    id: "cancelDialog",
+                    text: "<fmt:message key='label.cancel'/>",
+                    click: function() {
+                        $(this).dialog("close");
+                    }
+                }]
         });
         $(".disable-button").click(function() {
             selectedForm = 'disable' + $(this).attr('id').replace("disableButton-","");
