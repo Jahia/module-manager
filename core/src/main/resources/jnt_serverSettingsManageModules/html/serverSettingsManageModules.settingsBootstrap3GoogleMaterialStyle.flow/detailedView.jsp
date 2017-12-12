@@ -41,15 +41,15 @@
         $("#disable-confirm").dialog({
             autoOpen: false,
             resizable: false,
-            height:200,
+            height:300,
             modal: true,
             buttons: {
-                "<fmt:message key='label.yes'/>": function() {
+                "<fmt:message key='serverSettings.manageModules.module.disable.purgeContent.button.yes'/>": function() {
                     $('#'+selectedForm + ' input[name=purge]').val(true);
                     $('#'+selectedForm).submit();
                     $( this ).dialog( "close" );
                 },
-                "<fmt:message key='label.no'/>": function() {
+                "<fmt:message key='serverSettings.manageModules.module.disable.purgeContent.button.no'/>": function() {
                     $('#'+selectedForm).submit();
                     $( this ).dialog( "close" );
                 },
