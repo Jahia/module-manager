@@ -56,8 +56,8 @@
 
             var customOptions = {"fnStateSave": function(oSettings, oData) { save_dt_view(oSettings, oData); },
                     "fnStateLoad": function(oSettings) { return load_dt_view(oSettings); }};
-            
-            dataTablesSettings.init(tableId, 25,  [], true, 
+
+            dataTablesSettings.init(tableId, 25,  [], true,
             	function (o) {
                     // auto scroll to top on paginate
                     if ( o._iDisplayStart != oldStart ) {
@@ -65,11 +65,11 @@
                         $('html,body').animate({scrollTop: targetOffset}, 350);
                         oldStart = o._iDisplayStart;
                     }
-                }, 
+                },
                 customOptions);
 
             var refreshModulesButton = $("<button title='${i18nRefreshModules}' class='btn btn-sm'><i class='material-icons'>refresh</i></button>");
-            
+
             refreshModulesButton.on('click', function(){
                 $("#reloadModulesForm").submit();
             });
@@ -119,7 +119,7 @@
                 </c:if>
                 <c:if test="${message.source eq 'moduleExists'}">
                     <c:set var="forceUpdateDisplay" value="true"/>
-    
+
                 </c:if>
             </c:forEach>
             <c:if test="${forceUpdateDisplay eq 'true'}">
@@ -145,7 +145,7 @@
                     <div class="form-group is-empty label-floating">
                         <div class="input-group">
                             <span class="input-group-btn">
-                                <button class="btn btn-sm btn-primary" type="submit" name="_eventId_upload">
+                                <button class="btn btn-primary" type="submit" name="_eventId_upload">
                                     <fmt:message key='label.upload'/>
                                 </button>
                             </span>
@@ -173,7 +173,7 @@
 
         </form:form>
         <%@include file="common/moduleLabels.jspf" %>
-        <table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered" id="${moduleTableId}">
+        <table cellpadding="0" cellspacing="0" border="0" class="table table-bordered" id="${moduleTableId}">
             <thead>
             <tr>
                 <th><fmt:message key='serverSettings.manageModules.moduleName'/></th>
