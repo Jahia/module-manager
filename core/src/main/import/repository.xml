@@ -61,7 +61,6 @@
                                   jcr:mixinTypes="jmix:rbTitle"
                                   jcr:primaryType="jnt:template">
                             <manageModules j:applyOn="jnt:globalSettings"
-                                 j:modulePriority="1"
                                  j:defaultTemplate="false"
                                  j:hiddenTemplate="false"
                                  j:icon="/modules/module-manager/templates/files/serveradmin/system_x0020_components/modules/modules.png"
@@ -83,7 +82,6 @@
                                   jcr:mixinTypes="jmix:rbTitle"
                                   jcr:primaryType="jnt:template">
                             <manageModules-jahia-anthracite j:applyOn="jnt:globalSettings"
-                                 j:modulePriority="0"
                                  j:defaultTemplate="false"
                                  j:hiddenTemplate="false"
                                  j:icon="/modules/module-manager/templates/files/serveradmin/system_x0020_components/modules/modules.png"
