@@ -145,7 +145,7 @@
                         <td> ${module.version}</td>
                         <c:url value="${module.remoteUrl}" context="/" var="remoteUrl"/>
                         <td>
-                            <a data-toggle="modal" role="button" class="btn btn-info" type="button" data-target="#moduleDetailsModal" onclick="$('#modalframe').attr('src', '${remoteUrl}')">
+                            <a data-toggle="modal" role="button" class="btn btn-fab btn-fab-xs btn-info" type="button" data-target="#moduleDetailsModal" onclick="$('#modalframe').attr('src', '${remoteUrl}')">
                                 <i class="material-icons">info_outline</i>
                             </a>
                         <td>
@@ -174,7 +174,7 @@
                                             <input type="hidden" name="forgeId" value="${module.forgeId}"/>
                                             <input type="hidden" name="moduleUrl" value="${module.downloadUrl}"/>
                                             <input type="hidden" name="moduleAutoStart" value="${developmentMode}"/>
-                                            <button data-toggle="tooltip" data-placement="bottom" title="${downloadLabel}" data-original-title="" class="btn btn-block button-download" type="submit" name="_eventId_installForgeModule">
+                                            <button data-toggle="tooltip" data-placement="bottom" title="${downloadLabel}" data-original-title="" class="btn btn-fab btn-fab-xs button-download" type="submit" name="_eventId_installForgeModule">
                                                 <i class="material-icons">file_download</i>
                                             </button>
                                         </form>
