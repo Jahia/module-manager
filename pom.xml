@@ -54,7 +54,7 @@
         <relativePath />
     </parent>
     <artifactId>module-manager-parent</artifactId>
-    <version>1.1.2</version>
+    <version>1.1.3-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Module Manager Parent</name>
     <description>DX Module Management module</description>
@@ -62,7 +62,7 @@
         <connection>scm:git:git@github.com:Jahia/module-manager.git</connection>
         <developerConnection>scm:git:git@github.com:Jahia/module-manager.git</developerConnection>
         <url>scm:git:git@github.com:Jahia/module-manager.git</url>
-        <tag>1_1_2</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <repositories>
