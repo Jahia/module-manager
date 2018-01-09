@@ -28,7 +28,7 @@
         GNU General Public License for more details.
 
         You should have received a copy of the GNU General Public License
-        along with this program. If not, see <http://www.gnu.org/licenses/>.
+        along with this program. If not, see <http://www.gnu.org/licenses />.
 
 
         2/ JSEL - Commercial and Supported Versions of the program
@@ -50,11 +50,11 @@
     <parent>
         <groupId>org.jahia.modules</groupId>
         <artifactId>jahia-modules</artifactId>
-        <version>7.2.2.0-SNAPSHOT</version>
+        <version>7.2.2.0</version>
         <relativePath />
     </parent>
     <artifactId>module-manager-parent</artifactId>
-    <version>1.1.2-SNAPSHOT</version>
+    <version>1.1.2</version>
     <packaging>pom</packaging>
     <name>Module Manager Parent</name>
     <description>DX Module Management module</description>
@@ -62,7 +62,7 @@
         <connection>scm:git:git@github.com:Jahia/module-manager.git</connection>
         <developerConnection>scm:git:git@github.com:Jahia/module-manager.git</developerConnection>
         <url>scm:git:git@github.com:Jahia/module-manager.git</url>
-        <tag>HEAD</tag>
+        <tag>1_1_2</tag>
     </scm>
 
     <repositories>
