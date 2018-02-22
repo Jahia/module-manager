@@ -43,9 +43,11 @@
  */
 package org.jahia.modules.modulemanager.rest.filters;
 
+import org.apache.shiro.subject.Subject;
 import org.jahia.services.content.JCRSessionFactory;
 import org.jahia.services.content.JCRSessionWrapper;
 import org.jahia.services.usermanager.JahiaUser;
+import org.jahia.utils.WebUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +65,7 @@ import java.io.IOException;
 import java.security.Principal;
 
 /**
- * JAX-RS Filter that filters only users that match the required permission
+ * JAX-RS Filter that filters only users that match the required permission or role.
  */
 @Priority(Priorities.AUTHENTICATION)
 public class ModuleManagerAuthenticationRequestFilter implements ContainerRequestFilter {
@@ -72,10 +74,17 @@ public class ModuleManagerAuthenticationRequestFilter implements ContainerReques
     HttpServletRequest httpServletRequest;
 
     private static final String REQUIRED_PERMISSON = "adminTemplates";
+    private static final String REQUIRED_ROLE = "toolManager";
     private static final Logger log = LoggerFactory.getLogger(ModuleManagerAuthenticationRequestFilter.class);
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
+
+        Subject subject = WebUtils.getAuthenticatedSubject(httpServletRequest);
+        if (subject != null && subject.hasRole(REQUIRED_ROLE)) {
+            // user has the required role: allow access
+            return;
+        }
 
         try {
 
