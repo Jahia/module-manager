@@ -47,6 +47,7 @@ import org.apache.shiro.subject.Subject;
 import org.jahia.services.content.JCRSessionFactory;
 import org.jahia.services.content.JCRSessionWrapper;
 import org.jahia.services.usermanager.JahiaUser;
+import org.jahia.services.usermanager.JahiaUserManagerService;
 import org.jahia.utils.WebUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,62 +71,67 @@ import java.security.Principal;
 @Priority(Priorities.AUTHENTICATION)
 public class ModuleManagerAuthenticationRequestFilter implements ContainerRequestFilter {
 
+    private static final Logger log = LoggerFactory.getLogger(ModuleManagerAuthenticationRequestFilter.class);
+
+    private static final String REQUIRED_PERMISSON = "adminTemplates";
+
+    private static final String REQUIRED_ROLE = "toolManager";
+
     @Context
     HttpServletRequest httpServletRequest;
 
-    private static final String REQUIRED_PERMISSON = "adminTemplates";
-    private static final String REQUIRED_ROLE = "toolManager";
-    private static final Logger log = LoggerFactory.getLogger(ModuleManagerAuthenticationRequestFilter.class);
-
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-
-        Subject subject = WebUtils.getAuthenticatedSubject(httpServletRequest);
-        if (subject != null && subject.hasRole(REQUIRED_ROLE)) {
-            // user has the required role: allow access
-            return;
-        }
-
-        try {
-
-            JCRSessionWrapper currentUserSession = JCRSessionFactory.getInstance().getCurrentUserSession();
-            final JahiaUser jahiaUser = currentUserSession.getUser();
-            if (!currentUserSession.getRootNode().hasPermission(REQUIRED_PERMISSON)) {
-                log.warn("Unauthorized access to the API by user {}", jahiaUser.getUserKey());
-                requestContext.abortWith(Response
-                        .status(Response.Status.UNAUTHORIZED)
-                        .entity(String.format("user %s is not allowed to access Module Manager HTTP API", jahiaUser.getUserKey()))
+        JahiaUser user = JCRSessionFactory.getInstance().getCurrentUser();
+        String username = JahiaUserManagerService.GUEST_USERNAME;
+        if (JahiaUserManagerService.isGuest(user)) {
+            Subject subject = WebUtils.getAuthenticatedSubject(httpServletRequest);
+            if (subject != null && subject.hasRole(REQUIRED_ROLE)) {
+                // user has the required role: allow access
+                return;
+            }
+        } else {
+            try {
+                JCRSessionWrapper currentUserSession = JCRSessionFactory.getInstance().getCurrentUserSession();
+                final JahiaUser jahiaUser = currentUserSession.getUser();
+                username = jahiaUser.getUserKey();
+                if (currentUserSession.getRootNode().hasPermission(REQUIRED_PERMISSON)) {
+                    requestContext.setSecurityContext(new SecurityContext() {
+    
+                        @Override
+                        public String getAuthenticationScheme() {
+                            return httpServletRequest.getScheme();
+                        }
+    
+                        @Override
+                        public Principal getUserPrincipal() {
+                            return jahiaUser;
+                        }
+    
+                        @Override
+                        public boolean isSecure() {
+                            return httpServletRequest.isSecure();
+                        }
+    
+                        @Override
+                        public boolean isUserInRole(String role) {
+                            return httpServletRequest.isUserInRole(role);
+                        }
+                    });
+                    
+                    return;
+                }
+            } catch (RepositoryException e) {
+                log.error("An error occurs while accessing the resource " + httpServletRequest.getRequestURI(), e);
+                requestContext.abortWith(Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .entity(String.format("an error occured %s (see server log for more detail)",
+                                e.getMessage() != null ? e.getMessage() : e))
                         .build());
             }
-
-            requestContext.setSecurityContext(new SecurityContext() {
-
-                @Override
-                public Principal getUserPrincipal() {
-                    return jahiaUser;
-                }
-
-                @Override
-                public boolean isUserInRole(String role) {
-                    return httpServletRequest.isUserInRole(role);
-                }
-
-                @Override
-                public boolean isSecure() {
-                    return httpServletRequest.isSecure();
-                }
-
-                @Override
-                public String getAuthenticationScheme() {
-                    return httpServletRequest.getScheme();
-                }
-            });
-        } catch (RepositoryException e) {
-            log.error("An error occurs while accessing the module manager API ", e);
-            requestContext.abortWith(Response
-                    .status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(String.format("an error occured %s (see server log for more detail)", e.getMessage() != null ? e.getMessage() : e))
-                    .build());
         }
+
+        log.warn("Unauthorized access to the resource {} by user {}", httpServletRequest.getRequestURI(), username);
+        requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED)
+                .entity(String.format("User %s is not allowed to access resource %s", username, httpServletRequest.getRequestURI())).build());
     }
 }
