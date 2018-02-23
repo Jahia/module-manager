@@ -71,7 +71,7 @@
                         $(this).dialog("close");
                     }
                 }]
-        });
+        }).addClass("ui-state-error");
         $(".disable-button").click(function() {
             selectedForm = 'disable' + $(this).attr('id').replace("disableButton-","");
             $( "#disable-confirm" ).dialog( "open" );
