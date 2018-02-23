@@ -37,10 +37,12 @@
 
 <template:addResources>
 <script type="text/javascript">
+    $.fn.bootstrapBtn = $.fn.button.noConflict();
     $(function() {
         var selectedForm;
         $("#disable-confirm").dialog({
             autoOpen: false,
+            closeText: "",
             resizable: false,
             height:250,
             modal: true,
