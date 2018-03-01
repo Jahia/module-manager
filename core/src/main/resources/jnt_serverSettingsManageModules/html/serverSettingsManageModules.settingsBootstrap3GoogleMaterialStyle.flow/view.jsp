@@ -55,7 +55,7 @@
             var oldStart = 0;
 
             var customOptions = {"fnStateSave": function(oSettings, oData) { save_dt_view(oSettings, oData); },
-                    "fnStateLoad": function(oSettings) { return load_dt_view(oSettings); }};
+                    "fnStateLoad": function(oSettings) { return load_dt_view(oSettings); }, "placeHolder": "refresh_modules"};
 
             dataTablesSettings.init(tableId, 25,  [], true,
             	function (o) {
@@ -68,7 +68,8 @@
                 },
                 customOptions);
 
-            var refreshModulesButton = $("<button title='${i18nRefreshModules}' class='btn btn-sm'><i class='material-icons'>refresh</i></button>");
+            var refreshModulesButton =
+                $("<button title='${i18nRefreshModules}' class='btn btn-primary'>${i18nRefreshModules}</button>");
 
             refreshModulesButton.on('click', function(){
                 $("#reloadModulesForm").submit();
