@@ -43,6 +43,21 @@
  */
 package org.jahia.modules.modulemanager.rest.filters;
 
+import java.io.IOException;
+import java.security.Principal;
+
+import javax.annotation.Priority;
+import javax.jcr.RepositoryException;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.NotAuthorizedException;
+import javax.ws.rs.Priorities;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+
+import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.subject.Subject;
 import org.jahia.services.content.JCRSessionFactory;
 import org.jahia.services.content.JCRSessionWrapper;
@@ -51,19 +66,6 @@ import org.jahia.services.usermanager.JahiaUserManagerService;
 import org.jahia.utils.WebUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Priority;
-import javax.jcr.RepositoryException;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Priorities;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-
-import java.io.IOException;
-import java.security.Principal;
 
 /**
  * JAX-RS Filter that filters only users that match the required permission or role.
@@ -80,12 +82,20 @@ public class ModuleManagerAuthenticationRequestFilter implements ContainerReques
     @Context
     HttpServletRequest httpServletRequest;
 
+    private Subject getAuthenticatedSubject() {
+        try {
+            return WebUtils.getAuthenticatedSubject(httpServletRequest);
+        } catch (AuthenticationException e) {
+            throw new NotAuthorizedException(e.getMessage(), HttpServletRequest.BASIC_AUTH);
+        }
+    }
+
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         JahiaUser user = JCRSessionFactory.getInstance().getCurrentUser();
         String username = JahiaUserManagerService.GUEST_USERNAME;
         if (JahiaUserManagerService.isGuest(user)) {
-            Subject subject = WebUtils.getAuthenticatedSubject(httpServletRequest);
+            Subject subject = getAuthenticatedSubject();
             if (subject != null && subject.hasRole(REQUIRED_ROLE)) {
                 // user has the required role: allow access
                 return;
