@@ -131,6 +131,9 @@ public class ForgeService {
                             NodeIterator ni = forgesRoot.getNodes();
                             while (ni.hasNext()) {
                                 Node n = ni.nextNode();
+                                if (!n.isNodeType("jnt:forgeServerSettings")) {
+                                    continue;
+                                }
                                 Forge f = new Forge();
                                 f.setId(n.getIdentifier());
                                 f.setUrl(n.getProperty("j:url").getString());
