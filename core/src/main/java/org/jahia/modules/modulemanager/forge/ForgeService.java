@@ -52,6 +52,7 @@ import org.jahia.bin.Jahia;
 import org.jahia.commons.Version;
 import org.jahia.services.content.JCRCallback;
 import org.jahia.services.content.JCRContentUtils;
+import org.jahia.services.content.JCRNodeWrapper;
 import org.jahia.services.content.JCRSessionWrapper;
 import org.jahia.services.content.JCRTemplate;
 import org.jahia.services.content.decorator.JCRUserNode;
@@ -169,7 +170,8 @@ public class ForgeService {
                         session.save();
                     }
                     if (!session.getNode("/settings").hasNode("forgesSettings")) {
-                        session.getNode("/settings").addNode("forgesSettings", "jnt:forgesServerSettings");
+                        JCRNodeWrapper forgesNode = session.getNode("/settings").addNode("forgesSettings", "jnt:forgesServerSettings");
+                        forgesNode.setAclInheritanceBreak(true);
                         session.save();
                     }
 
