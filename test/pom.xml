@@ -49,7 +49,7 @@
     <parent>
         <groupId>org.jahia.modules</groupId>
         <artifactId>module-manager-parent</artifactId>
-        <version>1.1.3-SNAPSHOT</version>
+        <version>1.1.4-SNAPSHOT</version>
     </parent>
     <artifactId>module-manager-test</artifactId>
     <groupId>org.jahia.test</groupId>
@@ -87,7 +87,7 @@
         <dependency>
             <groupId>org.jahia.modules</groupId>
             <artifactId>module-manager</artifactId>
-            <version>1.1.3-SNAPSHOT</version>
+            <version>1.1.4-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
