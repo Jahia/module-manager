@@ -50,7 +50,7 @@
     <parent>
         <groupId>org.jahia.modules</groupId>
         <artifactId>jahia-modules</artifactId>
-        <version>7.2.2.2-SNAPSHOT</version>
+        <version>7.2.2.1</version>
         <relativePath />
     </parent>
     <artifactId>module-manager-parent</artifactId>
