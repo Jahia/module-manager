@@ -53,6 +53,7 @@ import org.jahia.bin.Jahia;
 import org.jahia.commons.Version;
 import org.jahia.data.templates.JahiaTemplatesPackage;
 import org.jahia.data.templates.ModuleState;
+import org.jahia.data.templates.ModuleState.State;
 import org.jahia.data.templates.ModulesPackage;
 import org.jahia.exceptions.JahiaException;
 import org.jahia.modules.modulemanager.forge.ForgeService;
@@ -689,10 +690,12 @@ public class ModuleManagementFlowHandler implements Serializable {
         }
         state.setSystemDependency(systemSiteRequiredModules.contains(moduleId));
 
-        Object details = pkg.getState().getDetails();
+        ModuleState moduleState = pkg.getState();
+        State stateFlag = moduleState.getState();
+        Object details = moduleState.getDetails();
         if (registeredModules.containsKey(moduleId) && registeredModules.get(moduleId).getVersion().equals(moduleVersion)
-                && (pkg.getState().getState() == ModuleState.State.STARTED ||
-                pkg.getState().getState() == ModuleState.State.SPRING_STARTING)) {
+                && (stateFlag == ModuleState.State.STARTED ||
+                stateFlag == ModuleState.State.SPRING_STARTING)) {
             // this is the currently active version of a module
             state.setCanBeStopped(!state.isSystemDependency());
             if (details != null) {
@@ -702,30 +705,38 @@ public class ModuleManagementFlowHandler implements Serializable {
             }
         } else {
             // not currently active version of a module
-            if (pkg.getState().getState() == ModuleState.State.INCOMPATIBLE_VERSION) {
+            if (stateFlag == ModuleState.State.INCOMPATIBLE_VERSION) {
                 state.setCanBeStarted(false);
                 state.setInstalled(false);
                 state.setCanBeUninstalled(state.getUsedInSites().isEmpty() || multipleVersionsOfModuleInstalled);
                 if (details != null) {
-                    String dspMsg = Messages.getWithArgs("resources.ModuleManager", "serverSettings.manageModules.incompatibleVersion", LocaleContextHolder.getLocale(), details.toString());
+                    String dspMsg = getI18nMessage("serverSettings.manageModules.incompatibleVersion", details.toString());
                     addError(moduleVersion, errors, moduleId, dspMsg);
                 }
-            } else if (pkg.getState().getState() == ModuleState.State.ERROR_WITH_DEFINITIONS) {
+            } else if (stateFlag == ModuleState.State.ERROR_WITH_DEFINITIONS) {
                 state.setCanBeStarted(false);
                 state.setInstalled(false);
                 state.setCanBeUninstalled(state.getUsedInSites().isEmpty() || multipleVersionsOfModuleInstalled);
                 state.setCanBeReinstalled(true);
                 if (details != null) {
-                    String dspMsg = Messages.getWithArgs("resources.ModuleManager", "serverSettings.manageModules.errorWithDefinitions", LocaleContextHolder.getLocale(), details.toString());
+                    String dspMsg = getI18nMessage("serverSettings.manageModules.errorWithDefinitions", details.toString());
                     addError(moduleVersion, errors, moduleId, dspMsg);
                 }
-            } else if (pkg.getState().getState() == ModuleState.State.WAITING_TO_BE_IMPORTED) {
+            } else if (stateFlag == ModuleState.State.ERROR_WITH_RULES) {
+                state.setCanBeStarted(false);
+                state.setCanBeStopped(pkg.getBundle() != null && pkg.getBundle().getState() == Bundle.ACTIVE);
+                state.setCanBeUninstalled(state.getUsedInSites().isEmpty() || multipleVersionsOfModuleInstalled);
+                if (details != null) {
+                    String dspMsg = getI18nMessage("serverSettings.manageModules.errorWithRules", details.toString());
+                    addError(moduleVersion, errors, moduleId, dspMsg);
+                }
+            } else if (stateFlag == ModuleState.State.WAITING_TO_BE_IMPORTED) {
                 state.setCanBeStarted(false);
                 state.setCanBeUninstalled(state.getUsedInSites().isEmpty() || multipleVersionsOfModuleInstalled);
                 state.setCanBeReinstalled(true);
-                String dspMsg = Messages.getWithArgs("resources.ModuleManager", "serverSettings.manageModules.waitingToBeImported", LocaleContextHolder.getLocale());
+                String dspMsg = getI18nMessage("serverSettings.manageModules.waitingToBeImported");
                 addError(moduleVersion, errors, moduleId, dspMsg);
-            } else if (pkg.getState().getState() == ModuleState.State.SPRING_NOT_STARTED) {
+            } else if (stateFlag == ModuleState.State.SPRING_NOT_STARTED) {
                 state.setCanBeStarted(false);
                 state.setCanBeStopped(true);
                 state.setCanBeUninstalled(state.getUsedInSites().isEmpty() || multipleVersionsOfModuleInstalled);
@@ -740,6 +751,12 @@ public class ModuleManagementFlowHandler implements Serializable {
         }
 
         return state;
+    }
+
+    private String getI18nMessage(String key, Object... arguments) {
+        return arguments != null
+                ? Messages.getWithArgs("resources.ModuleManager", key, LocaleContextHolder.getLocale(), arguments)
+                : Messages.get("resources.ModuleManager", key, LocaleContextHolder.getLocale());
     }
 
     private void addError(ModuleVersion moduleVersion, Map<String, String> errors, String moduleId, String dspMsg) {
