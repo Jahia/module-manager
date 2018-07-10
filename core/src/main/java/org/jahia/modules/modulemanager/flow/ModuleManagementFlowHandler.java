@@ -738,7 +738,7 @@ public class ModuleManagementFlowHandler implements Serializable {
                 addError(moduleVersion, errors, moduleId, dspMsg);
             } else if (stateFlag == ModuleState.State.SPRING_NOT_STARTED) {
                 state.setCanBeStarted(false);
-                state.setCanBeStopped(true);
+                state.setCanBeStopped(pkg.getBundle() != null && pkg.getBundle().getState() == Bundle.ACTIVE);
                 state.setCanBeUninstalled(state.getUsedInSites().isEmpty() || multipleVersionsOfModuleInstalled);
             } else if (state.getUnresolvedDependencies().isEmpty()) {
                 // no unresolved dependencies -> can start module version
