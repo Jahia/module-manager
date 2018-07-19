@@ -50,11 +50,11 @@
     <parent>
         <groupId>org.jahia.modules</groupId>
         <artifactId>jahia-modules</artifactId>
-        <version>7.2.3.1-SNAPSHOT</version>
+        <version>7.2.3.1</version>
         <relativePath />
     </parent>
     <artifactId>module-manager-parent</artifactId>
-    <version>1.1.5-SNAPSHOT</version>
+    <version>1.1.5</version>
     <packaging>pom</packaging>
     <name>Module Manager Parent</name>
     <description>DX Module Management module</description>
@@ -62,7 +62,7 @@
         <connection>scm:git:git@github.com:Jahia/module-manager.git</connection>
         <developerConnection>scm:git:git@github.com:Jahia/module-manager.git</developerConnection>
         <url>scm:git:git@github.com:Jahia/module-manager.git</url>
-        <tag>HEAD</tag>
+        <tag>1_1_5</tag>
     </scm>
 
     <repositories>
