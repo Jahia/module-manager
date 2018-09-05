@@ -87,7 +87,7 @@
 
             $('input[id^="disableModule"]').click(function (e) {
                 e.preventDefault();
-                selectedForm = '' + $(this).attr('id').replace("disableModule-", "");
+                selectedForm = 'disableModuleForm' + $(this).attr('id').replace("disableModule-", "");
                 $("#disable-confirm").dialog("open");
             });
 
@@ -98,6 +98,7 @@
     </script>
 </template:addResources>
 
+<section class="moduleManagerContainer">
 <div id="disable-confirm" title="<fmt:message key='serverSettings.manageModules.module.disable.purgeContent.title'/>">
     <p><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span><fmt:message
             key="serverSettings.manageModules.module.disable.purgeContent.message"/></p>
@@ -109,7 +110,8 @@
 
 <div class="mg-page-header">
     <h2>
-        <button class="btn btn-primary" onclick="$('#viewInstalledModulesForm').submit()"><i class="material-icons">arrow_back</i></button>
+        <button class="btn btn-primary backBtn"
+                onclick="$('#viewInstalledModulesForm').submit()"><i class="material-icons">arrow_back</i></button>
         ${activeVersion.name}</h2>
 </div>
 
@@ -297,7 +299,7 @@
                 <h5 class="cardTitle"><fmt:message key="serverSettings.manageModules.versions"/></h5>
                 <%@include file="common/moduleLabels.jspf" %>
                 <div class="card material-table">
-                    <table class="table table-striped table-bordered table-hover no-footer">
+                    <table class="table table-striped table-bordered no-pointer no-footer">
                         <thead>
                         <tr>
                             <th style="width:33%"><fmt:message key="serverSettings.manageModules.module.version"/></th>
@@ -350,7 +352,7 @@
         </div>
 
         <div class="card material-table">
-            <table class="table table-bordered hover no-ver-margin">
+            <table class="table table-bordered no-pointer no-ver-margin">
                 <thead>
                 <tr>
                     <th style="width:33%"><fmt:message key="serverSettings.manageModules.module.site"/></th>
@@ -445,18 +447,18 @@
             <div class="row">
                 <h5 class="cardTitle"><fmt:message key="serverSettings.manageModules.module.dependencies"/></h5>
                 <c:forEach items="${activeVersion.dependencies}" var="dependency">
-                    <div>
+                    <div class="moduleChipContainer">
                         <c:if test="${isStudio and not empty dependency.sourcesFolder}">
                             <c:set var="urlDependencyDetails" value="${url.base}/modules/${dependency.id}.html"/>
-                            <button class="chip" onclick='window.location.assign("${urlDependencyDetails}")'>
-                                    ${dependency.name}
+                            <button class="moduleChip" onclick='window.location.assign("${urlDependencyDetails}")'>
+                                <span>${dependency.name}</span>
                             </button>
                         </c:if>
                         <c:if test="${not isStudio}">
                             <form style="margin: 0;" action="${flowExecutionUrl}" method="POST">
                                 <input type="hidden" name="selectedModule" value="${dependency.id}"/>
-                                <button class="chip" type="submit" name="_eventId_viewDetails" onclick="">
-                                        ${dependency.name}
+                                <button class="moduleChip" type="submit" name="_eventId_viewDetails" onclick="">
+                                    <span>${dependency.name}</span>
                                 </button>
                             </form>
                         </c:if>
@@ -468,15 +470,14 @@
             <div class="row">
                 <h5 class="cardTitle"><fmt:message key="serverSettings.manageModules.module.dependantModules"/></h5>
                 <c:forEach items="${dependantModules}" var="dependency">
-                    <div>
-                        <div>
+                        <div class="moduleChipContainer">
                             <c:if test="${isStudio}">
                                 <c:choose>
                                     <c:when test="${not empty dependency.sourcesFolder}">
                                         <c:url var="urlDependencyDetails" value="${url.base}/modules/${dependency.id}.html"/>
-                                        <button class="chip" type="button"
+                                        <button class="moduleChip" type="button"
                                                 onclick='window.location.assign("${urlDependencyDetails}")'>
-                                                ${dependency.name}
+                                            <span>${dependency.name}</span>
                                         </button>
                                     </c:when>
                                     <c:otherwise>&nbsp;</c:otherwise>
@@ -485,13 +486,12 @@
                             <c:if test="${not isStudio}">
                                 <form style="margin: 0;" action="${flowExecutionUrl}" method="POST">
                                     <input type="hidden" name="selectedModule" value="${dependency.id}"/>
-                                    <button class="chip" type="submit" name="_eventId_viewDetails" onclick="">
-                                            ${dependency.name}
+                                    <button class="moduleChip" type="submit" name="_eventId_viewDetails" onclick="">
+                                        <span>${dependency.name}</span>
                                     </button>
                                 </form>
                             </c:if>
                         </div>
-                    </div>
                 </c:forEach>
             </div>
         </c:if>
@@ -500,7 +500,7 @@
         <c:if test="${not empty nodeTypes}">
             <h5 class="cardTitle"><fmt:message key="serverSettings.manageModules.module.nodetypes"/></h5>
             <div class="card material-table">
-                <table class="table table-striped table-bordered table-hover">
+                <table class="table table-striped table-bordered no-pointer">
                     <thead>
                     <tr>
                         <th style="width:50%"><fmt:message key="serverSettings.manageModules.module.nodetype.name"/></th>
@@ -529,3 +529,5 @@
         </c:if>
     </div>
 </div>
+
+</section>

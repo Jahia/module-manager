@@ -1,37 +1,36 @@
 body {
     background: #fafafa;
-    font-family: "Roboto", sans-serif;
 }
 
-[type="checkbox"].filled-in:not(:checked) + label:after {
+.moduleManagerContainer [type="checkbox"].filled-in:not(:checked) + label:after {
     border: 2px solid #9c9c9c;
     top: 2px;
 }
 
-[type="checkbox"].filled-in:checked + label:after {
+.moduleManagerContainer [type="checkbox"].filled-in:checked + label:after {
     border: 2px solid #00bcd4;
     background-color: #00bcd4;
     top: 2px;
 }
 
-[type="checkbox"].filled-in:checked + label:before {
+.moduleManagerContainer [type="checkbox"].filled-in:checked + label:before {
     top: 2px;
 }
 
-div.material-table {
+.moduleManagerContainer div.material-table {
     padding: 0;
 }
 
-div.material-table table {
+.moduleManagerContainer div.material-table table {
     table-layout: fixed;
     margin-bottom: 0;
 }
 
-div.material-table table tbody tr {
+.moduleManagerContainer div.material-table table tbody tr {
     cursor: pointer;
 }
 
-div.material-table table tr td {
+.moduleManagerContainer div.material-table table tr td {
     padding: 0 10px 0 56px;
     height: 48px;
     font-size: 13px;
@@ -42,20 +41,20 @@ div.material-table table tr td {
     white-space: normal;
 }
 
-div.material-table table tr td a {
+.moduleManagerContainer div.material-table table tr td a {
     color: inherit;
 }
 
-div.material-table table tr td a i {
+.moduleManagerContainer div.material-table table tr td a i {
     font-size: 18px;
     color: rgba(0, 0, 0, 0.54);
 }
 
-div.material-table table tr {
+.moduleManagerContainer div.material-table table tr {
     font-size: 12px;
 }
 
-div.material-table table th {
+.moduleManagerContainer div.material-table table th {
     font-size: 12px;
     font-weight: 500;
     color: #757575;
@@ -67,142 +66,151 @@ div.material-table table th {
     outline: none !important;
 }
 
-div.material-table table tbody tr:hover {
+.moduleManagerContainer div.material-table table tbody tr:hover {
     background-color: #EEE;
 }
 
-div.material-table table th:first-child,
-div.material-table table td:first-child {
+.moduleManagerContainer div.material-table table th:first-child,
+.moduleManagerContainer div.material-table table td:first-child {
     padding: 0 0 0 24px;
 }
 
-div.material-table table th:last-child,
-div.material-table table td:last-child {
+.moduleManagerContainer div.material-table table th:last-child,
+.moduleManagerContainer div.material-table table td:last-child {
     padding: 0 14px 0 0;
 }
 
-td.dataTables_empty {
+.moduleManagerContainer td.dataTables_empty {
     text-align: center;
     text-transform: uppercase;
     font-weight: 600;
     color: rgba(0, 0, 0, 0.34) !important;
 }
 
-.material-pagination {
+.moduleManagerContainer .material-pagination {
     margin-bottom: 0;
 }
 
-.material-pagination li.disabled {
+.moduleManagerContainer .material-pagination li.disabled {
     opacity: 0.6;
 }
 
-.material-pagination li.disabled a {
+.moduleManagerContainer .material-pagination li.disabled a {
     cursor: not-allowed !important;
     pointer-events: all !important;
 }
 
-.mg-page-header h2 {
+.moduleManagerContainer .mg-page-header h2 {
     color: #504e4d;
     background-color: inherit;
 }
 
-.nav-tabs {
+.moduleManagerContainer .nav-tabs {
     background: inherit;
+    border-bottom-style: none;
 }
 
-.nav-tabs > li > a, .nav-tabs > li > a:hover, .nav-tabs > li > a:focus {
+.moduleManagerContainer .nav-tabs > li > a, .nav-tabs > li > a:hover, .nav-tabs > li > a:focus {
     color: #4b4948 !important;
 }
 
-.nav-tabs > li > a.active, .nav-tabs > li > a.active:hover, .nav-tabs > li > a.active:focus {
+.moduleManagerContainer .nav-tabs > li > a.active, .nav-tabs > li > a.active:hover, .nav-tabs > li > a.active:focus {
     border-bottom: 3px solid #007cb0 !important;
 }
 
-.nav-tabs > li > a:hover, .nav-tabs > li > a:focus {
+.moduleManagerContainer .nav-tabs > li > a:hover, .nav-tabs > li > a:focus {
     border-bottom: 3px solid #4b4948 !important;
 }
 
-.started-label {
+.moduleManagerContainer .started-label {
     background-color: transparent !important;
     color: #4CAF50;
 }
 
-.inactive-label {
+.moduleManagerContainer .inactive-label {
     color: rgba(0, 0, 0, 0.52);
 }
 
-.dataTables_filter {
+.moduleManagerContainer .dataTables_filter {
     float: left;
     text-align: left;
     margin-top: 0 !important;
 }
 
-.searchBox > div {
+.moduleManagerContainer .searchBox > div {
     width: 100%;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
 }
 
-.searchBox > div > label {
-    background: url(images/search-white.png) no-repeat left 5px center transparent;
+.moduleManagerContainer .searchBox > div > label {
+    display: inline-flex;
+    align-items: center;
     width: 100%;
+    margin: 8px 0 8px 0;
 }
 
-.searchBox > div > label > input::placeholder {
+.moduleManagerContainer .searchBox > div > label > input::placeholder {
     font-size: 15px !important;
-    margin-left: 40px !important;
 }
 
-.searchBox > div > label > input {
+.moduleManagerContainer .searchBox > div > label > input {
     width: 95% !important;
-    margin-left: 24px !important;
+    margin-left: 0 !important;
+    margin-bottom: 0 !important;
     font-size: 15px !important;
-    padding: 24px !important;
+    padding: 5px  !important;
 }
 
-.no-padding {
+.moduleManagerContainer .no-padding {
     padding: 0 !important;
 }
 
-div.row {
+.moduleManagerContainer table.no-pointer tr,th {
+    cursor: default !important;
+}
+
+.moduleManagerContainer div.row {
     margin-right: 0;
     margin-left: 0;
 }
 
-.pagination > li > a, .pagination > li > span {
+.moduleManagerContainer .pagination > li > a, .pagination > li > span {
     border: 0 solid #ddd !important;
 }
 
-.lip {
+.moduleManagerContainer .lip {
     display: inline-flex;
     margin: 10px;
 }
 
-.lip > div {
+.moduleManagerContainer .lip > div {
     margin-left: 10px;
     margin-right: 10px;
 }
 
-.dataTables_length label select {
+.moduleManagerContainer .dataTables_length label select {
     display: inline !important;
 }
 
-.dataTables_length {
+.moduleManagerContainer .dataTables_length {
     margin-top: 0 !important;
 }
 
-.dataTables_paginate ul {
+.moduleManagerContainer .dataTables_paginate ul {
     list-style-type: none !important;
     display: inline-flex;
     margin-top: 5px;
 }
 
-h5.cardTitle {
+.moduleManagerContainer h5.cardTitle {
     font-size: 16px;
     font-weight: 500;
     color: rgba(0, 0, 0, 0.52);
     margin-top: 40px;
 }
 
-.card.moduleInfoCard {
+.moduleManagerContainer .card.moduleInfoCard {
     display: inline-flex;
     flex-wrap: wrap;
     justify-content: flex-start;
@@ -210,35 +218,35 @@ h5.cardTitle {
     margin-bottom: 30px;
 }
 
-.card {
+.moduleManagerContainer .card {
     box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
     margin-bottom: 10px;
 }
 
-div.infoItem {
+.moduleManagerContainer div.infoItem {
     flex: 25%;
     margin: 4px;
 }
 
-div.infoItem > h6 {
+.moduleManagerContainer div.infoItem > h6 {
     font-size: 16px;
     font-weight: 500;
     color: rgba(0, 0, 0, 0.84);
 }
 
-.chip:hover {
+.moduleManagerContainer .chip:hover {
     background-color: rgba(0, 0, 0, 0.2);
 }
 
-.chip {
+.moduleManagerContainer .chip {
     cursor: pointer;
     background: rgb(224, 224, 224);
     color: rgb(66, 66, 66);
     border-radius: 16px;
     height: 32px;
     line-height: 33px;
-    margin: 1px 8px 1px 8px;
-    padding: 0 8px 0 8px;
+    margin: 2px 8px 2px 8px;
+    padding: 0 1px 2px 8px;
     float: left;
     box-sizing: border-box;
     max-width: 100%;
@@ -248,26 +256,53 @@ div.infoItem > h6 {
     display: inline-flex;
 }
 
-.no-ver-margin {
+.moduleManagerContainer .chip > small {
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+.moduleManagerContainer .moduleChipContainer {
+    display: inline-flex;
+}
+
+.moduleManagerContainer .moduleChip {
+    background: #e0e0e0;
+    border: none;
+    border-radius: 50px;
+    padding: 4px 14px;
+    font-weight: 500;
+    margin: 2px 4px;
+}
+
+.moduleManagerContainer .moduleChip:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.moduleManagerContainer button.chip {
+    padding-left: 8px;
+    padding-right: 8px;
+    text-align: center;
+    display:table-cell;
+    vertical-align:middle;
+}
+
+
+.moduleManagerContainer .no-ver-margin {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
 }
 
-#moduleFileUpload {
-    display: none;
-}
-
-.togglebutton > label {
+.moduleManagerContainer .togglebutton > label {
     font-size: 10pt;
 }
 
-.actions {
+.moduleManagerContainer .actions {
     position: relative;
     display: inline-flex;
     align-items: center;
 }
 
-.actions i {
+.moduleManagerContainer .actions i {
     position: relative;
     height: 24px;
     width: 24px;
@@ -289,73 +324,110 @@ div.infoItem > h6 {
     transition: background 150ms ease-in-out;
 }
 
-.refreshModule button {
+.moduleManagerContainer .refreshModule button {
     padding: 10px;
 }
 
-.actions i.startModule:hover {
+.moduleManagerContainer button.backBtn {
+    padding: 10px;
+}
+
+.moduleManagerContainer .actions i.startModule:hover {
     background: #4CAF50;
 }
 
-.actions i.stopModule:hover {
+.moduleManagerContainer .actions i.stopModule:hover {
     background: #FF5722;
 }
 
-.actions i.updateModule:hover {
+.moduleManagerContainer .actions i.updateModule:hover {
     background: #90A4AE;
 }
 
-.actions i.unpublishModule:hover {
+.moduleManagerContainer .actions i.unpublishModule:hover {
     background: #F44336;
 }
 
-.actions i.reinstallModule:hover {
+.moduleManagerContainer .actions i.reinstallModule:hover {
     background: #607D8B;
 }
 
-.no-chip i.reinstallModule {
+.moduleManagerContainer .no-chip i.reinstallModule {
     color: #607D8B;
 }
 
-.no-chip i.infoWiring {
+.moduleManagerContainer .no-chip i.infoWiring {
     color: #00A0E3;
 }
 
-.updateNotif {
+.moduleManagerContainer .updateNotif {
     background: #607D8B;
     color: #fff;
 }
 
-.autoStartModule {
+.moduleManagerContainer .autoStartModule {
     margin: 20px 0 10px 10px;
 }
 
-.devOptions {
+.moduleManagerContainer .devOptions {
     padding: 16px;
 }
 
-.devOptions span {
+.moduleManagerContainer .devOptions span {
     padding-right: 10px;
 }
 
-.cyan {
+.moduleManagerContainer .cyan {
     background-color: #00bcd4 !important;
     color: #fff !important;
 }
 
-.selectModule {
+.moduleManagerContainer .selectModule {
     margin-bottom: 12px;
 }
 
-.searchBox input.form-control {
+.moduleManagerContainer .searchBox input.form-control {
     background-image: none !important;
 }
 
-.disable-button {
-    margin-bottom: 1px !important;
+.moduleManagerContainer .disable-button {
+    margin-bottom: 8px !important;
 }
 
-.pull-item-bottom {
+.moduleManagerContainer .pull-item-bottom {
     display: flex;
     align-items: flex-end;
 }
+
+.moduleManagerContainer .checkbox {
+    padding-top: 3px;
+}
+
+.moduleManagerContainer .checkbox label {
+    margin-left: 0;
+}
+
+
+.moduleManagerContainer #moduleFilename {
+    display: inline-flex;
+    min-height: 36px;
+    align-items: center;
+}
+
+.moduleManagerContainer #moduleFilename span {
+    text-overflow: ellipsis;
+    vertical-align: middle;
+    white-space: normal;
+    word-wrap: break-word;
+    align-items: center;
+    margin-right: 8px;
+}
+
+.moduleManagerContainer .breakWord {
+    word-break: break-word;
+}
+
+.moduleManagerContainer .removeModuleUploadFile {
+    color: #F44336;
+}
+

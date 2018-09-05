@@ -42,7 +42,7 @@
 <fmt:message var="i18nSearchModule" key="serverSettings.manageModules.searchModule" />
 <fmt:message key="serverSettings.manageModules.moduleRefresh" var="i18nModuleRefresh"/>
 
-
+<section class="moduleManagerContainer">
 <div class="mg-page-header">
     <h2><fmt:message key="serverSettings.manageModules"/></h2>
 </div>
@@ -79,8 +79,7 @@
                 "sDom": "<'row'<'col-sm-12 searchBox'f>r>t<'row lip pull-right'<l><i><p>>",
                 "oLanguage": {
                     "sLengthMenu": "${i18nRowsPerPage}  _MENU_",
-
-                    "sSearch": "",
+                    "sSearch": '<i class="material-icons">search</i>',
                     "sInfo": " _START_-_END_ ${i18nOf}  _TOTAL_"
                 },
                 "sPaginationType": "simple_numbers",
@@ -169,14 +168,14 @@
             </div>
         </c:if>
     </c:forEach>
+    <div class="checkbox">
+        <label for="globalModuleAutoStart" class="autoStartModule">
+            <input type="checkbox" name="globalModuleAutoStart"
+                   id="globalModuleAutoStart" ${developmentMode ? 'checked="checked"' : ''}/>
+            <fmt:message key="serverSettings.manageModules.download.autoStart"/>&nbsp;
+        </label>
+    </div>
     <div class="card material-table">
-        <div class="checkbox">
-            <label for="globalModuleAutoStart" class="autoStartModule">
-                <input type="checkbox" name="globalModuleAutoStart"
-                       id="globalModuleAutoStart" ${developmentMode ? 'checked="checked"' : ''}/>
-                <fmt:message key="serverSettings.manageModules.download.autoStart"/>&nbsp;
-            </label>
-        </div>
         <table class="table table-bordered no-ver-margin" id="${moduleTableId}">
             <thead>
             <tr>
@@ -251,3 +250,4 @@
         </table>
     </div>
 </div>
+</section>

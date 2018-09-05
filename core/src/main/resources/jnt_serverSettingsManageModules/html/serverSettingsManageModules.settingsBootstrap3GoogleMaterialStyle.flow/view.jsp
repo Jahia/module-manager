@@ -37,6 +37,7 @@
 <fmt:message var="i18nRowsPerPage" key="serverSettings.manageModules.rowsPerPage"/>
 <fmt:message var="i18nOf" key="serverSettings.manageModules.of"/>
 
+<section class="moduleManagerContainer">
 <div class="mg-page-header">
     <h2><fmt:message key="serverSettings.manageModules"/></h2>
 </div>
@@ -75,8 +76,7 @@
                 "sDom": "<'row'<'col-sm-12 searchBox'f>r>t<'row lip pull-right'<l><i><p>>",
                 "oLanguage": {
                     "sLengthMenu": "${i18nRowsPerPage}  _MENU_",
-
-                    "sSearch": "",
+                    "sSearch": '<i class="material-icons">search</i>',
                     "sInfo": " _START_-_END_ ${i18nOf}  _TOTAL_"
                 },
                 "sPaginationType": "simple_numbers",
@@ -106,6 +106,17 @@
 
             $('#' + tableId).on('click', 'tr', function () {
                 $(this).find('td:first form').submit();
+            });
+
+            $('#moduleFileUpload').on('change',function(){
+                var moduleFilename = $(this).val().replace(/.*(\/|\\)/, '');
+                if(!!moduleFilename) {
+                    var moduleFilenameContent = '<span>' +  moduleFilename + '</span>' +
+                    '<a href="#" onclick="$(\'.selectModuleBtn\').show(); $(\'#moduleFilename\').hide(); $(\'#moduleFileUpload\').val(\'\')"><i class="material-icons removeModuleUploadFile">clear</i></a>';
+                    $('#moduleFilename').html(moduleFilenameContent);
+                    $('#moduleFilename').show();
+                    $('.selectModuleBtn').hide();
+                }
             });
 
             $('.timestamp').cuteTime({refresh: 60000});
@@ -186,15 +197,19 @@
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group is-empty label-floating selectModule">
-                        <div class="input-group">
+                        <div class="input-group breakWord">
                             <div class="input-group-btn">
-                                <label class="btn btn-primary" for="moduleFileUpload">
+                                <label class="btn btn-primary selectModuleBtn" for="moduleFileUpload">
                                     <input type="file" class="form-control-file" id="moduleFileUpload" name="moduleFile">
                                     <fmt:message key="serverSettings.manageModules.select.module"/>
                                 </label>
+                                <label id="moduleFilename" style="display: none"></label>
                             </div>
+
                         </div>
+
                     </div>
+
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
@@ -267,4 +282,4 @@
 
 <p><a id="mandatory-dependency">&nbsp;</a><span class="text-error"><strong>*</strong></span>&nbsp;-&nbsp;${i18nMandatoryDependency}
 </p>
-</div>
+</section>
