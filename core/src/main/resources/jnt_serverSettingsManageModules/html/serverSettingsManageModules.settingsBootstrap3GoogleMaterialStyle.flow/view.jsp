@@ -196,10 +196,10 @@
 
             <div class="row">
                 <div class="col-md-3">
-                    <div class="form-group is-empty label-floating selectModule">
+                    <div class="form-group is-empty label-floating selectModule text-dark">
                         <div class="input-group breakWord">
                             <div class="input-group-btn">
-                                <label class="btn btn-primary selectModuleBtn" for="moduleFileUpload">
+                                <label class="moduleManagerPrimaryBtn black-text selectModuleBtn" for="moduleFileUpload">
                                     <input type="file" class="form-control-file" id="moduleFileUpload" name="moduleFile">
                                     <fmt:message key="serverSettings.manageModules.select.module"/>
                                 </label>
@@ -211,10 +211,21 @@
                     </div>
 
                 </div>
+                <div class="col-md-1 remove no-padding">
+                    <div class="form-group is-empty label-floating text-dark">
+                        <div class="input-group">
+                             <span class="input-group-btn no-padding">
+                                 <button id="btnUpload" class="moduleManagerSecondaryBtn" type="submit" name="_eventId_upload">
+                                     <fmt:message key='label.upload'/>
+                                 </button>
+                             </span>
+                        </div>
+                    </div>
+                </div>
                 <div class="col-md-4">
-                    <div class="form-group">
+                    <div class="form-group aligned-spacing-top">
                         <div class="checkbox">
-                            <label for="moduleAutoStart">
+                            <label for="moduleAutoStart" class="black-text">
                                 <input id="moduleAutoStart" class="filled-in cyan" type="checkbox"
                                        name="moduleAutoStart" ${developmentMode ? 'checked="checked"' : ''}/>
                                 <fmt:message key="serverSettings.manageModules.upload.autoStart"/>
@@ -229,17 +240,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-5">
-                    <div class="form-group is-empty label-floating">
-                        <div class="input-group">
-                             <span class="input-group-btn">
-                                 <button id="btnUpload" class="btn cyan" type="submit" name="_eventId_upload">
-                                     <fmt:message key='label.upload'/>
-                                 </button>
-                             </span>
-                        </div>
-                    </div>
-                </div>
             </div>
         </form:form>
     </div>
@@ -248,12 +248,12 @@
 
         <table id="${moduleTableId}" class="display table table-bordered hover no-ver-margin" style="width: 100%">
             <thead>
-            <tr>
-                <th><fmt:message key='serverSettings.manageModules.moduleName'/></th>
-                <th><fmt:message key='serverSettings.manageModules.versions'/></th>
-                <th><fmt:message key='serverSettings.manageModules.status'/></th>
-                <th><fmt:message key='serverSettings.manageModules.usedInSites'/></th>
-            </tr>
+                <tr>
+                    <th><fmt:message key='serverSettings.manageModules.moduleName'/></th>
+                    <th><fmt:message key='serverSettings.manageModules.versions'/></th>
+                    <th><fmt:message key='serverSettings.manageModules.status'/></th>
+                    <th><fmt:message key='serverSettings.manageModules.usedInSites'/></th>
+                </tr>
             </thead>
             <tbody>
             <c:set var="isStudio" value="${false}"/>

@@ -169,7 +169,7 @@
         </c:if>
     </c:forEach>
     <div class="checkbox">
-        <label for="globalModuleAutoStart" class="autoStartModule">
+        <label for="globalModuleAutoStart" class="autoStartModule black-text">
             <input type="checkbox" name="globalModuleAutoStart"
                    id="globalModuleAutoStart" ${developmentMode ? 'checked="checked"' : ''}/>
             <fmt:message key="serverSettings.manageModules.download.autoStart"/>&nbsp;

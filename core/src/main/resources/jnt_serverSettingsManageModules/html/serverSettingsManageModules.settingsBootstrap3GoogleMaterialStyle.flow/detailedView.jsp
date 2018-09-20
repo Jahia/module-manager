@@ -194,7 +194,7 @@
                                     <c:when test="${not empty activeVersion.sourcesFolder}">
                                         <c:url var="urlToStudio"
                                                value="/cms/studio/${currentResource.locale}/modules/${activeVersion.id}.html"/>
-                                        <button class="btn cyan" type="button"
+                                        <button class="moduleManagerSecondaryBtn" type="button"
                                                 onclick='window.parent.location.assign("${urlToStudio}")'>
                                             <i class="icon-circle-arrow-right"></i>
                                             &nbsp;<fmt:message key='serverSettings.manageModules.goToStudio'/>
@@ -217,7 +217,7 @@
                                                         <input type="hidden" name="scmUri" value="${activeVersion.scmURI}"/>
                                                         <input type="hidden" name="version" value="${activeVersion.version}"/>
                                                         <input type="hidden" name="branchOrTag" value="${activeVersion.scmTag}"/>
-                                                        <button class="btn cyan button-download" type="submit"
+                                                        <button class="moduleManagerSecondaryBtn button-download" type="submit"
                                                                 name="_eventId_downloadSources" onclick="">
                                                             <i class="icon-download"></i>
                                                             &nbsp;${i18nDownloadSources}
@@ -235,7 +235,7 @@
                                         <form style="margin: 0;" action="${flowExecutionUrl}" method="POST">
                                             <input type="hidden" name="module" value="${activeVersion.id}"/>
                                             <input type="hidden" name="scmUri" value="scm:git:"/>
-                                            <button class="btn cyan" type="submit" name="_eventId_viewDownloadForm" onclick="">
+                                            <button class="moduleManagerSecondaryBtn" type="submit" name="_eventId_viewDownloadForm" onclick="">
                                                 <i class="icon-download"></i>
                                                 &nbsp;${i18nDownloadSources}
                                             </button>
@@ -278,7 +278,7 @@
                                             <input type="hidden" name="version" value="${activeVersion.version}"/>
                                             <input type="hidden" name="scmUri" value="${activeVersion.scmURI}"/>
                                             <input type="hidden" name="branchOrTag" value="${activeVersion.scmTag}"/>
-                                            <button class="btn cyan button-download" type="submit" name="_eventId_downloadTempSources">
+                                            <button class="moduleManagerSecondaryBtn button-download" type="submit" name="_eventId_downloadTempSources">
                                                 <i class="icon-share"></i>
                                                 &nbsp;<fmt:message key='serverSettings.manageModules.duplicateModule'/>
                                             </button>

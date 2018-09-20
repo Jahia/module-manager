@@ -1,5 +1,6 @@
 body {
     background: #fafafa;
+    font-family: Nunito Sans;
 }
 
 .moduleManagerContainer [type="checkbox"].filled-in:not(:checked) + label:after {
@@ -166,6 +167,10 @@ body {
     padding: 0 !important;
 }
 
+.moduleManagerContainer .no-font-weight {
+    font-weight: 100 !important;
+}
+
 .moduleManagerContainer table.no-pointer tr,th {
     cursor: default !important;
 }
@@ -243,8 +248,8 @@ body {
     background: rgb(224, 224, 224);
     color: rgb(66, 66, 66);
     border-radius: 16px;
-    height: 32px;
-    line-height: 33px;
+    min-height: 32px;
+    line-height: 30px;
     margin: 2px 8px 2px 8px;
     padding: 0 1px 2px 8px;
     float: left;
@@ -357,7 +362,7 @@ body {
 }
 
 .moduleManagerContainer .no-chip i.infoWiring {
-    color: #00A0E3;
+    color: #017caf;;
 }
 
 .moduleManagerContainer .updateNotif {
@@ -383,7 +388,7 @@ body {
 }
 
 .moduleManagerContainer .selectModule {
-    margin-bottom: 12px;
+    margin-bottom: 20px;
 }
 
 .moduleManagerContainer .searchBox input.form-control {
@@ -400,7 +405,7 @@ body {
 }
 
 .moduleManagerContainer .checkbox {
-    padding-top: 3px;
+    padding-top: 6px;
 }
 
 .moduleManagerContainer .checkbox label {
@@ -431,3 +436,67 @@ body {
     color: #F44336;
 }
 
+.moduleManagerPrimaryBtn {
+    background-color: #d1d7dc;
+    box-shadow: 0px 5px 1px -4px rgba(38, 38, 38, 0.4);
+    margin: 5px;
+    padding: 8px 15px;
+    min-width: 64px;
+    font-size: 16px;
+    min-height: 36px;
+    box-sizing: border-box;
+    line-height: 1.4em;
+    font-family: Nunito Sans;
+    font-weight: 400;
+    border-radius: 0;
+    text-transform: none;
+}
+
+.moduleManagerSecondaryBtn {
+    color: #F5F5F5;
+    background-color: #007cb0;
+    box-shadow: 0px 5px 1px -4px rgba(38, 38, 38, 0.4);
+    border-width: 0px;
+    margin: 5px;
+    padding: 8px 15px;
+    min-width: 64px;
+    font-size: 16px;
+    min-height: 36px;
+    box-sizing: border-box;
+    line-height: 1.4em;
+    font-family: Nunito Sans;
+    font-weight: 400;
+    border-radius: 0;
+    text-transform: none;
+}
+
+.aligned-spacing-top {
+    margin-top: 32px;
+}
+
+.black-text {
+    color: rgba(0, 0, 0, 0.87) !important;
+}
+
+.moduleManagerContainer .checkbox input[type=checkbox]:checked + .checkbox-material .check,
+.moduleManagerContainer label.checkbox-inline input[type=checkbox]:checked + .checkbox-material .check {
+    color: #017caf;
+    border-color: #017caf;
+}
+
+.moduleManagerContainer .checkbox input[type=checkbox]:checked + .checkbox-material .check:before,
+.moduleManagerContainer label.checkbox-inline input[type=checkbox]:checked + .checkbox-material .check:before {
+    color: #017caf;
+}
+
+.moduleManagerContainer .btn:not(.btn-raised).btn-primary, .input-group-btn .btn:not(.btn-raised).btn-primary {
+    color: #017caf;
+}
+
+.moduleManagerContainer .togglebutton label input[type=checkbox]:checked + .toggle:after {
+    background-color: #017caf;
+}
+
+.moduleManagerContainer .togglebutton label input[type=checkbox]:checked + .toggle {
+    background-color: rgba(2, 124, 174, 0.59);
+}
