@@ -167,6 +167,11 @@
 
 <div class="panel-body">
     <div class="card">
+        <div class="row">
+            <div class="col-md-3">
+                <p class="aligned-spacing-top-left">Upload module from file</p>
+            </div>
+        </div>
         <form:form modelAttribute="moduleFile" class="form" enctype="multipart/form-data" method="post">
             <%--onsubmit="workInProgress('${i18nWaiting}');">--%>
             <c:forEach items="${flowRequestContext.messageContext.allMessages}" var="message">

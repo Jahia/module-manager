@@ -1,6 +1,8 @@
+@import url('https://fonts.googleapis.com/css?family=Nunito+Sans:300,400,600');
+
 body {
     background: #fafafa;
-    font-family: Nunito Sans;
+    font-family: Nunito Sans !important;
 }
 
 .moduleManagerContainer [type="checkbox"].filled-in:not(:checked) + label:after {
@@ -40,6 +42,7 @@ body {
     text-overflow: ellipsis;
     vertical-align: middle;
     white-space: normal;
+    font-weight: 400;
 }
 
 .moduleManagerContainer div.material-table table tr td a {
@@ -126,6 +129,7 @@ body {
 .moduleManagerContainer .started-label {
     background-color: transparent !important;
     color: #4CAF50;
+    font-weight: 600;
 }
 
 .moduleManagerContainer .inactive-label {
@@ -220,12 +224,12 @@ body {
     flex-wrap: wrap;
     justify-content: flex-start;
     padding: 16px;
-    margin-bottom: 30px;
+    margin-bottom: 40px;
 }
 
 .moduleManagerContainer .card {
     box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
-    margin-bottom: 10px;
+    margin-bottom: 32px;
 }
 
 .moduleManagerContainer div.infoItem {
@@ -499,4 +503,12 @@ body {
 
 .moduleManagerContainer .togglebutton label input[type=checkbox]:checked + .toggle {
     background-color: rgba(2, 124, 174, 0.59);
+}
+
+.aligned-spacing-top-left{
+    padding: 24px 0px 0px 16px;
+}
+
+.paginate_button a{
+    color: #337ab7!important;
 }
