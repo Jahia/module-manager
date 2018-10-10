@@ -112,10 +112,12 @@
                 var moduleFilename = $(this).val().replace(/.*(\/|\\)/, '');
                 if(!!moduleFilename) {
                     var moduleFilenameContent = '<span>' +  moduleFilename + '</span>' +
-                    '<a href="#" onclick="$(\'.selectModuleBtn\').show(); $(\'#moduleFilename\').hide(); $(\'#moduleFileUpload\').val(\'\')"><i class="material-icons removeModuleUploadFile">clear</i></a>';
+                    '<a href="#" onclick="$(\'.selectModuleBtn\').show(); $(\'#moduleFilename\').hide(); $(\'#moduleAutoStartLabel\').hide(); $(\'#btnUpload\').hide(); $(\'#moduleFileUpload\').val(\'\')"><i class="material-icons removeModuleUploadFile">clear</i></a>';
                     $('#moduleFilename').html(moduleFilenameContent);
                     $('#moduleFilename').show();
                     $('.selectModuleBtn').hide();
+                    $('#moduleAutoStartLabel').show();
+                    $('#btnUpload').show();
                 }
             });
 
@@ -220,7 +222,8 @@
                     <div class="form-group is-empty label-floating text-dark">
                         <div class="input-group">
                              <span class="input-group-btn no-padding">
-                                 <button id="btnUpload" class="moduleManagerSecondaryBtn" type="submit" name="_eventId_upload">
+                                 <button id="btnUpload" class="moduleManagerSecondaryBtn" type="submit" name="_eventId_upload"
+                                         style="display: none">
                                      <fmt:message key='label.upload'/>
                                  </button>
                              </span>
@@ -230,7 +233,7 @@
                 <div class="col-md-4">
                     <div class="form-group aligned-spacing-top">
                         <div class="checkbox">
-                            <label for="moduleAutoStart" class="black-text">
+                            <label for="moduleAutoStart" class="black-text" id="moduleAutoStartLabel" style="display: none">
                                 <input id="moduleAutoStart" class="filled-in cyan" type="checkbox"
                                        name="moduleAutoStart" ${developmentMode ? 'checked="checked"' : ''}/>
                                 <fmt:message key="serverSettings.manageModules.upload.autoStart"/>
