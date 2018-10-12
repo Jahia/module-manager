@@ -25,6 +25,7 @@
                        resources="datatables/jquery.dataTables.js,i18n/jquery.dataTables-${currentResource.locale}.js,datatables/dataTables.bootstrap-ext.js,settings/dataTables.initializer.js"/>
 <template:addResources type="javascript" resources="jquery-ui.min.js"/>
 <template:addResources type="javascript" resources="dt-module-manager.js"/>
+<template:addResources type="css" resources="settings/nunito-sans.css"/>
 <template:addResources type="css" resources="datatables/css/bootstrap-theme.css,tablecloth.css"/>
 <template:addResources type="css" resources="manageModules.css"/>
 <template:addResources type="css" resources="mdModuleManager.css"/>
