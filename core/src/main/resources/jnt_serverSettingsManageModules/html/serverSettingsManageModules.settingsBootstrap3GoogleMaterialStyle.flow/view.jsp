@@ -18,16 +18,28 @@
 <%--@elvariable id="url" type="org.jahia.services.render.URLGenerator"--%>
 <%--@elvariable id="flowRequestContext" type="org.springframework.webflow.execution.RequestContext"--%>
 <c:set var="developmentMode" value="<%= SettingsBean.getInstance().isDevelopmentMode() %>"/>
-<template:addResources type="javascript" resources="jquery.min.js,jquery.blockUI.js,jquery.metadata.js,workInProgress.js,jquery.cuteTime.js"/>
+<template:addResources type="javascript"
+                       resources="jquery.min.js,jquery.blockUI.js,jquery.metadata.js,workInProgress.js,jquery.cuteTime.js"/>
 <template:addResources type="javascript" resources="jquery.cuteTime.settings.${currentResource.locale}.js"/>
-<template:addResources type="javascript" resources="datatables/jquery.dataTables.js,i18n/jquery.dataTables-${currentResource.locale}.js,datatables/dataTables.bootstrap-ext.js,settings/dataTables.initializer.js"/>
+<template:addResources type="javascript"
+                       resources="datatables/jquery.dataTables.js,i18n/jquery.dataTables-${currentResource.locale}.js,datatables/dataTables.bootstrap-ext.js,settings/dataTables.initializer.js"/>
+<template:addResources type="javascript" resources="jquery-ui.min.js"/>
+<template:addResources type="javascript" resources="dt-module-manager.js"/>
+<template:addResources type="css" resources="settings/nunito-sans.css"/>
 <template:addResources type="css" resources="datatables/css/bootstrap-theme.css,tablecloth.css"/>
 <template:addResources type="css" resources="manageModules.css"/>
-<fmt:message key="label.workInProgressTitle" var="i18nWaiting"/><c:set var="i18nWaiting" value="${functions:escapeJavaScript(i18nWaiting)}"/>
-<fmt:message key="serverSettings.manageModules.checkForUpdates" var="i18nRefreshModules" />
-<fmt:message var="lastUpdateTooltip" key="serverSettings.manageModules.lastUpdate"/>
+<template:addResources type="css" resources="mdModuleManager.css"/>
 
-<div class="page-header">
+<fmt:message key="label.workInProgressTitle" var="i18nWaiting"/>
+<c:set var="i18nWaiting" value="${functions:escapeJavaScript(i18nWaiting)}"/>
+<fmt:message key="serverSettings.manageModules.checkForUpdates" var="i18nRefreshModules"/>
+<fmt:message var="lastUpdateTooltip" key="serverSettings.manageModules.lastUpdate"/>
+<fmt:message var="i18nSearchModule" key="serverSettings.manageModules.searchModule"/>
+<fmt:message var="i18nRowsPerPage" key="serverSettings.manageModules.rowsPerPage"/>
+<fmt:message var="i18nOf" key="serverSettings.manageModules.of"/>
+
+<section class="moduleManagerContainer">
+<div class="mg-page-header">
     <h2><fmt:message key="serverSettings.manageModules"/></h2>
 </div>
 
@@ -38,14 +50,15 @@
         $(document).ready(function () {
             var tableId = "${moduleTableId}";
 
-            function save_dt_view (oSettings, oData) {
-                localStorage.setItem( 'DataTables_adminModulesView', JSON.stringify({id:tableId, data:oData}));
+            function save_dt_view(oSettings, oData) {
+                localStorage.setItem('DataTables_adminModulesView', JSON.stringify({id: tableId, data: oData}));
             }
-            function load_dt_view (oSettings) {
+
+            function load_dt_view(oSettings) {
                 var item = localStorage.getItem('DataTables_adminModulesView');
-                if(item){
+                if (item) {
                     var itemJSON = JSON.parse(item);
-                    if(itemJSON.data && itemJSON.id == tableId){
+                    if (itemJSON.data && itemJSON.id == tableId) {
                         return itemJSON.data;
                     }
                 }
@@ -54,13 +67,33 @@
 
             var oldStart = 0;
 
-            var customOptions = {"fnStateSave": function(oSettings, oData) { save_dt_view(oSettings, oData); },
-                    "fnStateLoad": function(oSettings) { return load_dt_view(oSettings); }, "placeHolder": "refresh_modules"};
+            var customOptions = {
+                "fnStateSave": function (oSettings, oData) {
+                    save_dt_view(oSettings, oData);
+                },
+                "fnStateLoad": function (oSettings) {
+                    return load_dt_view(oSettings);
+                },
+                "sDom": "<'row'<'col-sm-12 searchBox'f>r>t<'row lip pull-right'<l><i><p>>",
+                "oLanguage": {
+                    "sLengthMenu": "${i18nRowsPerPage}  _MENU_",
+                    "sSearch": '<i class="material-icons">search</i>',
+                    "sInfo": " _START_-_END_ ${i18nOf}  _TOTAL_"
+                },
+                "sPaginationType": "simple_numbers",
+                "bAutoWidth": false,
+                "aoColumns": [
+                    {sWidth: '38%'},
+                    {sWidth: '23%'},
+                    {sWidth: '23%'},
+                    {sWidth: '15%'}
+                ]
+            };
 
-            dataTablesSettings.init(tableId, 25,  [], true,
-            	function (o) {
+            dataTablesSettings.init(tableId, 25, [], true,
+                function (o) {
                     // auto scroll to top on paginate
-                    if ( o._iDisplayStart != oldStart ) {
+                    if (o._iDisplayStart != oldStart) {
                         var targetOffset = $('#' + tableId).offset().top;
                         $('html,body').animate({scrollTop: targetOffset}, 350);
                         oldStart = o._iDisplayStart;
@@ -68,15 +101,28 @@
                 },
                 customOptions);
 
-            var refreshModulesButton =
-                $("<button title='${i18nRefreshModules}' class='btn btn-primary'>${i18nRefreshModules}</button>");
+            $('.dataTables_filter input')
+                .attr("placeholder", "${i18nSearchModule}");
 
-            refreshModulesButton.on('click', function(){
-                $("#reloadModulesForm").submit();
+
+            $('#' + tableId).on('click', 'tr', function () {
+                $(this).find('td:first form').submit();
             });
 
-            $('.timestamp').cuteTime({ refresh: 60000 });
-            $('.refresh_modules').append(refreshModulesButton).css("float", "right").css("margin-left","10px");
+            $('#moduleFileUpload').on('change',function(){
+                var moduleFilename = $(this).val().replace(/.*(\/|\\)/, '');
+                if(!!moduleFilename) {
+                    var moduleFilenameContent = '<span>' +  moduleFilename + '</span>' +
+                    '<a href="#" onclick="$(\'.selectModuleBtn\').show(); $(\'#moduleFilename\').hide(); $(\'#moduleAutoStartLabel\').hide(); $(\'#btnUpload\').hide(); $(\'#moduleFileUpload\').val(\'\')"><i class="material-icons removeModuleUploadFile">clear</i></a>';
+                    $('#moduleFilename').html(moduleFilenameContent);
+                    $('#moduleFilename').show();
+                    $('.selectModuleBtn').hide();
+                    $('#moduleAutoStartLabel').show();
+                    $('#btnUpload').show();
+                }
+            });
+
+            $('.timestamp').cuteTime({refresh: 60000});
         });
     </script>
 </template:addResources>
@@ -88,23 +134,49 @@
     <input type="hidden" name="_eventId" value="reloadModules"/>
 </form>
 
+<%@include file="common/moduleLabels.jspf" %>
 
-<ul class="nav nav-pills">
-    <li role="presentation" class="active">
-        <a href="#"><fmt:message key="serverSettings.manageModules.installedModules"/></a>
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" id="installed-modules-tab" data-toggle="tab" href="#installed-modules" role="tab"
+           aria-controls="installed-modules"
+           aria-selected="true"><fmt:message key="serverSettings.manageModules.installedModules"/></a>
     </li>
-    <li role="presentation">
-        <a href="#" onclick="$('#viewAvailableModulesForm').submit()"><fmt:message key="serverSettings.manageModules.availableModules"/></a>
+    <li class="nav-item">
+        <a class="nav-link" id="available-modules-tab" data-toggle="tab" href="#available-modules" role="tab"
+           aria-controls="available-modules"
+           aria-selected="false" onclick="$('#viewAvailableModulesForm').submit()"><fmt:message
+                key="serverSettings.manageModules.availableModules"/></a>
     </li>
-    <li role="presentation" class="last-modules-update">
-        <span><fmt:message key="serverSettings.manageModules.lastUpdate"/>:&nbsp;<span class="timestamp"><fmt:formatDate value="${lastModulesUpdate}" pattern="yyyy/MM/dd HH:mm"/></span></span>
-    </li>
+    <span class="pull-right"><fmt:message key="serverSettings.manageModules.lastUpdate"/>:&nbsp;<span class="timestamp"><fmt:formatDate
+            value="${lastModulesUpdate}" pattern="yyyy/MM/dd HH:mm"/></span>
+        <form id="reloadModulesForm" style="display: none" action="${flowExecutionUrl}" method="POST"
+              onsubmit="workInProgress('${i18nWaiting}');">
+    <input type="hidden" name="_eventId" value="reloadModules"/>
+</form>
+        <span class="refreshModule">
+            <button class="btn btn-primary" data-toggle="tooltip" data-placement="bottom" title="${i18nModuleRefresh}"
+                    data-container="body"
+                    data-original-title="${i18nModuleRefresh}"
+                    style="display: inline-block;"
+                    data-container="body"
+                    onclick="$('#reloadModulesForm').submit()">
+                <i class="material-icons">update</i>
+          </button>
+        </span>
+    </span>
 </ul>
 
-<div class="panel panel-default">
-    <div class="panel-body">
-        <form:form modelAttribute="moduleFile" class="form" enctype="multipart/form-data" method="post"
-                   onsubmit="workInProgress('${i18nWaiting}');">
+
+<div class="panel-body">
+    <div class="card">
+        <div class="row">
+            <div class="col-md-3">
+                <p class="aligned-spacing-top-left">Upload module from file</p>
+            </div>
+        </div>
+        <form:form modelAttribute="moduleFile" class="form" enctype="multipart/form-data" method="post">
+            <%--onsubmit="workInProgress('${i18nWaiting}');">--%>
             <c:forEach items="${flowRequestContext.messageContext.allMessages}" var="message">
                 <c:if test="${message.severity eq 'INFO'}">
                     <div class="alert alert-success">
@@ -131,61 +203,66 @@
             </c:if>
 
             <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group is-empty label-floating selectModule text-dark">
+                        <div class="input-group breakWord">
+                            <div class="input-group-btn">
+                                <label class="moduleManagerPrimaryBtn black-text selectModuleBtn" for="moduleFileUpload">
+                                    <input type="file" class="form-control-file" id="moduleFileUpload" name="moduleFile">
+                                    <fmt:message key="serverSettings.manageModules.select.module"/>
+                                </label>
+                                <label id="moduleFilename" style="display: none"></label>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+                <div class="col-md-1 remove no-padding">
+                    <div class="form-group is-empty label-floating text-dark">
+                        <div class="input-group">
+                             <span class="input-group-btn no-padding">
+                                 <button id="btnUpload" class="moduleManagerSecondaryBtn" type="submit" name="_eventId_upload"
+                                         style="display: none">
+                                     <fmt:message key='label.upload'/>
+                                 </button>
+                             </span>
+                        </div>
+                    </div>
+                </div>
                 <div class="col-md-4">
-                    <div class="form-group is-empty is-fileinput label-floating">
-                        <input type="file" id="moduleFileUpload" name="moduleFile"/>
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="material-icons">touch_app</i></span>
-                            <label class="control-label"><fmt:message key="serverSettings.manageModules.upload.module"/></label>
-                            <input class="form-control" type="text" readonly>
-                        </div>
-                        <span class="material-input"></span>
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="form-group is-empty label-floating">
-                        <div class="input-group">
-                            <span class="input-group-btn">
-                                <button class="btn btn-primary" type="submit" name="_eventId_upload">
-                                    <fmt:message key='label.upload'/>
-                                </button>
-                            </span>
+                    <div class="form-group aligned-spacing-top">
+                        <div class="checkbox">
+                            <label for="moduleAutoStart" class="black-text" id="moduleAutoStartLabel" style="display: none">
+                                <input id="moduleAutoStart" class="filled-in cyan" type="checkbox"
+                                       name="moduleAutoStart" ${developmentMode ? 'checked="checked"' : ''}/>
+                                <fmt:message key="serverSettings.manageModules.upload.autoStart"/>
+                            </label>
+
+                            <c:if test="${forceUpdateDisplay eq 'true'}">
+                                <label for="moduleForceUpdate">
+                                    <input type="checkbox" class="filled-in cyan" name="moduleForceUpdate" id="moduleForceUpdate"/>
+                                    <fmt:message key="serverSettings.manageModules.upload.force"/>
+                                </label>
+                            </c:if>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <div class="form-group">
-                <div class="checkbox">
-                    <label for="moduleAutoStart">
-                        <input id="moduleAutoStart" type="checkbox"
-                               name="moduleAutoStart" ${developmentMode ? 'checked="checked"' : ''}/>
-                        <fmt:message key="serverSettings.manageModules.upload.autoStart"/>
-                    </label>
-
-                    <c:if test="${forceUpdateDisplay eq 'true'}">
-                        <label for="moduleForceUpdate">
-                            <input type="checkbox" name="moduleForceUpdate" id="moduleForceUpdate"/>
-                            <fmt:message key="serverSettings.manageModules.upload.force"/>
-                        </label>
-                    </c:if>
-                </div>
-            </div>
-
         </form:form>
-        <%@include file="common/moduleLabels.jspf" %>
-        <table cellpadding="0" cellspacing="0" border="0" class="table table-bordered" id="${moduleTableId}">
+    </div>
+
+    <div class="card material-table">
+
+        <table id="${moduleTableId}" class="display table table-bordered hover no-ver-margin" style="width: 100%">
             <thead>
-            <tr>
-                <th><fmt:message key='serverSettings.manageModules.moduleName'/></th>
-                <th class="{sorter: false}">${i18nModuleDetails}</th>
-                <th><fmt:message key='serverSettings.manageModules.versions'/></th>
-                <th><fmt:message key='serverSettings.manageModules.status'/></th>
-                <c:if test="${developmentMode}">
-                    <th><fmt:message key='serverSettings.manageModules.sources'/></th>
-                </c:if>
-                <th><fmt:message key='serverSettings.manageModules.usedInSites'/></th>
-            </tr>
+                <tr>
+                    <th><fmt:message key='serverSettings.manageModules.moduleName'/></th>
+                    <th><fmt:message key='serverSettings.manageModules.versions'/></th>
+                    <th><fmt:message key='serverSettings.manageModules.status'/></th>
+                    <th><fmt:message key='serverSettings.manageModules.usedInSites'/></th>
+                </tr>
             </thead>
             <tbody>
             <c:set var="isStudio" value="${false}"/>
@@ -209,7 +286,9 @@
             </c:forEach>
             </tbody>
         </table>
-        <p><a id="mandatory-dependency">&nbsp;</a><span class="text-error"><strong>*</strong></span>&nbsp;-&nbsp;${i18nMandatoryDependency}</p>
-        </div>
     </div>
 </div>
+
+<p><a id="mandatory-dependency">&nbsp;</a><span class="text-error"><strong>*</strong></span>&nbsp;-&nbsp;${i18nMandatoryDependency}
+</p>
+</section>
