@@ -13,7 +13,7 @@
                                         &nbsp;${version.key}
                                     </c:if>
                                 </c:set>
-                                <form class="form-inline" action="${flowExecutionUrl}" method="post" onsubmit="workInProgress('${i18nWaiting}');">
+                                <form class="form-inline" action="${flowExecutionUrl}" method="post" onsubmit="workInProgress('${i18nWaiting}'); event.stopPropagation();">
                                     <small>${moduleLabel}</small>
                                     <input type="hidden" name="module" value="${version.value.id}"/>
                                     <input type="hidden" name="version" value="${version.key}"/>
@@ -23,15 +23,17 @@
                                         </fmt:message>
                                         <button  data-toggle="tooltip" data-placement="bottom" title="" data-container="body" data-original-title="${i18nModuleStart}" style="display: inline-block;"
                                                  data-container="body"
-                                                 class="btn btn-fab btn-fab-xs btn-success" type="submit" disabled="true" title="${fn:escapeXml(i18nUnresolvedDependencies)}">
-                                            <i class="material-icons startModule">play_arrow</i>
+                                                 class="btn btn-fab btn-fab-xs btn-success" type="submit" disabled="true" title="${fn:escapeXml(i18nUnresolvedDependencies)}"
+                                                 onclick="event.stopPropagation(); return true">
+                                            <i class="material-icons startModule" on>play_arrow</i>
                                         </button>
                                     </c:if>
                                     <c:if test="${moduleState.canBeStarted}">
                                         <button data-toggle="tooltip" data-placement="bottom" title=""
                                                 data-container="body" data-original-title="${i18nModuleStart}" style="display:
                                                 inline-block;"
-                                                class="btn btn-fab btn-fab-xs btn-success" type="submit" name="_eventId_startModule" onclick="">
+                                                class="btn btn-fab btn-fab-xs btn-success" type="submit" name="_eventId_startModule"
+                                                onclick="event.stopPropagation(); return true">
                                             <i class="material-icons startModule">play_arrow</i>
                                         </button>
                                     </c:if>
@@ -47,13 +49,14 @@
 
                                         <button data-toggle="tooltip" data-placement="bottom" title="" data-container="body"
                                                 data-original-title="${i18nModuleStop}" class="btn btn-fab btn-fab-xs btn-danger" type="submit" name="_eventId_stopModule"
-                                            onclick="return confirm('${functions:escapeJavaScript(i18nModuleStopConfirm)}${' '}${functions:escapeJavaScript(i18nContinue)}');">
+                                            onclick="event.stopPropagation(); return confirm('${functions:escapeJavaScript(i18nModuleStopConfirm)}${' '}${functions:escapeJavaScript(i18nContinue)}');">
                                             <i class="material-icons stopModule">stop</i>
                                         </button>
                                     </c:if>
                                     <c:if test="${moduleState.canBeReinstalled}">
                                         <button data-toggle="tooltip" data-placement="bottom" title="" data-container="body"
-                                                data-original-title="${i18nModuleReinstall}" class="btn btn-fab btn-fab-xs" type="submit" name="_eventId_updateModule" >
+                                                data-original-title="${i18nModuleReinstall}" class="btn btn-fab btn-fab-xs" type="submit" name="_eventId_updateModule"
+                                                onclick="event.stopPropagation(); return true">
                                             <i class="material-icons reinstallModule">rotate_90_degrees_ccw</i>
                                         </button>
                                     </c:if>
@@ -64,7 +67,7 @@
                                         <button data-toggle="tooltip" data-placement="bottom" title=""
                                                 data-original-title="${i18nModuleUndeploy}" data-container="body"
                                                 class="btn btn-fab btn-danger btn-fab-xs" type="submit" name="_eventId_undeployModule"
-                                            onclick="return confirm('${functions:escapeJavaScript(i18nModuleUndeployConfirm)}${' '}${functions:escapeJavaScript(i18nContinue)}');">
+                                            onclick="event.stopPropagation(); return confirm('${functions:escapeJavaScript(i18nModuleUndeployConfirm)}${' '}${functions:escapeJavaScript(i18nContinue)}');">
                                             <i class="material-icons unpublishModule">clear</i>
                                         </button>
                                     </c:if>
@@ -79,7 +82,9 @@
                                                 data-placement="bottom" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${fn:escapeXml(i18nModuleWiring)}" onclick="$('#wiringInfo${bundleId}').toggle(100);return false;">
                                             <i class="material-icons infoWiring">info_outline</i>
                                         </button>
-                                        <button data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${i18nRefresh}" class="btn btn-fab btn-fab-xs" type="submit" name="_eventId_refreshModule" id="refresh${bundleId}" style="display: none;">
+                                        <button data-toggle="tooltip" data-placement="bottom" title="" data-original-title="${i18nRefresh}" class="btn btn-fab btn-fab-xs"
+                                                type="submit" name="_eventId_refreshModule" id="refresh${bundleId}" style="display: none;"
+                                                onclick="event.stopPropagation(); return true">
                                             <i class="material-icons">refresh</i>
                                         </button>
                                     </c:if>
