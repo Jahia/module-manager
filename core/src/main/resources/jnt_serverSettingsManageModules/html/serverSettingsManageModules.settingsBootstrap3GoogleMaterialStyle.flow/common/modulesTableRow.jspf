@@ -55,8 +55,8 @@
 
                           <button data-toggle="tooltip" data-placement="bottom" title="" data-original-title="<fmt:message key="serverSettings.manageModules.module.install"/>"
                                   data-container="body" style="display: inline-block;" class="btn btn-fab btn-fab-xs btn-success"
-                                  type="submit"
-                                  name="_eventId_installModuleOnly" onclick="">
+                                  type="submit" onclick="event.stopPropagation(); return true"
+                                  name="_eventId_installModuleOnly">
                               <i class="material-icons updateModule">play_for_work</i>
                           </button>
                       </div>
