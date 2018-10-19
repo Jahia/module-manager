@@ -337,7 +337,7 @@
                 <h5 class="cardTitle"><fmt:message key="serverSettings.manageModules.sites.management"/></h5>
             </div>
 
-            <div class="col-md-6 no-padding">
+            <div class="col-md-6 no-padding" style="flex:1">
                 <form id="disableAll" class="pull-right" style="margin: 0;" action="${flowExecutionUrl}" method="POST">
                     <input type="hidden" name="module" value="${activeVersion.id}"/>
                     <input type="hidden" name="purge" value="false"/>
