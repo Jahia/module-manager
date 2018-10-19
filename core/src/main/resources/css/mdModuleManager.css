@@ -396,12 +396,13 @@ body {
 }
 
 .moduleManagerContainer .disable-button {
-    margin-bottom: 8px !important;
+    margin-bottom: 0px !important;
 }
 
 .moduleManagerContainer .pull-item-bottom {
     display: flex;
     align-items: flex-end;
+    margin-bottom: 8px;
 }
 
 .moduleManagerContainer .checkbox label {
@@ -468,6 +469,10 @@ body {
     font-weight: 400;
     border-radius: 0;
     text-transform: none;
+}
+
+.moduleManagerSecondaryBtnDanger {
+    background-color: #d9534f;
 }
 
 .black-text {

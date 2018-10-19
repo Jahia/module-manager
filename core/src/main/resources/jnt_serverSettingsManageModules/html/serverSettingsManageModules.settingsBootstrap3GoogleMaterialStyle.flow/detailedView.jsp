@@ -212,7 +212,7 @@
                                         <c:if test="${functions:contains(sourceControls, fn:substringBefore(fn:substringAfter(activeVersion.scmURI, ':'),':'))}">
                                             <c:choose>
                                                 <c:when test="${hasStartedVersion}">
-                                                    <form style="margin: 0;" action="${flowExecutionUrl}" method="POST">
+                                                    <form action="${flowExecutionUrl}" method="POST">
                                                         <input type="hidden" name="module" value="${activeVersion.id}"/>
                                                         <input type="hidden" name="scmUri" value="${activeVersion.scmURI}"/>
                                                         <input type="hidden" name="version" value="${activeVersion.version}"/>
@@ -261,7 +261,7 @@
                                         <input type="hidden" name="groupId" value="${activeVersion.groupId}"/>
                                         <input type="hidden" name="version" value="${activeVersion.version}"/>
                                         <input type="hidden" name="srcPath" value="${activeVersion.sourcesFolder.path}"/>
-                                        <button class="btn  cyan button-download" type="submit" name="_eventId_duplicateModuleForm">
+                                        <button class="moduleManagerSecondaryBtn button-download" type="submit" name="_eventId_duplicateModuleForm">
                                             <i class="icon-share"></i>
                                             &nbsp;<fmt:message key='serverSettings.manageModules.duplicateModule'/>
                                         </button>
@@ -344,7 +344,7 @@
                     <input type="hidden" name="_eventId_disableAll" value="true"/>
                     <fmt:message var="label"
                                  key='serverSettings.manageModules.module.disable.all'/>
-                    <button class="btn btn-danger disable-button" type="button" onclick="" id="disableButton-All">
+                    <button class="moduleManagerSecondaryBtn moduleManagerSecondaryBtnDanger disable-button" type="button" onclick="" id="disableButton-All">
                         <i class="icon-ban-circle icon-white"></i>&nbsp;${label}
                     </button>
                 </form>

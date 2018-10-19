@@ -74,7 +74,7 @@
                     "fnStateLoad": function (oSettings) {
                         return load_dt_view(oSettings);
                     },
-                    "sDom": "<'row'<'col-sm-12 searchBox'f>r>t<'row lip pull-right'<l><i><p>>",
+                    "sDom": "<'row table-bordered'<'col-sm-12 searchBox'f>r>t<'row lip pull-right'<l><i><p>>",
                     "oLanguage": {
                         "sLengthMenu": "${i18nRowsPerPage}  _MENU_",
                         "sSearch": '<i class="material-icons">search</i>',
