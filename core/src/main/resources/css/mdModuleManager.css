@@ -391,10 +391,6 @@ body {
     color: #fff !important;
 }
 
-.moduleManagerContainer .selectModule {
-    margin-bottom: 20px;
-}
-
 .moduleManagerContainer .searchBox input.form-control {
     background-image: none !important;
 }
@@ -408,22 +404,22 @@ body {
     align-items: flex-end;
 }
 
-.moduleManagerContainer .checkbox {
-    padding-top: 6px;
-}
-
 .moduleManagerContainer .checkbox label {
     margin-left: 0;
+    min-height: 48px;
+    padding-top: 10px;
 }
 
 
 .moduleManagerContainer #moduleFilename {
     display: inline-flex;
-    min-height: 36px;
+    min-height: 48px;
+    margin:0;
     align-items: center;
 }
 
 .moduleManagerContainer #moduleFilename span {
+    max-width:50vw;
     text-overflow: ellipsis;
     vertical-align: middle;
     white-space: normal;
@@ -472,10 +468,6 @@ body {
     font-weight: 400;
     border-radius: 0;
     text-transform: none;
-}
-
-.aligned-spacing-top {
-    margin-top: 32px;
 }
 
 .black-text {
