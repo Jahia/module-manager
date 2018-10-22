@@ -13,7 +13,9 @@
                                         &nbsp;${version.key}
                                     </c:if>
                                 </c:set>
-                                <form class="form-inline" action="${flowExecutionUrl}" method="post" onsubmit="workInProgress('${i18nWaiting}'); event.stopPropagation();">
+                                <form class="form-inline" action="${flowExecutionUrl}" method="post" onsubmit="workInProgress('${i18nWaiting}'); event.stopPropagation();" type=""
+                                      data-sel-module="${version.value.id}"
+                                      data-sel-version="${version.key}">
                                     <small>${moduleLabel}</small>
                                     <input type="hidden" name="module" value="${version.value.id}"/>
                                     <input type="hidden" name="version" value="${version.key}"/>
@@ -33,6 +35,7 @@
                                                 data-container="body" data-original-title="${i18nModuleStart}" style="display:
                                                 inline-block;"
                                                 class="btn btn-fab btn-fab-xs btn-success" type="submit" name="_eventId_startModule"
+                                                data-sel-role="start"
                                                 onclick="event.stopPropagation(); return true">
                                             <i class="material-icons startModule">play_arrow</i>
                                         </button>
@@ -49,6 +52,7 @@
 
                                         <button data-toggle="tooltip" data-placement="bottom" title="" data-container="body"
                                                 data-original-title="${i18nModuleStop}" class="btn btn-fab btn-fab-xs btn-danger" type="submit" name="_eventId_stopModule"
+                                                data-sel-role="stop"
                                             onclick="event.stopPropagation(); return confirm('${functions:escapeJavaScript(i18nModuleStopConfirm)}${' '}${functions:escapeJavaScript(i18nContinue)}');">
                                             <i class="material-icons stopModule">stop</i>
                                         </button>

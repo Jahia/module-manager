@@ -1,6 +1,6 @@
 <% pageContext.setAttribute("newLineChar", "\n"); %>
 <c:if test="${not isStudio or not empty currentModule.sourcesFolder}">
-    <tr>
+    <tr data-sel-role="module-row-${entry.key}">
         <td>
             <span><b>${currentModule != null ? currentModule.name : defaultVersion.name}</b> &nbsp;(${entry.key})</span>
             <c:if test="${isMandatoryDependency}">
@@ -69,12 +69,12 @@
             </td>
 
             <c:if test="${empty currentModule}">
-                <td>
+                <td data-sel-role="status-inactive">
                     <span class="inactive-label"><fmt:message key="serverSettings.manageModules.module.state.inactive"/></span>
                 </td>
             </c:if>
             <c:if test="${not empty currentModule}">
-                <td>
+                <td data-sel-role="status-${fn:toLowerCase(currentModule.state.state)}">
                     <c:if test="${currentModule.state =='Started'}">
                             <span class="started-label">&nbsp;${currentModule.version}
                             (<fmt:message key="serverSettings.manageModules.module.state.${fn:toLowerCase(currentModule.state.state)}"/>)</span>

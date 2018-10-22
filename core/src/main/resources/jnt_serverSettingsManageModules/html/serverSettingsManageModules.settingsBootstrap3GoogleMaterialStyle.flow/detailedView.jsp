@@ -398,7 +398,7 @@
                                                     <fmt:message var="label"
                                                                  key='serverSettings.manageModules.module.disable'/>
                                                     <div class="togglebutton">
-                                                        <label for="disableModule-${site}">
+                                                        <label data-sel-role="siteEnabler-${site}" for="disableModule-${site}">
                                                             <fmt:message key='serverSettings.manageModules.module.disabled'/>&nbsp;&nbsp;
                                                             <input type="checkbox" id="disableModule-${site}"
                                                                    checked="checked">
@@ -419,7 +419,7 @@
                                                 <c:if test="${site ne 'systemsite' or not moduleStates[activeVersion.id][activeVersion.version].systemDependency}">
 
                                                     <div class="togglebutton">
-                                                        <label for="enableModule${site}">
+                                                        <label data-sel-role="siteEnabler-${site}" for="enableModule${site}">
                                                             <fmt:message key='serverSettings.manageModules.module.disabled'/>&nbsp;&nbsp;
                                                             <input type="checkbox" name="_eventId_enable" id="enableModule${site}"
                                                                    onclick="$('#f1-${site}').submit()"/>
