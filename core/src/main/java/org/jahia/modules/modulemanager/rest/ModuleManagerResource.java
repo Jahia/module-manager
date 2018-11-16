@@ -104,6 +104,11 @@ import org.springframework.core.io.Resource;
 @Produces({ MediaType.APPLICATION_JSON })
 public class ModuleManagerResource {
 
+    private static final String PATH_GET_INFO = "/{bundleKey:[^\\[\\]\\*]+}/";
+    private static final String PATH_GET_INFOS = "/[{bundleKeys:[^\\[\\]\\*]*}]/";
+    private static final String PATH_GET_BUCKET_INFOS = "/{bundleBucketKey:[^\\[\\]\\*]+}/*/";
+    private static final String PATH_GET_ALL_INFOS = "/*/";
+
     /**
      * OSGi bundle type.
      */
@@ -374,7 +379,7 @@ public class ModuleManagerResource {
      * @return a map of bundle info by cluster node name; each map value is either a BundleInfoDto object or a ModuleManagerExceptionMapper.ErrorInfo in case there was an error communicating with corresponding cluster node
      */
     @GET
-    @Path("/{bundleKey:[^\\[\\]]*}/_info")
+    @Path(PATH_GET_INFO + "_info")
     public Map<String, Object> getInfo(@PathParam("bundleKey") String bundleKey, @QueryParam("target") String target) {
 
         validateBundleKey(bundleKey, "getInfo");
@@ -401,7 +406,7 @@ public class ModuleManagerResource {
      * @return a map of bundle info by cluster node name; each map value is either a nested map of BundleInfoDto by bundle key or a ModuleManagerExceptionMapper.ErrorInfo in case there was an error communicating with corresponding cluster node
      */
     @GET
-    @Path("/[{bundleKeys:.*}]/_info")
+    @Path(PATH_GET_INFOS + "_info")
     public Map<String, Object> getInfos(@PathParam("bundleKeys") String bundleKeys, @QueryParam("target") String target) {
 
         final LinkedHashSet<String> keys = new LinkedHashSet<String>();
@@ -422,14 +427,58 @@ public class ModuleManagerResource {
 
             @Override
             public Map<String, BundleInfoDto> getBundleInfoDto(Map<String, BundleService.BundleInformation> bundleInfoByBundleKey) {
-                LinkedHashMap<String, BundleInfoDto> result = new LinkedHashMap<String, BundleInfoDto>(bundleInfoByBundleKey.size());
-                for (Map.Entry<String, BundleService.BundleInformation> entry : bundleInfoByBundleKey.entrySet()) {
-                    String bundleKey = entry.getKey();
-                    BundleService.BundleInformation bundleInfo = entry.getValue();
-                    BundleInfoDto bundleInfoDto = bundleInfoToDto(bundleInfo);
-                    result.put(bundleKey, bundleInfoDto);
-                }
-                return result;
+                return bundleInfosToDtos(bundleInfoByBundleKey);
+            }
+        });
+    }
+
+    /**
+     * Get info about multiple bundles sharing a single bundle group/name.
+     *
+     * @param bundleBucketKey the bundle group/name
+     * @param target the group of cluster nodes targeted by this operation
+     * @return a map of bundle info by cluster node name; each map value is either a nested map of BundleInfoDto by bundle key or a ModuleManagerExceptionMapper.ErrorInfo in case there was an error communicating with corresponding cluster node
+     */
+    @GET
+    @Path(PATH_GET_BUCKET_INFOS + "_info")
+    public Map<String, Object> getBucketInfos(@PathParam("bundleBucketKey") String bundleBucketKey, @QueryParam("target") String target) {
+
+        validateBundleBucketKey(bundleBucketKey, "getBucketInfos");
+
+        return getBundleInfo(bundleBucketKey, target, new BundleInfoRetrievalHandler<String, Map<String, BundleService.BundleInformation>, Map<String, BundleInfoDto>>() {
+
+            @Override
+            public Map<String, Map<String, BundleService.BundleInformation>> getBundleInfo(String bundleBucketKey, String target) {
+                return getModuleManager().getBucketInfos(bundleBucketKey, target);
+            }
+
+            @Override
+            public Map<String, BundleInfoDto> getBundleInfoDto(Map<String, BundleService.BundleInformation> bundleInfoByBundleKey) {
+                return bundleInfosToDtos(bundleInfoByBundleKey);
+            }
+        });
+    }
+
+    /**
+     * Get info about all installed bundles.
+     *
+     * @param target the group of cluster nodes targeted by this operation
+     * @return a map of bundle info by cluster node name; each map value is either a nested map of BundleInfoDto by bundle key or a ModuleManagerExceptionMapper.ErrorInfo in case there was an error communicating with corresponding cluster node
+     */
+    @GET
+    @Path(PATH_GET_ALL_INFOS + "_info")
+    public Map<String, Object> getAllInfos(@QueryParam("target") String target) {
+
+        return getBundleInfo(null, target, new BundleInfoRetrievalHandler<Void, Map<String, BundleService.BundleInformation>, Map<String, BundleInfoDto>>() {
+
+            @Override
+            public Map<String, Map<String, BundleService.BundleInformation>> getBundleInfo(Void bundleKeys, String target) {
+                return getModuleManager().getAllInfos(target);
+            }
+
+            @Override
+            public Map<String, BundleInfoDto> getBundleInfoDto(Map<String, BundleService.BundleInformation> bundleInfoByBundleKey) {
+                return bundleInfosToDtos(bundleInfoByBundleKey);
             }
         });
     }
@@ -480,7 +529,7 @@ public class ModuleManagerResource {
      * @return local bundle info
      */
     @GET
-    @Path("/{bundleKey:[^\\[\\]\\*]+}/_localInfo")
+    @Path(PATH_GET_INFO + "_localInfo")
     public BundleInfoDto getLocalInfo(@PathParam("bundleKey") String bundleKey) {
         validateBundleKey(bundleKey, "getLocalInfo");
         BundleInfoDto info = getLocalBundleInfo(getModuleManager(), bundleKey);
@@ -494,7 +543,7 @@ public class ModuleManagerResource {
      * @return a map of bundle info by bundle keys
      */
     @GET
-    @Path("/[{bundleKeys:[^\\*]*}]/_localInfo")
+    @Path(PATH_GET_INFOS + "_localInfo")
     public Map<String, BundleInfoDto> getLocalInfos(@PathParam("bundleKeys") String bundleKeys) {
 
         final ModuleManager moduleManager = getModuleManager();
@@ -515,11 +564,11 @@ public class ModuleManagerResource {
     /**
      * Get local info about multiple bundles sharing a single bundle group/name.
      *
-     * @param bundleBucketKey the bundle name
+     * @param bundleBucketKey the bundle group/name
      * @return a map of bundle info by bundle keys
      */
     @GET
-    @Path("/{bundleBucketKey:[^\\[\\]\\*]+}/*/_localInfo")
+    @Path(PATH_GET_BUCKET_INFOS + "_localInfo")
     public Map<String, BundleInfoDto> getBucketLocalInfos(@PathParam("bundleBucketKey") String bundleBucketKey) {
         validateBundleBucketKey(bundleBucketKey, "getBucketLocalInfos");
         Map<String, BundleService.BundleInformation> bundleInfoByKey = getModuleManager().getBucketLocalInfos(bundleBucketKey);
@@ -532,25 +581,25 @@ public class ModuleManagerResource {
      * @return a map of bundle info by bundle keys
      */
     @GET
-    @Path("/*/_localInfo")
+    @Path(PATH_GET_ALL_INFOS + "_localInfo")
     public Map<String, BundleInfoDto> getAllLocalInfos() {
         Map<String, BundleService.BundleInformation> bundleInfoByKey = getModuleManager().getAllLocalInfos();
         return bundleInfosToDtos(bundleInfoByKey);
     }
 
-    private void validateBundleBucketKey(String bundleBucketKey, String operation) throws ClientErrorException {
+    private static void validateBundleBucketKey(String bundleBucketKey, String operation) throws ClientErrorException {
         if (StringUtils.isBlank(bundleBucketKey)) {
             throw new ClientErrorException("Bundle bucket key is mandatory for " + operation + " operation.", Status.BAD_REQUEST);
         }
     }
 
-    private void validateBundleKey(String bundleKey, String operation) throws ClientErrorException {
+    private static void validateBundleKey(String bundleKey, String operation) throws ClientErrorException {
         if (StringUtils.isBlank(bundleKey)) {
             throw new ClientErrorException("Bundle key is mandatory for " + operation + " operation.", Status.BAD_REQUEST);
         }
     }
 
-    private <K, I, D> Map<String, Object> getBundleInfo(K bundleKeys, String target, BundleInfoRetrievalHandler<K, I, D> infoRetrievalHandler) {
+    private static <K, I, D> Map<String, Object> getBundleInfo(K bundleKeys, String target, BundleInfoRetrievalHandler<K, I, D> infoRetrievalHandler) {
 
         Map<String, I> infoByHost;
         try {
@@ -582,7 +631,7 @@ public class ModuleManagerResource {
         D getBundleInfoDto(I bundleInfo);
     }
 
-    private BundleState getLocalBundleState(ModuleManager moduleManager, String bundleKey) {
+    private static BundleState getLocalBundleState(ModuleManager moduleManager, String bundleKey) {
         try {
             return moduleManager.getLocalState(bundleKey);
         } catch (InvalidModuleKeyException e) {
@@ -592,7 +641,7 @@ public class ModuleManagerResource {
         }
     }
 
-    private BundleInfoDto getLocalBundleInfo(ModuleManager moduleManager, String bundleKey) {
+    private static BundleInfoDto getLocalBundleInfo(ModuleManager moduleManager, String bundleKey) {
 
         BundleService.BundleInformation info;
         try {
@@ -606,7 +655,7 @@ public class ModuleManagerResource {
         return bundleInfoToDto(info);
     }
 
-    private BundleInfoDto bundleInfoToDto(BundleService.BundleInformation info) {
+    private static BundleInfoDto bundleInfoToDto(BundleService.BundleInformation info) {
         if (info instanceof BundleService.ModuleInformation) {
             ModuleState.State moduleState = ((BundleService.ModuleInformation) info).getModuleState();
             return new BundleInfoDto(info.getOsgiState(), moduleState);
@@ -615,7 +664,7 @@ public class ModuleManagerResource {
         }
     }
 
-    private Map<String, BundleInfoDto> bundleInfosToDtos(Map<String, BundleService.BundleInformation> bundleInfoByKey) {
+    private static Map<String, BundleInfoDto> bundleInfosToDtos(Map<String, BundleService.BundleInformation> bundleInfoByKey) {
         LinkedHashMap<String, BundleInfoDto> infoByKey = new LinkedHashMap<>(bundleInfoByKey.size());
         for (Map.Entry<String, BundleService.BundleInformation> entry : bundleInfoByKey.entrySet()) {
             String bundleKey = entry.getKey();
@@ -625,7 +674,7 @@ public class ModuleManagerResource {
         return infoByKey;
     }
 
-    private void processBundleKeys(String bundleKeys, BundleKeyProcessor bundleKeyProcessor) {
+    private static void processBundleKeys(String bundleKeys, BundleKeyProcessor bundleKeyProcessor) {
         String[] keys = StringUtils.split(bundleKeys, ',');
         for (String key : keys) {
             key = key.trim();
