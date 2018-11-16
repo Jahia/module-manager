@@ -276,7 +276,7 @@ public class ModuleManagerResource {
     public Response start(@PathParam("bundleKey") String bundleKey, @FormParam("target") String target)
             throws WebApplicationException {
 
-        validateBundleOperation(bundleKey, "start");
+        validateBundleKey(bundleKey, "start");
         log.info("Received request to start bundle {} on target {}", new Object[] { bundleKey, target });
 
         try {
@@ -310,7 +310,7 @@ public class ModuleManagerResource {
     public Response stop(@PathParam("bundleKey") String bundleKey, @FormParam("target") String target)
             throws WebApplicationException {
 
-        validateBundleOperation(bundleKey, "stop");
+        validateBundleKey(bundleKey, "stop");
         log.info("Received request to stop bundle {} on target {}", new Object[] { bundleKey, target });
 
         try {
@@ -345,7 +345,7 @@ public class ModuleManagerResource {
     public Response uninstall(@PathParam("bundleKey") String bundleKey, @FormParam("target") String target)
             throws WebApplicationException {
 
-        validateBundleOperation(bundleKey, "stop");
+        validateBundleKey(bundleKey, "stop");
         log.info("Received request to uninstall bundle {} on target {}", new Object[] { bundleKey, target });
 
         try {
@@ -377,7 +377,7 @@ public class ModuleManagerResource {
     @Path("/{bundleKey:[^\\[\\]]*}/_info")
     public Map<String, Object> getInfo(@PathParam("bundleKey") String bundleKey, @QueryParam("target") String target) {
 
-        validateBundleOperation(bundleKey, "getInfo");
+        validateBundleKey(bundleKey, "getInfo");
 
         return getBundleInfo(bundleKey, target, new BundleInfoRetrievalHandler<String, BundleService.BundleInformation, BundleInfoDto>() {
 
@@ -443,7 +443,7 @@ public class ModuleManagerResource {
     @GET
     @Path("/{bundleKey:[^\\[\\]]*}/_localState")
     public BundleState getLocalState(@PathParam("bundleKey") String bundleKey) {
-        validateBundleOperation(bundleKey, "getLocalState");
+        validateBundleKey(bundleKey, "getLocalState");
         BundleState state = getLocalBundleState(getModuleManager(), bundleKey);
         return state;
     }
@@ -480,9 +480,9 @@ public class ModuleManagerResource {
      * @return local bundle info
      */
     @GET
-    @Path("/{bundleKey:[^\\[\\]]*}/_localInfo")
+    @Path("/{bundleKey:[^\\[\\]\\*]+}/_localInfo")
     public BundleInfoDto getLocalInfo(@PathParam("bundleKey") String bundleKey) {
-        validateBundleOperation(bundleKey, "getLocalInfo");
+        validateBundleKey(bundleKey, "getLocalInfo");
         BundleInfoDto info = getLocalBundleInfo(getModuleManager(), bundleKey);
         return info;
     }
@@ -494,7 +494,7 @@ public class ModuleManagerResource {
      * @return a map of bundle info by bundle keys
      */
     @GET
-    @Path("/[{bundleKeys:.*}]/_localInfo")
+    @Path("/[{bundleKeys:[^\\*]*}]/_localInfo")
     public Map<String, BundleInfoDto> getLocalInfos(@PathParam("bundleKeys") String bundleKeys) {
 
         final ModuleManager moduleManager = getModuleManager();
@@ -512,10 +512,41 @@ public class ModuleManagerResource {
         return infoByKey;
     }
 
-    private void validateBundleOperation(String bundleKey, String serviceOperation) throws ClientErrorException {
+    /**
+     * Get local info about multiple bundles sharing a single bundle group/name.
+     *
+     * @param bundleBucketKey the bundle name
+     * @return a map of bundle info by bundle keys
+     */
+    @GET
+    @Path("/{bundleBucketKey:[^\\[\\]\\*]+}/*/_localInfo")
+    public Map<String, BundleInfoDto> getBucketLocalInfos(@PathParam("bundleBucketKey") String bundleBucketKey) {
+        validateBundleBucketKey(bundleBucketKey, "getBucketLocalInfos");
+        Map<String, BundleService.BundleInformation> bundleInfoByKey = getModuleManager().getBucketLocalInfos(bundleBucketKey);
+        return bundleInfosToDtos(bundleInfoByKey);
+    }
+
+    /**
+     * Get local info about all installed bundles.
+     *
+     * @return a map of bundle info by bundle keys
+     */
+    @GET
+    @Path("/*/_localInfo")
+    public Map<String, BundleInfoDto> getAllLocalInfos() {
+        Map<String, BundleService.BundleInformation> bundleInfoByKey = getModuleManager().getAllLocalInfos();
+        return bundleInfosToDtos(bundleInfoByKey);
+    }
+
+    private void validateBundleBucketKey(String bundleBucketKey, String operation) throws ClientErrorException {
+        if (StringUtils.isBlank(bundleBucketKey)) {
+            throw new ClientErrorException("Bundle bucket key is mandatory for " + operation + " operation.", Status.BAD_REQUEST);
+        }
+    }
+
+    private void validateBundleKey(String bundleKey, String operation) throws ClientErrorException {
         if (StringUtils.isBlank(bundleKey)) {
-            throw new ClientErrorException("Bundle key is mandatory for " + serviceOperation + " operation.",
-                    Status.BAD_REQUEST);
+            throw new ClientErrorException("Bundle key is mandatory for " + operation + " operation.", Status.BAD_REQUEST);
         }
     }
 
@@ -582,6 +613,16 @@ public class ModuleManagerResource {
         } else {
             return new BundleInfoDto(info.getOsgiState());
         }
+    }
+
+    private Map<String, BundleInfoDto> bundleInfosToDtos(Map<String, BundleService.BundleInformation> bundleInfoByKey) {
+        LinkedHashMap<String, BundleInfoDto> infoByKey = new LinkedHashMap<>(bundleInfoByKey.size());
+        for (Map.Entry<String, BundleService.BundleInformation> entry : bundleInfoByKey.entrySet()) {
+            String bundleKey = entry.getKey();
+            BundleService.BundleInformation bundleInfo = entry.getValue();
+            infoByKey.put(bundleKey, bundleInfoToDto(bundleInfo));
+        }
+        return infoByKey;
     }
 
     private void processBundleKeys(String bundleKeys, BundleKeyProcessor bundleKeyProcessor) {
