@@ -1,29 +1,63 @@
+/**
+ * ==========================================================================================
+ * =                   JAHIA'S DUAL LICENSING - IMPORTANT INFORMATION                       =
+ * ==========================================================================================
+ *
+ *                                 http://www.jahia.com
+ *
+ *     Copyright (C) 2002-2018 Jahia Solutions Group SA. All rights reserved.
+ *
+ *     THIS FILE IS AVAILABLE UNDER TWO DIFFERENT LICENSES:
+ *     1/GPL OR 2/JSEL
+ *
+ *     1/ GPL
+ *     ==================================================================================
+ *
+ *     IF YOU DECIDE TO CHOOSE THE GPL LICENSE, YOU MUST COMPLY WITH THE FOLLOWING TERMS:
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
+ *     2/ JSEL - Commercial and Supported Versions of the program
+ *     ===================================================================================
+ *
+ *     IF YOU DECIDE TO CHOOSE THE JSEL LICENSE, YOU MUST COMPLY WITH THE FOLLOWING TERMS:
+ *
+ *     Alternatively, commercial and supported versions of the program - also known as
+ *     Enterprise Distributions - must be used in accordance with the terms and conditions
+ *     contained in a separate written agreement between you and Jahia Solutions Group SA.
+ *
+ *     If you are unsure which license is appropriate for your use,
+ *     please contact the sales department at sales@jahia.com.
+ */
 package org.jahia.test.services.modulemanager;
-
-import java.net.URL;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.httpclient.Credentials;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import org.apache.commons.httpclient.auth.AuthScope;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.lang.StringUtils;
-import org.jahia.bin.Jahia;
 import org.jahia.osgi.BundleUtils;
 import org.jahia.osgi.FrameworkService;
 import org.jahia.test.JahiaTestCase;
 import org.json.JSONObject;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 
 public class ModuleManagementRestApiTest extends JahiaTestCase {
-
-    private static final String USER = "root";
-    private static final String PASSWORD = "root1234";
 
     private static final String MODULE_MANAGER_GROUP = "org.jahia.modules";
     private static final String MODULE_MANAGER_NAME = "module-manager";
@@ -33,20 +67,21 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
     private static final String MODULE_MANAGER_TEST_NAME = "module-manager-test";
     private static final String MODULE_MANAGER_TEST_FULL_NAME = (MODULE_MANAGER_TEST_GROUP + "/" + MODULE_MANAGER_TEST_NAME);
 
-    private static HttpClient client;
     private static String moduleManagerVersion;
 
     @BeforeClass
     public static void oneTimeSetUp() throws Exception {
-
-        URL url = new URL(getBaseServerURL() + Jahia.getContextPath());
-        Credentials credentials = new UsernamePasswordCredentials(USER, PASSWORD);
-        client = new HttpClient();
-        client.getParams().setAuthenticationPreemptive(true);
-        client.getHostConfiguration().setHost(url.getHost(), url.getPort(), url.getProtocol());
-        client.getState().setCredentials(new AuthScope(url.getHost(), url.getPort(), AuthScope.ANY_REALM), credentials);
-
         moduleManagerVersion = getModuleManagerVersion();
+    }
+
+    @Before
+    public void setUp() throws Exception {
+        loginRoot();
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        logout();
     }
 
     @Test
@@ -132,8 +167,7 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
     }
 
     private void verifyModuleInfoRetrievalError(String bundleSelector, int expectedResponseCode) throws Exception {
-        int responseCode = client.executeMethod(newGetMethod(bundleSelector));
-        Assert.assertEquals(expectedResponseCode, responseCode);
+        getAsText(getUrl(bundleSelector), expectedResponseCode);
     }
 
     private static void verifyModuleInfo(JSONObject moduleInfo) throws Exception {
@@ -151,15 +185,11 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
     }
 
     private JSONObject getBundleInfo(String bundleSelector) throws Exception {
-        GetMethod get = newGetMethod(bundleSelector);
-        int responseCode = client.executeMethod(get);
-        Assert.assertEquals(HttpServletResponse.SC_OK, responseCode);
-        String response = get.getResponseBodyAsString();
-        return new JSONObject(response);
+        return new JSONObject(getAsText(getUrl(bundleSelector)));
     }
 
-    private static GetMethod newGetMethod(String bundleSelector) {
-        return new GetMethod(getBaseServerURL() + Jahia.getContextPath() + "/modules/api/bundles/" + bundleSelector + "/_localInfo");
+    private static String getUrl(String bundleSelector) {
+        return "/modules/api/bundles/" + bundleSelector + "/_localInfo";
     }
 
     private static String getModuleManagerVersion() throws Exception {
