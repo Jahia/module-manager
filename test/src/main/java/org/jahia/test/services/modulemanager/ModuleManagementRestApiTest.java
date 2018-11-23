@@ -46,6 +46,7 @@ package org.jahia.test.services.modulemanager;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
+import org.jahia.bin.Jahia;
 import org.jahia.osgi.BundleUtils;
 import org.jahia.osgi.FrameworkService;
 import org.jahia.test.JahiaTestCase;
@@ -145,6 +146,13 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
         verifyModuleInfo(response.getJSONObject(getModuleManagerKey(MODULE_MANAGER_TEST_FULL_NAME)));
     }
 
+    @Test
+    public void shouldHaveFragmentType() throws Exception {
+        JSONObject moduleInfo = getBundleInfo(getBlueprintExtenderConfigSelector());
+        Assert.assertEquals("FRAGMENT", moduleInfo.getString("type"));
+        Assert.assertEquals("RESOLVED", moduleInfo.getString("osgiState"));
+    }
+
     private void verifyModuleInfoRetrieval(String bundleKey) throws Exception {
         JSONObject response = getBundleInfo(bundleKey);
         verifyModuleInfo(response);
@@ -206,5 +214,20 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
             throw new IllegalStateException("No Module Manager module installed");
         }
         return moduleManager.getVersion().toString();
+    }
+
+    private static String getBlueprintExtenderConfigSelector() throws Exception {
+        Bundle foundBundle = null;
+        String symbolicName = "org.jahia.bundles.blueprint.extender.config";
+        for (Bundle bundle : FrameworkService.getBundleContext().getBundles()) {
+            if (symbolicName.equals(bundle.getSymbolicName())) {
+                foundBundle = bundle;
+                break;
+            }
+        }
+        if (foundBundle == null) {
+            throw new IllegalStateException("No " + symbolicName + " bundle installed");
+        }
+        return symbolicName + "/" + foundBundle.getVersion();
     }
 }

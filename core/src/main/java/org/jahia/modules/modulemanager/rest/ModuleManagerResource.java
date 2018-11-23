@@ -89,6 +89,7 @@ import org.jahia.services.modulemanager.ModuleManager;
 import org.jahia.services.modulemanager.ModuleNotFoundException;
 import org.jahia.services.modulemanager.OperationResult;
 import org.jahia.services.modulemanager.spi.BundleService;
+import org.jahia.services.modulemanager.spi.BundleService.FragmentInformation;
 import org.jahia.settings.readonlymode.ReadOnlyModeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -120,6 +121,11 @@ public class ModuleManagerResource {
         BUNDLE,
 
         /**
+         * OSGi bundle fragment.
+         */
+        FRAGMENT,
+
+        /**
          * OSGi bundle, which is a DX module in addition.
          */
         MODULE
@@ -138,15 +144,25 @@ public class ModuleManagerResource {
          * Create an instance representing info about a standalone OSGi bundle.
          */
         public BundleInfoDto(BundleState osgiState) {
-            this.type = BundleType.BUNDLE;
-            this.osgiState = osgiState;
+            this(osgiState, false);
+        }
+
+        /**
+         * Create an instance representing info about an OSGi bundle (standard or fragment).
+         */
+        public BundleInfoDto(BundleState osgiState, boolean isFragment) {
+            this(isFragment ? BundleType.FRAGMENT : BundleType.BUNDLE, osgiState, null);
         }
 
         /**
          * Create an instance representing info about an OSGi bundle which is a DX module.
          */
         public BundleInfoDto(BundleState osgiState, State moduleState) {
-            this.type = BundleType.MODULE;
+            this(BundleType.MODULE, osgiState, moduleState);
+        }
+
+        private BundleInfoDto(BundleType type, BundleState osgiState, State moduleState) {
+            this.type = type;
             this.osgiState = osgiState;
             this.moduleState = moduleState;
         }
@@ -660,7 +676,7 @@ public class ModuleManagerResource {
             ModuleState.State moduleState = ((BundleService.ModuleInformation) info).getModuleState();
             return new BundleInfoDto(info.getOsgiState(), moduleState);
         } else {
-            return new BundleInfoDto(info.getOsgiState());
+            return new BundleInfoDto(info.getOsgiState(), info instanceof FragmentInformation);
         }
     }
 
