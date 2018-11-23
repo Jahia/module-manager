@@ -107,7 +107,7 @@ public class ModuleManagerResource {
 
     private static final String PATH_GET_INFO = "/{bundleKey:[^\\[\\]\\*]+}/";
     private static final String PATH_GET_INFOS = "/[{bundleKeys:[^\\[\\]\\*]*}]/";
-    private static final String PATH_GET_BUCKET_INFOS = "/{bundleBucketKey:[^\\[\\]\\*]+}/*/";
+    private static final String PATH_GET_BUCKET_INFOS = "/{bundleBucketKey:[^\\[\\]]+}/*/";
     private static final String PATH_GET_ALL_INFOS = "/*/";
 
     /**

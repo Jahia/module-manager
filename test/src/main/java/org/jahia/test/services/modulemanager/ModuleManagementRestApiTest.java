@@ -43,10 +43,11 @@
  */
 package org.jahia.test.services.modulemanager;
 
+import java.util.Iterator;
+
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
-import org.jahia.bin.Jahia;
 import org.jahia.osgi.BundleUtils;
 import org.jahia.osgi.FrameworkService;
 import org.jahia.test.JahiaTestCase;
@@ -60,7 +61,8 @@ import org.osgi.framework.Bundle;
 
 public class ModuleManagementRestApiTest extends JahiaTestCase {
 
-    private static final String MODULE_MANAGER_GROUP = "org.jahia.modules";
+    private static final String JAHIA_MODULES_GROUP = "org.jahia.modules";
+    private static final String MODULE_MANAGER_GROUP = JAHIA_MODULES_GROUP;
     private static final String MODULE_MANAGER_NAME = "module-manager";
     private static final String MODULE_MANAGER_FULL_NAME = (MODULE_MANAGER_GROUP + "/" + MODULE_MANAGER_NAME);
 
@@ -126,6 +128,18 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
     @Test
     public void shouldRetrieveBucketModuleInfosByName() throws Exception {
         verifyBucketModuleInfoRetrieval(MODULE_MANAGER_NAME, getModuleManagerKey(MODULE_MANAGER_FULL_NAME));
+    }
+
+    @Test
+    public void shouldRetrieveAllModuleInfosByGroup() throws Exception {
+        JSONObject response = getBundleInfo(JAHIA_MODULES_GROUP + "/*/*");
+        @SuppressWarnings("rawtypes")
+        Iterator keyIterator = response.keys();
+        Assert.assertTrue(keyIterator.hasNext());
+        while (keyIterator.hasNext()) {
+            String key = (String) keyIterator.next();
+            Assert.assertTrue(key.startsWith(JAHIA_MODULES_GROUP + "/"));
+        }
     }
 
     @Test
