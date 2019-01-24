@@ -43,50 +43,85 @@
  */
 package org.jahia.test.services.modulemanager;
 
-import org.apache.commons.io.FileUtils;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import javax.jcr.RepositoryException;
+
+import org.jahia.osgi.BundleUtils;
 import org.jahia.registries.ServicesRegistry;
 import org.jahia.services.SpringContextSingleton;
 import org.jahia.services.content.JCRSessionWrapper;
 import org.jahia.services.content.JCRTemplate;
 import org.jahia.services.modulemanager.ModuleManager;
-import org.jahia.services.modulemanager.util.ModuleUtils;
 import org.jahia.services.templates.JahiaTemplateManagerService;
 import org.jahia.services.templates.ModuleVersion;
 import org.jahia.test.JahiaTestCase;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.core.io.FileSystemResource;
-
-import javax.jcr.RepositoryException;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-
-import static org.junit.Assert.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleException;
 
 /**
  * ModuleManagerDeploymentTest
  */
 public class ModuleManagerDeploymentTest extends JahiaTestCase {
 
+    private static JahiaTemplateManagerService managerService = ServicesRegistry.getInstance()
+            .getJahiaTemplateManagerService();
+
     private static JCRSessionWrapper session;
+
+    @BeforeClass
+    public static void oneTimeSetUp() throws Exception {
+        session = JCRTemplate.getInstance().getSessionFactory().getCurrentSystemSession("default", null, null);
+        uninstallTestModule();
+    }
+
+    @AfterClass
+    public static void oneTimeTearDown() throws Exception {
+        uninstallTestModule();
+    }
+
+    private static void uninstallTestModule() throws BundleException {
+        Bundle bundle = BundleUtils.getBundleBySymbolicName("dummy1", "1.0.0");
+        if (bundle != null) {
+            bundle.uninstall();
+        }
+    }
+
+    private void assertModuleState(int expectedState) {
+        Bundle bundle = BundleUtils.getBundleBySymbolicName("dummy1", "1.0.0");
+        assertNotNull(bundle);
+        assertEquals(expectedState, bundle.getState());
+    }
 
     private ModuleManager getModuleManager() {
         return (ModuleManager) SpringContextSingleton.getBean("ModuleManager");
     }
 
-    private static JahiaTemplateManagerService managerService = ServicesRegistry.getInstance().getJahiaTemplateManagerService();
+    private void installModule() {
+        getModuleManager().install(
+                managerService.getTemplatePackageById("jahia-test-module").getResource("dummy1-1.0.jar"), null);
 
-    @BeforeClass
-    public static void oneTimeSetUp() throws Exception {
-        session = JCRTemplate.getInstance().getSessionFactory().getCurrentSystemSession("default", null, null);
+        assertModuleState(Bundle.INSTALLED);
     }
 
+    private void startModule() {
+        getModuleManager().start("org.jahia.modules/dummy1/1.0.0", null);
 
-    @Test
-    public void testModuleManagementNodePresence() throws RepositoryException {
-        assertNotNull(session.getNode("/module-management"));
+        assertModuleState(Bundle.ACTIVE);
+        assertTrue(managerService.getTemplatePackageRegistry().getAvailableVersionsForModule("dummy1")
+                .contains(new ModuleVersion("1.0")));
+    }
+
+    private void stopModule() {
+        getModuleManager().stop("org.jahia.modules/dummy1/1.0.0", null);
+
+        assertModuleState(Bundle.RESOLVED);
     }
 
     public void testBundlesNodePresence() throws RepositoryException {
@@ -94,49 +129,24 @@ public class ModuleManagerDeploymentTest extends JahiaTestCase {
     }
 
     @Test
-    public void testInstallArticle() throws RepositoryException {
-        try {
-            File tmpFile = File.createTempFile("module",".jar");
-            InputStream stream = managerService.getTemplatePackageById("jahia-test-module")
-                    .getResource("dummy1-1.0.jar").getInputStream();
-            FileUtils.copyInputStreamToFile(ModuleUtils.addModuleDependencies(stream), tmpFile);
-            getModuleManager().install(new FileSystemResource(tmpFile),"");
-            tmpFile.delete();
-        } catch (IOException e) {
-            fail(e.toString());
-        }
-
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-
-        }
-        assertTrue(managerService.getTemplatePackageRegistry().getAvailableVersionsForModule("dummy1").contains(new ModuleVersion("1.0")));
-
+    public void testModuleManagementNodePresence() throws RepositoryException {
+        assertNotNull(session.getNode("/module-management"));
     }
 
     @Test
-    public void testStopArticle() throws RepositoryException {
-        getModuleManager().stop("org.jahia.modules/dummy1/1.0.0","");
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
+    public void testModuleOperations() {
+        installModule();
 
-        }
+        startModule();
+
+        stopModule();
+
+        uninstallModule();
     }
 
-    @Test
-    public void testStartArticle() throws RepositoryException {
-        getModuleManager().start("org.jahia.modules/dummy1/1.0.0", "");
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
+    private void uninstallModule() {
+        getModuleManager().uninstall("org.jahia.modules/dummy1/1.0.0", null);
 
-        }
-    }
-
-    @Test
-    public void testUninstallArticle() throws RepositoryException {
-        getModuleManager().uninstall("org.jahia.modules/dummy1/1.0.0","");
+        assertNull(BundleUtils.getBundleBySymbolicName("dummy1", "1.0.0"));
     }
 }
