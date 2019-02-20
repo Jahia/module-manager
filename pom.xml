@@ -62,7 +62,7 @@
         <connection>scm:git:git@github.com:Jahia/module-manager.git</connection>
         <developerConnection>scm:git:git@github.com:Jahia/module-manager.git</developerConnection>
         <url>scm:git:git@github.com:Jahia/module-manager.git</url>
-        <tag>HEAD</tag>
+        <tag>1-1-X-BRANCH</tag>
     </scm>
 
     <repositories>
