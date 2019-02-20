@@ -603,6 +603,17 @@ public class ModuleManagerResource {
         return bundleInfosToDtos(bundleInfoByKey);
     }
 
+    /**
+     * Save Bundles persistent state in the JCR
+     *
+     * @return return a list of bundles information with their persistent state
+     */
+    @POST
+    @Path("/savePersistentState")
+    public List<Map<String, Object>> savePersistentState() {
+        return getModuleManager().savePersistentStateInJcr();
+    }
+
     private static void validateBundleBucketKey(String bundleBucketKey, String operation) throws ClientErrorException {
         if (StringUtils.isBlank(bundleBucketKey)) {
             throw new ClientErrorException("Bundle bucket key is mandatory for " + operation + " operation.", Status.BAD_REQUEST);
