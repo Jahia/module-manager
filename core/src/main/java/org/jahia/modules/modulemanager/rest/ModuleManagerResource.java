@@ -604,7 +604,7 @@ public class ModuleManagerResource {
      * @return return a list of bundles information with their persistent state
      */
     @POST
-    @Path("/storePersistentState")
+    @Path("/storeAllStates")
     public List<BundlePersistentInfo> storePersistentStates() {
         try {
             return getModuleManager().storePersistentStates();
