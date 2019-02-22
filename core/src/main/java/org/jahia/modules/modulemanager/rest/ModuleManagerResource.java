@@ -53,6 +53,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
+import javax.jcr.RepositoryException;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
@@ -81,13 +82,7 @@ import org.jahia.data.templates.ModuleState.State;
 import org.jahia.exceptions.JahiaRuntimeException;
 import org.jahia.osgi.BundleState;
 import org.jahia.services.SpringContextSingleton;
-import org.jahia.services.modulemanager.InvalidModuleKeyException;
-import org.jahia.services.modulemanager.InvalidTargetException;
-import org.jahia.services.modulemanager.ModuleManagementException;
-import org.jahia.services.modulemanager.ModuleManagementInvalidArgumentException;
-import org.jahia.services.modulemanager.ModuleManager;
-import org.jahia.services.modulemanager.ModuleNotFoundException;
-import org.jahia.services.modulemanager.OperationResult;
+import org.jahia.services.modulemanager.*;
 import org.jahia.services.modulemanager.spi.BundleService;
 import org.jahia.services.modulemanager.spi.BundleService.FragmentInformation;
 import org.jahia.settings.readonlymode.ReadOnlyModeException;
@@ -609,9 +604,13 @@ public class ModuleManagerResource {
      * @return return a list of bundles information with their persistent state
      */
     @POST
-    @Path("/savePersistentState")
-    public List<Map<String, Object>> savePersistentState() {
-        return getModuleManager().savePersistentStateInJcr();
+    @Path("/storePersistentState")
+    public List<BundlePersistentInfo> storePersistentStates() {
+        try {
+            return getModuleManager().storePersistentStates();
+        } catch (RepositoryException e) {
+            throw new ClientErrorException("Cannot store states", Status.BAD_REQUEST);
+        }
     }
 
     private static void validateBundleBucketKey(String bundleBucketKey, String operation) throws ClientErrorException {
