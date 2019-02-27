@@ -53,7 +53,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
-import javax.jcr.RepositoryException;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
@@ -599,17 +598,29 @@ public class ModuleManagerResource {
     }
 
     /**
-     * Save Bundles persistent state in the JCR
+     * Store persistent state of all bundles in the internal storage for the purpose of restore in the future.
      *
-     * @return return a list of bundles information with their persistent state
+     * @return return A collection of info objects describing the bundles whose persistent state have been stored
      */
     @POST
-    @Path("/storeAllStates")
-    public List<BundlePersistentInfo> storePersistentStates() {
+    @Path("/_storeAllStates")
+    public Collection<BundlePersistentInfo> storeAllLocalPersistentStates() {
+        long startTime = System.currentTimeMillis();
+        log.info("Received request to store bundle states");
         try {
             return getModuleManager().storeAllLocalPersistentStates();
-        } catch (RepositoryException e) {
-            throw new ClientErrorException("Cannot store states", Status.BAD_REQUEST);
+        } catch (NonProcessingNodeException e) {
+            throw new ClientErrorException(e.getMessage(), Response.Status.FORBIDDEN, e);
+        } catch (Exception e) {
+            Throwable cause = ExceptionUtils.getRootCause(e);
+            if (cause instanceof ReadOnlyModeException) {
+                throw new ServerErrorException(cause.getMessage(), Response.Status.SERVICE_UNAVAILABLE, e);
+            } else {
+                log.error("Module management exception when storing bundle states", e);
+                throw new InternalServerErrorException("Error while storing bundle states", e);
+            }
+        } finally {
+            log.info("Operation completed in {} ms", System.currentTimeMillis() - startTime);
         }
     }
 
