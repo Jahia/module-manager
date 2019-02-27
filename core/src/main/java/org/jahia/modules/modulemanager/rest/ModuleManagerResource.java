@@ -607,7 +607,7 @@ public class ModuleManagerResource {
     @Path("/storeAllStates")
     public List<BundlePersistentInfo> storePersistentStates() {
         try {
-            return getModuleManager().storePersistentStates();
+            return getModuleManager().storeAllLocalPersistentStates();
         } catch (RepositoryException e) {
             throw new ClientErrorException("Cannot store states", Status.BAD_REQUEST);
         }
