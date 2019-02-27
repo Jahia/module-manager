@@ -43,14 +43,19 @@
  */
 package org.jahia.test.services.modulemanager;
 
+import java.util.HashMap;
 import java.util.Iterator;
 
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
+import org.jahia.bin.Jahia;
 import org.jahia.osgi.BundleUtils;
 import org.jahia.osgi.FrameworkService;
+import org.jahia.services.content.JCRTemplate;
+import org.jahia.services.modulemanager.persistence.jcr.BundleInfoJcrHelper;
 import org.jahia.test.JahiaTestCase;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assert;
@@ -165,6 +170,45 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
         JSONObject moduleInfo = getBundleInfo(getBlueprintExtenderConfigSelector());
         Assert.assertEquals("FRAGMENT", moduleInfo.getString("type"));
         Assert.assertEquals("RESOLVED", moduleInfo.getString("osgiState"));
+    }
+
+    @Test
+    public void shouldStoreAllPersistentBundleStates() throws Exception {
+
+        PostResult response = post(getBaseServerURL() + Jahia.getContextPath() + "/modules/api/bundles/_storeAllStates");
+
+        Assert.assertEquals(200, response.statusCode);
+        JSONArray bubdleInfosApi = new JSONArray(response.responseBody);
+
+        HashMap<String, JSONObject> bundleInfoByLocationApi = new HashMap<>(bubdleInfosApi.length());
+        for (int i = 0; i < bubdleInfosApi.length(); i++) {
+            JSONObject bundleInfoApi = bubdleInfosApi.getJSONObject(i);
+            bundleInfoByLocationApi.put(bundleInfoApi.getString("location"), bundleInfoApi);
+        }
+
+        Bundle[] bundlesOsgi = FrameworkService.getBundleContext().getBundles();
+        Assert.assertEquals(bundleInfoByLocationApi.size(), bundlesOsgi.length);
+        for (Bundle bundleOsgi : bundlesOsgi) {
+            JSONObject bundleInfoApi = bundleInfoByLocationApi.get(bundleOsgi.getLocation());
+            Assert.assertEquals(bundleInfoApi.getString("location"), bundleOsgi.getLocation());
+            Assert.assertEquals(bundleInfoApi.getInt("state"), BundleUtils.getPersistentState(bundleOsgi));
+            Assert.assertEquals(bundleInfoApi.getString("symbolicName"), bundleOsgi.getSymbolicName());
+            Assert.assertEquals(bundleInfoApi.getString("version"), BundleUtils.getModuleVersion(bundleOsgi));
+        }
+
+        String bundleInfosJson = JCRTemplate.getInstance().doExecuteWithSystemSession(
+            session -> session.getNode(BundleInfoJcrHelper.PATH_MODULE_MANAGEMENT).getPropertyAsString(BundleInfoJcrHelper.PROP_BUNDLES_PERSISTENT_STATE)
+        );
+        JSONArray bundleInfosJcr = new JSONArray(bundleInfosJson);
+        Assert.assertEquals(bundleInfoByLocationApi.size(), bundleInfosJcr.length());
+        for (int i = 0; i < bundleInfosJcr.length(); i++) {
+            JSONObject bundleInfoJcr = bundleInfosJcr.getJSONObject(i);
+            JSONObject bundleInfoApi = bundleInfoByLocationApi.get(bundleInfoJcr.getString("location"));
+            Assert.assertEquals(bundleInfoApi.getString("location"), bundleInfoJcr.getString("location"));
+            Assert.assertEquals(bundleInfoApi.getInt("state"), bundleInfoJcr.getInt("state"));
+            Assert.assertEquals(bundleInfoApi.getString("symbolicName"), bundleInfoJcr.getString("symbolicName"));
+            Assert.assertEquals(bundleInfoApi.getString("version"), bundleInfoJcr.getString("version"));
+        }
     }
 
     private void verifyModuleInfoRetrieval(String bundleKey) throws Exception {
