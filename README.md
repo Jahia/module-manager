@@ -385,7 +385,7 @@ DX module that provides enterprise level module management functionality
         "state": 32,
         "version": "2.0.3"
       },
-      \...
+      ...
     ]
     ```
 
