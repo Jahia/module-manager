@@ -369,7 +369,7 @@ DX module that provides enterprise level module management functionality
 
   * **Code:** 200 <br />
     **Content:**
-    ```json
+    ```
     [
       {
         "symbolicName": "org.apache.felix.framework",
