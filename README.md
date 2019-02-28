@@ -11,7 +11,7 @@ DX module that provides enterprise level module management functionality
  - [Get cluster wide info about bundle(s) (since DX 7.2.0.2)](#getInfo)
  - [Get local info about bundle(s) (since DX 7.2.0.2)](#getLocalInfo)
  - [Get local state of bundle(s)](#getLocalState)
- - [Store local persistent state of all the bundles](#storeAllLocalPersistentStates)
+ - [Store local persistent state of all the bundles (since DX 7.3.1.0)](#storeAllLocalPersistentStates)
 
 
 <a name="install"></a>**Install one or multiple bundle(s)**
@@ -349,21 +349,21 @@ DX module that provides enterprise level module management functionality
   curl -g -s --user jon:password --request GET http://localhost:8090/modules/api/bundles/\[article/2.0.3.SNAPSHOT,news/2.0.3\]/_localState
   ```
 
-<a name="storeAllLocalPersistentStates"></a>**Store local persistent state of all the bundles**
+<a name="storeAllLocalPersistentStates"></a>**Store local persistent state of all the bundles (since DX 7.3.1.0)**
 ----
-  This will store the local persistent state of all the bundles
+  Store the local persistent state of all the bundles in the internal storage for the purpose of restoring that state in the future. The operation can only be performed on the processing DX node.
 
 
 * **URL**
 
-  /:bundleSelector/_storeAllLocalPersistentStates
+  /_storeAllLocalPersistentStates
 
 * **Method:**
 
   `POST`
 *  **Params**
 
-  None
+   None
 
 * **Success Response:**
 
