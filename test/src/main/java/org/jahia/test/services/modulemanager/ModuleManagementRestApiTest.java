@@ -175,7 +175,7 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
     @Test
     public void shouldStoreAllPersistentBundleStates() throws Exception {
 
-        PostResult response = post(getBaseServerURL() + Jahia.getContextPath() + "/modules/api/bundles/_storeAllStates");
+        PostResult response = post(getBaseServerURL() + Jahia.getContextPath() + "/modules/api/bundles/_storeAllLocalPersistentStates");
 
         Assert.assertEquals(200, response.statusCode);
         JSONArray bubdleInfosApi = new JSONArray(response.responseBody);

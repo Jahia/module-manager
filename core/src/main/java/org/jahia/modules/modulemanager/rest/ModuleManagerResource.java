@@ -603,7 +603,7 @@ public class ModuleManagerResource {
      * @return return A collection of info objects describing the bundles whose persistent state have been stored
      */
     @POST
-    @Path("/_storeAllStates")
+    @Path("/_storeAllLocalPersistentStates")
     public Collection<BundlePersistentInfo> storeAllLocalPersistentStates() {
         long startTime = System.currentTimeMillis();
         log.info("Received request to store bundle states");
