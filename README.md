@@ -11,6 +11,7 @@ DX module that provides enterprise level module management functionality
  - [Get cluster wide info about bundle(s) (since DX 7.2.0.2)](#getInfo)
  - [Get local info about bundle(s) (since DX 7.2.0.2)](#getLocalInfo)
  - [Get local state of bundle(s)](#getLocalState)
+ - [Store local persistent state of all the bundles](#storeAllLocalPersistentStates)
 
 
 <a name="install"></a>**Install one or multiple bundle(s)**
@@ -346,4 +347,55 @@ DX module that provides enterprise level module management functionality
   ```sh
   curl -s --user jon:password --request GET http://localhost:8080/modules/api/bundles/article/2.0.3.SNAPSHOT/_localState
   curl -g -s --user jon:password --request GET http://localhost:8090/modules/api/bundles/\[article/2.0.3.SNAPSHOT,news/2.0.3\]/_localState
+  ```
+
+<a name="storeAllLocalPersistentStates"></a>**Store local persistent state of all the bundles**
+----
+  This will store the local persistent state of all the bundles
+
+
+* **URL**
+
+  /:bundleSelector/_storeAllLocalPersistentStates
+
+* **Method:**
+
+  `POST`
+*  **Params**
+
+  None
+
+* **Success Response:**
+
+  * **Code:** 200 <br />
+    **Content:**
+    ```json
+    [
+      {
+        "symbolicName": "org.apache.felix.framework",
+        "location": "System Bundle",
+        "id": 0,
+        "state": 32,
+        "version": "5.4.0"
+      },
+      {
+        "symbolicName": "article",
+        "location": "dx:org.jahia.modules/article/2.0.3",
+        "id": 85,
+        "state": 32,
+        "version": "2.0.3"
+      },
+      ...
+    ]
+    ```
+
+* **Error Response:**
+
+  * **Code:** 401 UNAUTHORIZED <br />
+    **Content:** `user /users/hj/di/ac/bill is not allowed to access Module Manager HTTP API`
+
+* **Sample Call:**
+
+  ```sh
+  curl -s --user jon:root1234 --request POST http://localhost:8080/modules/api/bundles/_storeAllLocalPersistentStates
   ```
