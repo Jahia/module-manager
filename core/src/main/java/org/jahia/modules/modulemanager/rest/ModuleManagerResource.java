@@ -382,6 +382,40 @@ public class ModuleManagerResource {
     }
 
     /**
+     * Refresh the specified bundle.
+     *
+     * @param bundleKey the bundle key
+     * @param target the group of cluster nodes targeted by this operation
+     * @return the operation status
+     * @throws WebApplicationException in case of an error during uninstall operation
+     */
+    @POST
+    @Path("/{bundleKey:.*}/_refresh")
+    public Response refresh(@PathParam("bundleKey") String bundleKey, @FormParam("target") String target)
+            throws WebApplicationException {
+
+        validateBundleKey(bundleKey, "refresh");
+        log.info("Received request to refresh bundle {} on target {}", new Object[] { bundleKey, target });
+
+        try {
+            OperationResult result = getModuleManager().refresh(bundleKey, target);
+            return Response.ok(result).build();
+        } catch (ModuleNotFoundException e) {
+            throw new ClientErrorException(e.getMessage(), Status.NOT_FOUND, e);
+        } catch (ModuleManagementInvalidArgumentException e) {
+            throw new ClientErrorException(e.getMessage(), Status.BAD_REQUEST, e);
+        } catch (Exception e) {
+            Throwable cause = ExceptionUtils.getRootCause(e);
+            if (cause instanceof ReadOnlyModeException) {
+                throw new ServerErrorException(cause.getMessage(), Response.Status.SERVICE_UNAVAILABLE, e);
+            } else {
+                log.error("Error while refreshing bundle " + bundleKey, e);
+                throw new InternalServerErrorException("Error while refreshing bundle " + bundleKey, e);
+            }
+        }
+    }
+
+    /**
      * Get info about a single bundle.
      *
      * @param bundleKey the bundle key
