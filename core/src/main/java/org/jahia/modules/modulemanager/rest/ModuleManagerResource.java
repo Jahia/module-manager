@@ -382,7 +382,7 @@ public class ModuleManagerResource {
     }
 
     /**
-     * Refresh the specified bundle.
+     * Refreshes the specified bundle.
      *
      * @param bundleKey the bundle key
      * @param target the group of cluster nodes targeted by this operation
