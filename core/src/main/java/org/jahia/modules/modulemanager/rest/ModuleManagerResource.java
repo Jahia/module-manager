@@ -387,7 +387,7 @@ public class ModuleManagerResource {
      * @param bundleKey the bundle key
      * @param target the group of cluster nodes targeted by this operation
      * @return the operation status
-     * @throws WebApplicationException in case of an error during uninstall operation
+     * @throws WebApplicationException in case of an error during refresh operation
      */
     @POST
     @Path("/{bundleKey:.*}/_refresh")
