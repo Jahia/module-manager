@@ -12,6 +12,8 @@ DX module that provides enterprise level module management functionality
  - [Get local info about bundle(s) (since DX 7.2.0.2)](#getLocalInfo)
  - [Get local state of bundle(s)](#getLocalState)
  - [Store local persistent state of all the bundles (since DX 7.3.1.0)](#storeAllLocalPersistentStates)
+ - [Refresh a bundle (since DX 7.3.1.1)](#refresh)
+ - [Update a bundle (since DX 7.3.1.1)](#update)
 
 
 <a name="install"></a>**Install one or multiple bundle(s)**
@@ -398,4 +400,88 @@ DX module that provides enterprise level module management functionality
 
   ```sh
   curl -s --user jon:root1234 --request POST http://localhost:8080/modules/api/bundles/_storeAllLocalPersistentStates
+  ```
+
+<a name="refresh"></a>**Refresh bundle**
+----
+  Refreshes the specified bundle and return the operation result.
+
+* **URL**
+
+  /:bundleKey/_refresh
+
+* **Method:**
+
+  `POST`
+
+*  **Params**
+
+   `target=[string]`: The group of cluster nodes targeted by the operation
+
+   **Required:**
+
+   `bundleKey=[string]`: the bundle key
+
+* **Success Response:**
+
+  * **Code:** 200 <br />
+    **Content:** `{"bundleInfos":[{"groupId":"org.jahia.modules","symbolicName":"article","version":"2.0.3.SNAPSHOT","key":"org.jahia.modules/article/2.0.3.SNAPSHOT"}],"message":"Operation successful"}`
+
+* **Error Response:**
+
+  * **Code:** 404 NOT FOUND <br />
+    **Content:** `{"status":404,"reasonPhrase":"Not Found","message":"Unable to find a module bundle corresponding to the key: org.jahia.modules/article/2.0.3.SPSHOT"}`
+
+  OR
+
+  * **Code:** 401 UNAUTHORIZED <br />
+    **Content:** `user /users/hj/di/ac/bill is not allowed to access Module Manager HTTP API`
+
+* **Sample Call:**
+
+  ```sh
+  curl -s --user jon:root1234 --data --request POST http://localhost:8080/modules/api/bundles/org.jahia.modules/article/2.0.3
+  .SNAPSHOT/_refresh
+  ```
+
+<a name="update"></a>**Update bundle**
+----
+  Updates the specified bundle and return the operation result.
+
+* **URL**
+
+  /:bundleKey/_update
+
+* **Method:**
+
+  `POST`
+
+*  **Params**
+
+   `target=[string]`: The group of cluster nodes targeted by the operation
+
+   **Required:**
+
+   `bundleKey=[string]`: the bundle key
+
+* **Success Response:**
+
+  * **Code:** 200 <br />
+    **Content:** `{"bundleInfos":[{"groupId":"org.jahia.modules","symbolicName":"article","version":"2.0.3.SNAPSHOT","key":"org.jahia.modules/article/2.0.3.SNAPSHOT"}],"message":"Operation successful"}`
+
+* **Error Response:**
+
+  * **Code:** 404 NOT FOUND <br />
+    **Content:** `{"status":404,"reasonPhrase":"Not Found","message":"Unable to find a module bundle corresponding to the key: org.jahia.modules/article/2.0.3.SPSHOT"}`
+
+  OR
+
+  * **Code:** 401 UNAUTHORIZED <br />
+    **Content:** `user /users/hj/di/ac/bill is not allowed to access Module Manager HTTP API`
+
+* **Sample Call:**
+
+  ```sh
+  curl -s --user jon:root1234 --data --request POST http://localhost:8080/modules/api/bundles/org.jahia.modules/article/2.0.3
+  .SNAPSHOT/_update
   ```
