@@ -246,7 +246,7 @@ DX module that provides enterprise level module management functionality
 
   ```sh
   curl -s --user jon:password --request GET http://localhost:8080/modules/api/bundles/article/2.0.3.SNAPSHOT/_info
-  curl -g -s --user jon:password --request GET http://localhost:8090/modules/api/bundles/\[article/2.0.3.SNAPSHOT,news/2.0.3\]/_info
+  curl -g -s --user jon:password --request GET http://localhost:8080/modules/api/bundles/%5Barticle/2.0.3,news/2.0.4%5D/_info
   curl -s --user jon:password --request GET http://localhost:8080/modules/api/bundles/article/*/_info
   curl -s --user jon:password --request GET http://localhost:8080/modules/api/bundles/org.jahia.modules/*/*/_info
   curl -s --user jon:password --request GET http://localhost:8080/modules/api/bundles/*/_info
@@ -297,7 +297,7 @@ DX module that provides enterprise level module management functionality
 
   ```sh
   curl -s --user jon:password --request GET http://localhost:8080/modules/api/bundles/article/2.0.3.SNAPSHOT/_localInfo
-  curl -g -s --user jon:password --request GET http://localhost:8090/modules/api/bundles/\[article/2.0.3.SNAPSHOT,news/2.0.3\]/_localInfo
+  curl -g -s --user jon:password --request GET http://localhost:8090/modules/api/bundles/%5Barticle/2.0.3.SNAPSHOT,news/2.0.3%5D/_localInfo
   curl -s --user jon:password --request GET http://localhost:8080/modules/api/bundles/article/*/_localInfo
   curl -s --user jon:password --request GET http://localhost:8080/modules/api/bundles/org.jahia.modules/*/*/_localInfo
   curl -s --user jon:password --request GET http://localhost:8080/modules/api/bundles/*/_localInfo
@@ -348,7 +348,7 @@ DX module that provides enterprise level module management functionality
 
   ```sh
   curl -s --user jon:password --request GET http://localhost:8080/modules/api/bundles/article/2.0.3.SNAPSHOT/_localState
-  curl -g -s --user jon:password --request GET http://localhost:8090/modules/api/bundles/\[article/2.0.3.SNAPSHOT,news/2.0.3\]/_localState
+  curl -g -s --user jon:password --request GET http://localhost:8090/modules/api/bundles/%5Barticle/2.0.3.SNAPSHOT,news/2.0.3%5D/_localState
   ```
 
 <a name="storeAllLocalPersistentStates"></a>**Store local persistent state of all the bundles (since DX 7.3.1.0)**
