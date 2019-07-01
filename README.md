@@ -217,7 +217,7 @@ DX module that provides enterprise level module management functionality
 
    `bundleSelector=[string]`: one of
    - a bundle key; the version value in the bundle key may be replaced with an asterisk symbol which stands for all installed versions of the bundle (since DX 7.2.3.3/7.3.0.1)
-   - a comma separated list of bundle keys wrapped with square brackets
+   - a comma separated list of bundle keys wrapped with encoded square brackets (*%5B*)
    - an asterisk symbol which stands for all installed bundles (since DX 7.2.3.3/7.3.0.1)
 
 * **Success Response:**
@@ -270,7 +270,7 @@ DX module that provides enterprise level module management functionality
 
    `bundleSelector=[string]`: one of
    - a bundle key; the version value in the bundle key may be replaced with an asterisk symbol which stands for all installed versions of the bundle (since DX 7.2.3.3/7.3.0.1)
-   - a comma separated list of bundle keys wrapped with square brackets
+   - a comma separated list of bundle keys wrapped with encoded square brackets (*%5B*)
    - an asterisk symbol which stands for all installed bundles (since DX 7.2.3.3/7.3.0.1)
 
 * **Success Response:**
@@ -321,7 +321,7 @@ DX module that provides enterprise level module management functionality
 
    `bundleSelector=[string]`: one of
    - a bundle key
-   - a comma separated list of bundle keys wrapped with square brackets
+   - a comma separated list of bundle keys wrapped with encoded square brackets (*%5B*)
 
 * **Success Response:**
 
