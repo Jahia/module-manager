@@ -54,7 +54,7 @@
                           <small>&nbsp;${availableUpdates[entry.key].version}</small>
 
                           <button data-toggle="tooltip" data-placement="bottom" title="" data-original-title="<fmt:message key="serverSettings.manageModules.module.install"/>"
-                                  data-container="body" style="display: inline-block;" class="btn btn-fab btn-fab-xs btn-success"
+                                  data-container="body" style="top: 1px;" class="btn btn-fab btn-fab-xs btn-success"
                                   type="submit" onclick="event.stopPropagation(); return true"
                                   name="_eventId_installModuleOnly">
                               <i class="material-icons updateModule">play_for_work</i>

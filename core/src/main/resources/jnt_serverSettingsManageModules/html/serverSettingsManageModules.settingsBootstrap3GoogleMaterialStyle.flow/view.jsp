@@ -39,7 +39,7 @@
 <fmt:message var="i18nOf" key="serverSettings.manageModules.of"/>
 
 <section class="moduleManagerContainer">
-    <div class="mg-page-header">
+    <div class="page-header">
         <h2><fmt:message key="serverSettings.manageModules"/></h2>
     </div>
 
@@ -138,8 +138,8 @@
     <%@include file="common/moduleLabels.jspf" %>
 
     <ul class="nav nav-tabs" id="myTab" role="tablist">
-        <li class="nav-item">
-            <a class="nav-link active" id="installed-modules-tab" data-toggle="tab" href="#installed-modules" role="tab"
+        <li class="nav-item active">
+            <a class="nav-link" id="installed-modules-tab" data-toggle="tab" href="#installed-modules" role="tab"
                aria-controls="installed-modules"
                aria-selected="true"><fmt:message key="serverSettings.manageModules.installedModules"/></a>
         </li>
@@ -157,12 +157,11 @@
                 <input type="hidden" name="_eventId" value="reloadModules"/>
             </form>
             <span class="refreshModule">
-                <button class="btn btn-primary" data-toggle="tooltip" data-placement="bottom"
+                <button class="btn btn-primary btn-fab btn-fab-xs" data-toggle="tooltip" data-placement="bottom"
                         title="${i18nModuleRefresh}"
                         data-container="body"
                         data-original-title="${i18nModuleRefresh}"
                         style="display: inline-block;"
-                        data-container="body"
                         onclick="$('#reloadModulesForm').submit()">
                     <i class="material-icons">update</i>
                 </button>
@@ -170,13 +169,11 @@
         </span>
     </ul>
 
-    <div class="panel-body">
-        <div class="card">
-            <div class="row">
-                <div class="col-md-3">
-                    <p class="aligned-spacing-top-left">Upload module from file</p>
-                </div>
-            </div>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4>Upload module from file</h4>
+        </div>
+        <div class="panel-body">
             <form:form modelAttribute="moduleFile" class="form" enctype="multipart/form-data" method="post">
                 <%--onsubmit="workInProgress('${i18nWaiting}');">--%>
                 <c:forEach items="${flowRequestContext.messageContext.allMessages}" var="message">
@@ -208,7 +205,7 @@
                     <div class="form-group is-empty label-floating selectModule text-dark">
                         <div class="input-group breakWord">
                             <div class="input-group-btn">
-                                <label class="moduleManagerPrimaryBtn black-text selectModuleBtn"
+                                <label class="btn btn-primary btn-raised"
                                        for="moduleFileUpload">
                                     <input type="file" class="form-control-file" id="moduleFileUpload"
                                            name="moduleFile">
@@ -224,7 +221,7 @@
                     <div class="form-group is-empty label-floating text-dark">
                         <div class="input-group">
                             <span class="input-group-btn no-padding">
-                                <button id="btnUpload" class="moduleManagerSecondaryBtn" type="submit"
+                                <button id="btnUpload" class="btn btn-primary btn-raised" type="submit"
                                         name="_eventId_upload"
                                         style="display: none">
                                     <fmt:message key='label.upload'/>
@@ -253,44 +250,41 @@
                 </div>
             </form:form>
         </div>
-
-        <div class="card material-table">
-
-            <table id="${moduleTableId}" class="display table table-bordered hover no-ver-margin" style="width: 100%">
-                <thead>
-                <tr>
-                    <th><fmt:message key='serverSettings.manageModules.moduleName'/></th>
-                    <th><fmt:message key='serverSettings.manageModules.versions'/></th>
-                    <th><fmt:message key='serverSettings.manageModules.status'/></th>
-                    <th><fmt:message key='serverSettings.manageModules.usedInSites'/></th>
-                </tr>
-                </thead>
-                <tbody>
-                <c:set var="isStudio" value="${false}"/>
-                <c:forEach items="${allModuleVersions}" var="entry">
-                    <%@include file="common/currentModuleVars.jspf" %>
-                    <c:if test="${!isMandatoryDependency && sourcesDownloadable}">
-                        <%@include file="common/modulesTableRow.jspf" %>
-                    </c:if>
-                </c:forEach>
-                <c:forEach items="${allModuleVersions}" var="entry">
-                    <%@include file="common/currentModuleVars.jspf" %>
-                    <c:if test="${!isMandatoryDependency && !sourcesDownloadable}">
-                        <%@include file="common/modulesTableRow.jspf" %>
-                    </c:if>
-                </c:forEach>
-                <c:forEach items="${allModuleVersions}" var="entry">
-                    <%@include file="common/currentModuleVars.jspf" %>
-                    <c:if test="${isMandatoryDependency}">
-                        <%@include file="common/modulesTableRow.jspf" %>
-                    </c:if>
-                </c:forEach>
-                </tbody>
-            </table>
-        </div>
     </div>
 
-    <p><a id="mandatory-dependency">&nbsp;</a><span
-            class="text-error"><strong>*</strong></span>&nbsp;-&nbsp;${i18nMandatoryDependency}
-    </p>
+    <div class="card material-table">
+        <table id="${moduleTableId}" class="display table table-bordered table-striped table-hover no-ver-margin" style="width: 100%">
+            <thead>
+            <tr>
+                <th><fmt:message key='serverSettings.manageModules.moduleName'/></th>
+                <th><fmt:message key='serverSettings.manageModules.versions'/></th>
+                <th><fmt:message key='serverSettings.manageModules.status'/></th>
+                <th><fmt:message key='serverSettings.manageModules.usedInSites'/></th>
+            </tr>
+            </thead>
+            <tbody>
+            <c:set var="isStudio" value="${false}"/>
+            <c:forEach items="${allModuleVersions}" var="entry">
+                <%@include file="common/currentModuleVars.jspf" %>
+                <c:if test="${!isMandatoryDependency && sourcesDownloadable}">
+                    <%@include file="common/modulesTableRow.jspf" %>
+                </c:if>
+            </c:forEach>
+            <c:forEach items="${allModuleVersions}" var="entry">
+                <%@include file="common/currentModuleVars.jspf" %>
+                <c:if test="${!isMandatoryDependency && !sourcesDownloadable}">
+                    <%@include file="common/modulesTableRow.jspf" %>
+                </c:if>
+            </c:forEach>
+            <c:forEach items="${allModuleVersions}" var="entry">
+                <%@include file="common/currentModuleVars.jspf" %>
+                <c:if test="${isMandatoryDependency}">
+                    <%@include file="common/modulesTableRow.jspf" %>
+                </c:if>
+            </c:forEach>
+            </tbody>
+        </table>
+    </div>
+
+    <p><a id="mandatory-dependency">&nbsp;</a><span class="text-danger"><strong>*</strong></span>&nbsp;-&nbsp;${i18nMandatoryDependency}</p>
 </section>

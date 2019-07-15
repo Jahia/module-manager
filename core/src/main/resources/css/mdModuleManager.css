@@ -1,10 +1,3 @@
-@import url('https://fonts.googleapis.com/css?family=Nunito+Sans:300,400,600');
-
-body {
-    background: #fafafa;
-    font-family: Nunito Sans !important;
-}
-
 .moduleManagerContainer [type="checkbox"].filled-in:not(:checked) + label:after {
     border: 2px solid #9c9c9c;
     top: 2px;
@@ -34,7 +27,6 @@ body {
 }
 
 .moduleManagerContainer div.material-table table tr td {
-    padding: 0 10px 0 56px;
     height: 48px;
     font-size: 13px;
     color: rgba(0, 0, 0, 0.87);
@@ -59,19 +51,11 @@ body {
 }
 
 .moduleManagerContainer div.material-table table th {
-    font-size: 12px;
-    font-weight: 500;
-    color: #757575;
     cursor: pointer;
     white-space: nowrap;
     height: 56px;
-    padding: 0 0 0 56px;
     vertical-align: middle;
     outline: none !important;
-}
-
-.moduleManagerContainer div.material-table table tbody tr:hover {
-    background-color: #EEE;
 }
 
 .moduleManagerContainer div.material-table table th:first-child,
@@ -102,28 +86,6 @@ body {
 .moduleManagerContainer .material-pagination li.disabled a {
     cursor: not-allowed !important;
     pointer-events: all !important;
-}
-
-.moduleManagerContainer .mg-page-header h2 {
-    color: #504e4d;
-    background-color: inherit;
-}
-
-.moduleManagerContainer .nav-tabs {
-    background: inherit;
-    border-bottom-style: none;
-}
-
-.moduleManagerContainer .nav-tabs > li > a, .nav-tabs > li > a:hover, .nav-tabs > li > a:focus {
-    color: #4b4948 !important;
-}
-
-.moduleManagerContainer .nav-tabs > li > a.active, .nav-tabs > li > a.active:hover, .nav-tabs > li > a.active:focus {
-    border-bottom: 3px solid #007cb0 !important;
-}
-
-.moduleManagerContainer .nav-tabs > li > a:hover, .nav-tabs > li > a:focus {
-    border-bottom: 3px solid #4b4948 !important;
 }
 
 .moduleManagerContainer .started-label {
@@ -311,62 +273,13 @@ body {
     align-items: center;
 }
 
-.moduleManagerContainer .actions i {
-    position: relative;
-    height: 24px;
-    width: 24px;
-    line-height: 24px;
-    text-align: center;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 50%;
-    margin: 0;
-    border: none;
-    box-shadow: none;
-    padding: 0;
-    font-size: 17px;
-    color: #fff;
-    cursor: pointer;
-    -webkit-transition: background 150ms ease-in-out;
-    -moz-transition: background 150ms ease-in-out;
-    -ms-transition: background 150ms ease-in-out;
-    -o-transition: background 150ms ease-in-out;
-    transition: background 150ms ease-in-out;
-}
-
 .moduleManagerContainer .refreshModule button {
     padding: 10px;
 }
 
 .moduleManagerContainer button.backBtn {
     padding: 10px;
-}
-
-.moduleManagerContainer .actions i.startModule:hover {
-    background: #4CAF50;
-}
-
-.moduleManagerContainer .actions i.stopModule:hover {
-    background: #FF5722;
-}
-
-.moduleManagerContainer .actions i.updateModule:hover {
-    background: #90A4AE;
-}
-
-.moduleManagerContainer .actions i.unpublishModule:hover {
-    background: #F44336;
-}
-
-.moduleManagerContainer .actions i.reinstallModule:hover {
-    background: #607D8B;
-}
-
-.moduleManagerContainer .no-chip i.reinstallModule {
-    color: #607D8B;
-}
-
-.moduleManagerContainer .no-chip i.infoWiring {
-    color: #017caf;;
+    color: #fff !important;
 }
 
 .moduleManagerContainer .updateNotif {
@@ -437,44 +350,6 @@ body {
     color: #F44336;
 }
 
-.moduleManagerPrimaryBtn {
-    background-color: #d1d7dc;
-    box-shadow: 0px 5px 1px -4px rgba(38, 38, 38, 0.4);
-    margin: 5px;
-    padding: 8px 15px;
-    min-width: 64px;
-    font-size: 16px;
-    min-height: 36px;
-    box-sizing: border-box;
-    line-height: 1.4em;
-    font-family: Nunito Sans;
-    font-weight: 400;
-    border-radius: 0;
-    text-transform: none;
-}
-
-.moduleManagerSecondaryBtn {
-    color: #F5F5F5;
-    background-color: #007cb0;
-    box-shadow: 0px 5px 1px -4px rgba(38, 38, 38, 0.4);
-    border-width: 0px;
-    margin: 5px;
-    padding: 8px 15px;
-    min-width: 64px;
-    font-size: 16px;
-    min-height: 36px;
-    box-sizing: border-box;
-    line-height: 1.4em;
-    font-family: Nunito Sans;
-    font-weight: 400;
-    border-radius: 0;
-    text-transform: none;
-}
-
-.moduleManagerSecondaryBtnDanger {
-    background-color: #d9534f;
-}
-
 .black-text {
     color: rgba(0, 0, 0, 0.87) !important;
 }
@@ -487,10 +362,6 @@ body {
 
 .moduleManagerContainer .checkbox input[type=checkbox]:checked + .checkbox-material .check:before,
 .moduleManagerContainer label.checkbox-inline input[type=checkbox]:checked + .checkbox-material .check:before {
-    color: #017caf;
-}
-
-.moduleManagerContainer .btn:not(.btn-raised).btn-primary, .input-group-btn .btn:not(.btn-raised).btn-primary {
     color: #017caf;
 }
 
