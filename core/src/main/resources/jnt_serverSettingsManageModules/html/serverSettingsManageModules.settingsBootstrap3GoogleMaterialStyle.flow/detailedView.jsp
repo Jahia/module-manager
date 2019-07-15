@@ -108,9 +108,9 @@
     <input type="hidden" name="_eventId" value="viewInstalledModules"/>
 </form>
 
-<div class="mg-page-header">
+<div class="page-header">
     <h2>
-        <button class="btn btn-primary backBtn"
+        <button class="btn btn-default backBtn"
                 onclick="$('#viewInstalledModulesForm').submit()"><i class="material-icons">arrow_back</i></button>
         ${activeVersion.name}</h2>
 </div>
@@ -194,7 +194,7 @@
                                     <c:when test="${not empty activeVersion.sourcesFolder}">
                                         <c:url var="urlToStudio"
                                                value="/cms/studio/${currentResource.locale}/modules/${activeVersion.id}.html"/>
-                                        <button class="moduleManagerSecondaryBtn" type="button"
+                                        <button class="btn btn-default btn-raised" type="button"
                                                 onclick='window.parent.location.assign("${urlToStudio}")'>
                                             <i class="icon-circle-arrow-right"></i>
                                             &nbsp;<fmt:message key='serverSettings.manageModules.goToStudio'/>
@@ -217,7 +217,7 @@
                                                         <input type="hidden" name="scmUri" value="${activeVersion.scmURI}"/>
                                                         <input type="hidden" name="version" value="${activeVersion.version}"/>
                                                         <input type="hidden" name="branchOrTag" value="${activeVersion.scmTag}"/>
-                                                        <button class="moduleManagerSecondaryBtn button-download" type="submit"
+                                                        <button class="btn btn-default btn-raised" type="submit"
                                                                 name="_eventId_downloadSources" onclick="">
                                                             <i class="icon-download"></i>
                                                             &nbsp;${i18nDownloadSources}
@@ -235,7 +235,7 @@
                                         <form style="margin: 0;" action="${flowExecutionUrl}" method="POST">
                                             <input type="hidden" name="module" value="${activeVersion.id}"/>
                                             <input type="hidden" name="scmUri" value="scm:git:"/>
-                                            <button class="moduleManagerSecondaryBtn" type="submit" name="_eventId_viewDownloadForm" onclick="">
+                                            <button class="btn btn-default btn-raised" type="submit" name="_eventId_viewDownloadForm" onclick="">
                                                 <i class="icon-download"></i>
                                                 &nbsp;${i18nDownloadSources}
                                             </button>
@@ -245,6 +245,14 @@
                                     </span>
                             </c:if>
 
+                            <form style="margin: 0;" action="${flowExecutionUrl}" method="POST">
+                                <input type="hidden" name="module" value="${activeVersion.id}"/>
+                                <input type="hidden" name="scmUri" value="scm:git:"/>
+                                <button class="btn btn-default btn-raised" type="submit" name="_eventId_viewDownloadForm" onclick="">
+                                    <i class="icon-download"></i>
+                                    &nbsp;${i18nDownloadSources}
+                                </button>
+                            </form>
                             <c:choose>
                                 <c:when test="${not isMandatoryDependency and (not empty moduleStates[activeVersion.id][activeVersion.version].unresolvedDependencies or  not empty sitesTemplates[activeVersion.id] or not empty sitesDirect[activeVersion.id] or not empty sitesTransitive[activeVersion.id] or (empty activeVersion.sourcesFolder and not empty sourcesFound))}">
                                     <%--<button class="btn btn-block cyan button-download" disabled>--%>
@@ -261,7 +269,7 @@
                                         <input type="hidden" name="groupId" value="${activeVersion.groupId}"/>
                                         <input type="hidden" name="version" value="${activeVersion.version}"/>
                                         <input type="hidden" name="srcPath" value="${activeVersion.sourcesFolder.path}"/>
-                                        <button class="moduleManagerSecondaryBtn button-download" type="submit" name="_eventId_duplicateModuleForm">
+                                        <button class="btn btn-default btn-raised" type="submit" name="_eventId_duplicateModuleForm">
                                             <i class="icon-share"></i>
                                             &nbsp;<fmt:message key='serverSettings.manageModules.duplicateModule'/>
                                         </button>
@@ -278,7 +286,7 @@
                                             <input type="hidden" name="version" value="${activeVersion.version}"/>
                                             <input type="hidden" name="scmUri" value="${activeVersion.scmURI}"/>
                                             <input type="hidden" name="branchOrTag" value="${activeVersion.scmTag}"/>
-                                            <button class="moduleManagerSecondaryBtn button-download" type="submit" name="_eventId_downloadTempSources">
+                                            <button class="btn btn-default btn-raised" type="submit" name="_eventId_downloadTempSources">
                                                 <i class="icon-share"></i>
                                                 &nbsp;<fmt:message key='serverSettings.manageModules.duplicateModule'/>
                                             </button>
@@ -344,7 +352,7 @@
                     <input type="hidden" name="_eventId_disableAll" value="true"/>
                     <fmt:message var="label"
                                  key='serverSettings.manageModules.module.disable.all'/>
-                    <button class="moduleManagerSecondaryBtn moduleManagerSecondaryBtnDanger disable-button" type="button" onclick="" id="disableButton-All">
+                    <button class="btn btn-danger btn-raised" type="button" onclick="" id="disableButton-All">
                         <i class="icon-ban-circle icon-white"></i>&nbsp;${label}
                     </button>
                 </form>
@@ -352,7 +360,7 @@
         </div>
 
         <div class="card material-table">
-            <table class="table table-bordered no-pointer no-ver-margin">
+            <table class="table table-bordered table-striped no-pointer no-ver-margin">
                 <thead>
                 <tr>
                     <th style="width:33%"><fmt:message key="serverSettings.manageModules.module.site"/></th>
