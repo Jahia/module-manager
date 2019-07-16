@@ -245,14 +245,6 @@
                                     </span>
                             </c:if>
 
-                            <form style="margin: 0;" action="${flowExecutionUrl}" method="POST">
-                                <input type="hidden" name="module" value="${activeVersion.id}"/>
-                                <input type="hidden" name="scmUri" value="scm:git:"/>
-                                <button class="btn btn-default btn-raised" type="submit" name="_eventId_viewDownloadForm" onclick="">
-                                    <i class="icon-download"></i>
-                                    &nbsp;${i18nDownloadSources}
-                                </button>
-                            </form>
                             <c:choose>
                                 <c:when test="${not isMandatoryDependency and (not empty moduleStates[activeVersion.id][activeVersion.version].unresolvedDependencies or  not empty sitesTemplates[activeVersion.id] or not empty sitesDirect[activeVersion.id] or not empty sitesTransitive[activeVersion.id] or (empty activeVersion.sourcesFolder and not empty sourcesFound))}">
                                     <%--<button class="btn btn-block cyan button-download" disabled>--%>
