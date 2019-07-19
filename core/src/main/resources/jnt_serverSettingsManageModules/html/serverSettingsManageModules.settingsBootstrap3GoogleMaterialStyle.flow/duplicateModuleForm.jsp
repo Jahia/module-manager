@@ -88,38 +88,42 @@
             <div class="panel-body">
                 <template:tokenizedForm allowsMultipleSubmits="true">
                 <form id="duplicateModuleForm" action="<c:url value='${url.base}${renderContext.mainResource.node.path}.duplicateModule.do'/>" method="POST">
-                    <div class="form-group label-floating">
-                        <c:choose>
-                            <c:when test="${empty srcPath}">
-                                <c:choose>
+                    <c:choose>
+                        <c:when test="${empty srcPath}">
+                            <c:choose>
                                 <c:when test="${not empty branchTagInfos}">
-                                    <label for="newScmUri"><fmt:message key="serverSettings.manageModules.downloadSources.scm.${fn:endsWith(version,'-SNAPSHOT') ? 'branch' : 'tag'}" /></label>
-                                    <input type="hidden" id="branchOrTag" name="branchOrTag" value="${not empty branchOrTag ? branchOrTag : ''}"/>
-                                    <select name="newScmUri" id="newScmUri">
-                                        <c:forEach var="branchTagInfo" items="${branchTagInfos}">
-                                            <option value="${branchTagInfo.value}" ${branchTagInfo.key eq branchOrTag ? 'selected' : ''}>${branchTagInfo.key}</option>
-                                        </c:forEach>
-                                    </select>
+                                    <div class="form-group label-floating">
+                                        <label class="control-label" for="newScmUri"><fmt:message key="serverSettings.manageModules.downloadSources.scm.${fn:endsWith(version,'-SNAPSHOT') ? 'branch' : 'tag'}" /></label>
+                                        <input type="hidden" id="branchOrTag" name="branchOrTag" value="${not empty branchOrTag ? branchOrTag : ''}"/>
+                                        <select name="newScmUri" id="newScmUri">
+                                            <c:forEach var="branchTagInfo" items="${branchTagInfos}">
+                                                <option value="${branchTagInfo.value}" ${branchTagInfo.key eq branchOrTag ? 'selected' : ''}>${branchTagInfo.key}</option>
+                                            </c:forEach>
+                                        </select>
+                                    </div>
                                 </c:when>
                                 <c:when test="${hasError}">
-                                    <label for="newScmUriText"><fmt:message key="serverSettings.manageModules.downloadSources.scmUri" /></label>
-                                    <input class="form-control" type="text" id="newScmUriText" name="newScmUri" value="${not empty newScmUri ? newScmUri : scmUri}"/>
-                                    <label for="branchOrTagText"><fmt:message key="serverSettings.manageModules.downloadSources.branchOrTag" /></label>
-                                    <input class="form-control" type="text" id="branchOrTagText" name="branchOrTag" value="${not empty branchOrTag ? branchOrTag : ''}"/>
+                                    <div class="form-group label-floating">
+                                        <label class="control-label" for="newScmUriText"><fmt:message key="serverSettings.manageModules.downloadSources.scmUri" /></label>
+                                        <input class="form-control" type="text" id="newScmUriText" name="newScmUri" value="${not empty newScmUri ? newScmUri : scmUri}"/>
+                                    </div>
+                                    <div class="form-group label-floating">
+                                        <label class="control-label" for="branchOrTagText"><fmt:message key="serverSettings.manageModules.downloadSources.branchOrTag" /></label>
+                                        <input class="form-control" type="text" id="branchOrTagText" name="branchOrTag" value="${not empty branchOrTag ? branchOrTag : ''}"/>
+                                    </div>
                                 </c:when>
                                 <c:when test="${not empty newScmUri}">
                                     <input type="hidden" name="newScmUri" value="${newScmUri}"/>
                                     <input type="hidden" name="branchOrTag" value="${not empty branchOrTag ? branchOrTag : ''}"/>
                                 </c:when>
-                                </c:choose>
-                            </c:when>
-                            <c:otherwise>
-                                <input type="hidden" name="srcPath" value="${srcPath}"/>
-                                <input type="hidden" name="newScmUri" value="${scmUri}"/>
-                                <input type="hidden" name="branchOrTag" value="${not empty branchOrTag ? branchOrTag : ''}"/>
-                            </c:otherwise>
-                        </c:choose>
-                    </div>
+                            </c:choose>
+                        </c:when>
+                        <c:otherwise>
+                            <input type="hidden" name="srcPath" value="${srcPath}"/>
+                            <input type="hidden" name="newScmUri" value="${scmUri}"/>
+                            <input type="hidden" name="branchOrTag" value="${not empty branchOrTag ? branchOrTag : ''}"/>
+                        </c:otherwise>
+                    </c:choose>
 
                     <div class="form-group label-floating">
                         <div class="input-group">
@@ -153,30 +157,28 @@
                             <input class="form-control" type="text" id="newDstPath" name="newDstPath" placeholder="${dstPath}" value="${newDstPath}" />
                         </div>
                     </div>
-                            
-                <c:if test="${not empty moduleNodetypes}">
-                    <div class="alert alert-danger">
-                        <fmt:message key="serverSettings.manageModules.duplicateModule.uninstallSrcModuleWarning">
-                            <fmt:param value="${fn:join(moduleNodetypes, ', ')}" />
-                        </fmt:message>
-                    </div>
-                    <input type="hidden" name="containsTypeDefinitions" value="true" />
-                </c:if>
 
-                    <div class="form-group label-floating">
-                    <c:if test="${not empty tempSources}">
-                        <input type="hidden" name="areSourcesTemporary" value="true" />
+                    <c:if test="${not empty moduleNodetypes}">
+                        <div class="alert alert-danger">
+                            <fmt:message key="serverSettings.manageModules.duplicateModule.uninstallSrcModuleWarning">
+                                <fmt:param value="${fn:join(moduleNodetypes, ', ')}" />
+                            </fmt:message>
+                        </div>
+                        <input type="hidden" name="containsTypeDefinitions" value="true" />
                     </c:if>
+
+                    <div class="form-group form-group-sm">
+                        <c:if test="${not empty tempSources}">
+                            <input type="hidden" name="areSourcesTemporary" value="true" />
+                        </c:if>
                         <input type="hidden" name="moduleId" value="${moduleId}" />
                         <input type="hidden" name="version" value="${version}" />
-                        <div>
-                            <button class="btn btn-primary" type="submit">
-                                <fmt:message key='label.next'/>
-                            </button>
-                            <button class="btn" type="button" onclick="$('#${currentNode.identifier}CancelForm').submit()">
-                                <fmt:message key='label.cancel' />
-                            </button>
-                        </div>
+                        <button class="btn btn-primary btn-raised pull-right" type="submit">
+                            <fmt:message key='label.next'/>
+                        </button>
+                        <button class="btn btn-default pull-right" type="button" onclick="$('#${currentNode.identifier}CancelForm').submit()">
+                            <fmt:message key='label.cancel' />
+                        </button>
                     </div>
                 </form>
                 </template:tokenizedForm>
