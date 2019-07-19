@@ -113,10 +113,10 @@
                     var moduleFilename = $(this).val().replace(/.*(\/|\\)/, '');
                     if (!!moduleFilename) {
                         var moduleFilenameContent = '<span>' + moduleFilename + '</span>' +
-                            '<a href="#" onclick="$(\'.selectModuleBtn\').show(); $(\'#moduleFilename\').hide(); $(\'#moduleAutoStartLabel\').hide(); $(\'#btnUpload\').hide(); $(\'#moduleFileUpload\').val(\'\')"><i class="material-icons removeModuleUploadFile">clear</i></a>';
+                            '<a href="#" onclick="$(\'#selectModuleButton\').show(); $(\'#moduleFilename\').hide(); $(\'#moduleAutoStartLabel\').hide(); $(\'#btnUpload\').hide(); $(\'#moduleFileUpload\').val(\'\')"><i class="material-icons removeModuleUploadFile">clear</i></a>';
                         $('#moduleFilename').html(moduleFilenameContent);
                         $('#moduleFilename').show();
-                        $('.selectModuleBtn').hide();
+                        $('#selectModuleButton').hide();
                         $('#moduleAutoStartLabel').show();
                         $('#btnUpload').show();
                     }
@@ -171,7 +171,7 @@
 
     <div class="panel panel-default">
         <div class="panel-heading">
-            <h4>Upload module from file</h4>
+            <h4><fmt:message key="moduleManager.title.uploadModuleFromFile"/></h4>
         </div>
         <div class="panel-body">
             <form:form modelAttribute="moduleFile" class="form" enctype="multipart/form-data" method="post">
@@ -205,7 +205,7 @@
                     <div class="form-group is-empty label-floating selectModule text-dark">
                         <div class="input-group breakWord">
                             <div class="input-group-btn">
-                                <label class="btn btn-primary btn-raised"
+                                <label class="btn btn-primary btn-raised" id="selectModuleButton"
                                        for="moduleFileUpload">
                                     <input type="file" class="form-control-file" id="moduleFileUpload"
                                            name="moduleFile">
