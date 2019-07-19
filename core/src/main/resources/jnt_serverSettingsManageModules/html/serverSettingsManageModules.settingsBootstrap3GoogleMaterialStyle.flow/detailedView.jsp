@@ -110,8 +110,10 @@
 
 <div class="page-header">
     <h2>
-        <button class="btn btn-default backBtn"
-                onclick="$('#viewInstalledModulesForm').submit()"><i class="material-icons">arrow_back</i></button>
+        <button class="btn btn-default backBtn" data-sel-role="back-button"
+                onclick="$('#viewInstalledModulesForm').submit()">
+            <i class="material-icons">arrow_back</i>
+        </button>
         ${activeVersion.name}</h2>
 </div>
 
@@ -217,7 +219,7 @@
                                                         <input type="hidden" name="scmUri" value="${activeVersion.scmURI}"/>
                                                         <input type="hidden" name="version" value="${activeVersion.version}"/>
                                                         <input type="hidden" name="branchOrTag" value="${activeVersion.scmTag}"/>
-                                                        <button class="btn btn-default btn-raised" type="submit"
+                                                        <button class="btn btn-default btn-raised button-download" type="submit"
                                                                 name="_eventId_downloadSources" onclick="">
                                                             <i class="icon-download"></i>
                                                             &nbsp;${i18nDownloadSources}
@@ -261,7 +263,7 @@
                                         <input type="hidden" name="groupId" value="${activeVersion.groupId}"/>
                                         <input type="hidden" name="version" value="${activeVersion.version}"/>
                                         <input type="hidden" name="srcPath" value="${activeVersion.sourcesFolder.path}"/>
-                                        <button class="btn btn-default btn-raised" type="submit" name="_eventId_duplicateModuleForm">
+                                        <button class="btn btn-default btn-raised button-download" type="submit" name="_eventId_duplicateModuleForm">
                                             <i class="icon-share"></i>
                                             &nbsp;<fmt:message key='serverSettings.manageModules.duplicateModule'/>
                                         </button>
@@ -278,7 +280,7 @@
                                             <input type="hidden" name="version" value="${activeVersion.version}"/>
                                             <input type="hidden" name="scmUri" value="${activeVersion.scmURI}"/>
                                             <input type="hidden" name="branchOrTag" value="${activeVersion.scmTag}"/>
-                                            <button class="btn btn-default btn-raised" type="submit" name="_eventId_downloadTempSources">
+                                            <button class="btn btn-default btn-raised button-download" type="submit" name="_eventId_downloadTempSources">
                                                 <i class="icon-share"></i>
                                                 &nbsp;<fmt:message key='serverSettings.manageModules.duplicateModule'/>
                                             </button>
@@ -344,7 +346,7 @@
                     <input type="hidden" name="_eventId_disableAll" value="true"/>
                     <fmt:message var="label"
                                  key='serverSettings.manageModules.module.disable.all'/>
-                    <button class="btn btn-danger btn-raised" type="button" onclick="" id="disableButton-All">
+                    <button class="btn btn-danger btn-raised disable-button" type="button" id="disableButton-All">
                         <i class="icon-ban-circle icon-white"></i>&nbsp;${label}
                     </button>
                 </form>
