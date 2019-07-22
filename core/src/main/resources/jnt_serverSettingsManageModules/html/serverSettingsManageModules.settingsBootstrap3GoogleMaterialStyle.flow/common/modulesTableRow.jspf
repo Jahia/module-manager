@@ -76,7 +76,7 @@
             <c:if test="${not empty currentModule}">
                 <td data-sel-role="status-${fn:toLowerCase(currentModule.state.state)}">
                     <c:if test="${currentModule.state =='Started'}">
-                            <span class="started-label">&nbsp;${currentModule.version}
+                            <span class="started-label text-success">&nbsp;${currentModule.version}
                             (<fmt:message key="serverSettings.manageModules.module.state.${fn:toLowerCase(currentModule.state.state)}"/>)</span>
                     </c:if>
                     <c:if test="${currentModule.state !='Started'}">
