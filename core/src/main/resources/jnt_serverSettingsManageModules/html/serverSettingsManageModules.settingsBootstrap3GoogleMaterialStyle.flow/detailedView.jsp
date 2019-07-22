@@ -249,7 +249,7 @@
 
                             <c:choose>
                                 <c:when test="${not isMandatoryDependency and (not empty moduleStates[activeVersion.id][activeVersion.version].unresolvedDependencies or  not empty sitesTemplates[activeVersion.id] or not empty sitesDirect[activeVersion.id] or not empty sitesTransitive[activeVersion.id] or (empty activeVersion.sourcesFolder and not empty sourcesFound))}">
-                                    <%--<button class="btn btn-block cyan button-download" disabled>--%>
+                                    <%--<button class="btn btn-block button-download" disabled>--%>
                                     <%--<i class="icon-share"></i>--%>
                                     <%--&nbsp;<fmt:message key='serverSettings.manageModules.duplicateModule'/>--%>
                                     <%--</button>--%>

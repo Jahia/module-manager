@@ -1,18 +1,3 @@
-.moduleManagerContainer [type="checkbox"].filled-in:not(:checked) + label:after {
-    border: 2px solid #9c9c9c;
-    top: 2px;
-}
-
-.moduleManagerContainer [type="checkbox"].filled-in:checked + label:after {
-    border: 2px solid #00bcd4;
-    background-color: #00bcd4;
-    top: 2px;
-}
-
-.moduleManagerContainer [type="checkbox"].filled-in:checked + label:before {
-    top: 2px;
-}
-
 .moduleManagerContainer div.material-table {
     padding: 0;
 }
@@ -90,7 +75,6 @@
 
 .moduleManagerContainer .started-label {
     background-color: transparent !important;
-    color: #4CAF50;
     font-weight: 600;
 }
 
@@ -299,11 +283,6 @@
     padding-right: 10px;
 }
 
-.moduleManagerContainer .cyan {
-    background-color: #00bcd4 !important;
-    color: #fff !important;
-}
-
 .moduleManagerContainer .searchBox input.form-control {
     background-image: none !important;
 }
@@ -339,37 +318,6 @@
     word-break: break-word;
 }
 
-.moduleManagerContainer .removeModuleUploadFile {
-    color: #F44336;
-}
-
-.black-text {
-    color: rgba(0, 0, 0, 0.87) !important;
-}
-
-.moduleManagerContainer .checkbox input[type=checkbox]:checked + .checkbox-material .check,
-.moduleManagerContainer label.checkbox-inline input[type=checkbox]:checked + .checkbox-material .check {
-    color: #017caf;
-    border-color: #017caf;
-}
-
-.moduleManagerContainer .checkbox input[type=checkbox]:checked + .checkbox-material .check:before,
-.moduleManagerContainer label.checkbox-inline input[type=checkbox]:checked + .checkbox-material .check:before {
-    color: #017caf;
-}
-
-.moduleManagerContainer .togglebutton label input[type=checkbox]:checked + .toggle:after {
-    background-color: #017caf;
-}
-
-.moduleManagerContainer .togglebutton label input[type=checkbox]:checked + .toggle {
-    background-color: rgba(2, 124, 174, 0.59);
-}
-
 .aligned-spacing-top-left{
     padding: 24px 0px 0px 16px;
-}
-
-.paginate_button a{
-    color: #337ab7!important;
 }

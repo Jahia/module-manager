@@ -113,7 +113,7 @@
                     var moduleFilename = $(this).val().replace(/.*(\/|\\)/, '');
                     if (!!moduleFilename) {
                         var moduleFilenameContent = '<span>' + moduleFilename + '</span>' +
-                            '<a href="#" onclick="$(\'#selectModuleButton\').show(); $(\'#moduleFilename\').hide(); $(\'#moduleAutoStartLabel\').hide(); $(\'#btnUpload\').hide(); $(\'#moduleFileUpload\').val(\'\')"><i class="material-icons removeModuleUploadFile">clear</i></a>';
+                            '<a href="#" class="text-danger" onclick="$(\'#selectModuleButton\').show(); $(\'#moduleFilename\').hide(); $(\'#moduleAutoStartLabel\').hide(); $(\'#btnUpload\').hide(); $(\'#moduleFileUpload\').val(\'\')"><i class="material-icons removeModuleUploadFile">clear</i></a>';
                         $('#moduleFilename').html(moduleFilenameContent);
                         $('#moduleFilename').show();
                         $('#selectModuleButton').hide();
@@ -231,16 +231,16 @@
                     </div>
                     <div class="form-group">
                         <div class="checkbox">
-                            <label for="moduleAutoStart" class="black-text" id="moduleAutoStartLabel"
+                            <label for="moduleAutoStart" id="moduleAutoStartLabel"
                                    style="display: none">
-                                <input id="moduleAutoStart" class="filled-in cyan" type="checkbox"
+                                <input id="moduleAutoStart" class="filled-in" type="checkbox"
                                        name="moduleAutoStart" ${developmentMode ? 'checked="checked"' : ''}/>
                                 <fmt:message key="serverSettings.manageModules.upload.autoStart"/>
                             </label>
 
                             <c:if test="${forceUpdateDisplay eq 'true'}">
                                 <label for="moduleForceUpdate">
-                                    <input type="checkbox" class="filled-in cyan" name="moduleForceUpdate"
+                                    <input type="checkbox" class="filled-in" name="moduleForceUpdate"
                                            id="moduleForceUpdate"/>
                                     <fmt:message key="serverSettings.manageModules.upload.force"/>
                                 </label>
