@@ -24,7 +24,7 @@
                                             <fmt:param value="${unresolvedDependencies}"/>
                                         </fmt:message>
                                         <button  data-toggle="tooltip" data-placement="bottom" data-container="body"
-                                                 data-original-title="${i18nModuleStart}" style="top: 1px;"
+                                                 data-original-title="${i18nModuleStart}"
                                                  class="btn btn-fab btn-fab-xs btn-success" type="submit"
                                                  disabled="true" title="${fn:escapeXml(i18nUnresolvedDependencies)}"
                                                  onclick="event.stopPropagation(); return true">
@@ -34,7 +34,7 @@
                                     <c:if test="${moduleState.canBeStarted}">
                                         <button data-toggle="tooltip" data-placement="bottom" title=""
                                                 data-container="body" data-original-title="${i18nModuleStart}"
-                                                style="top: 1px;" class="btn btn-fab btn-fab-xs btn-success"
+                                                class="btn btn-fab btn-fab-xs btn-success"
                                                 type="submit" name="_eventId_startModule" data-sel-role="start"
                                                 onclick="event.stopPropagation(); return true">
                                             <i class="material-icons startModule">play_arrow</i>
@@ -52,7 +52,7 @@
 
                                         <button data-toggle="tooltip" data-placement="bottom" title="" data-container="body"
                                                 data-original-title="${i18nModuleStop}" class="btn btn-fab btn-fab-xs btn-danger"
-                                                type="submit" name="_eventId_stopModule" data-sel-role="stop" style="top: 1px;"
+                                                type="submit" name="_eventId_stopModule" data-sel-role="stop"
                                             onclick="event.stopPropagation(); return confirm('${functions:escapeJavaScript(i18nModuleStopConfirm)}${' '}${functions:escapeJavaScript(i18nContinue)}');">
                                             <i class="material-icons stopModule">stop</i>
                                         </button>
@@ -60,7 +60,7 @@
                                     <c:if test="${moduleState.canBeReinstalled}">
                                         <button data-toggle="tooltip" data-placement="bottom" title="" data-container="body"
                                                 data-original-title="${i18nModuleReinstall}" class="btn btn-fab btn-fab-xs"
-                                                type="submit" name="_eventId_updateModule" style="top: 1px;"
+                                                type="submit" name="_eventId_updateModule"
                                                 onclick="event.stopPropagation(); return true">
                                             <i class="material-icons reinstallModule">rotate_90_degrees_ccw</i>
                                         </button>
@@ -69,7 +69,7 @@
                                         <fmt:message key="serverSettings.manageModules.undeployModule.confirm" var="i18nModuleUndeployConfirm">
                                             <fmt:param value="${version.value.name} (${version.key})"/>
                                         </fmt:message>
-                                        <button data-toggle="tooltip" data-placement="bottom" title="" style="top: 1px;"
+                                        <button data-toggle="tooltip" data-placement="bottom" title=""
                                                 data-original-title="${i18nModuleUndeploy}" data-container="body"
                                                 class="btn btn-fab btn-danger btn-fab-xs" type="submit" name="_eventId_undeployModule"
                                             onclick="event.stopPropagation(); return confirm('${functions:escapeJavaScript(i18nModuleUndeployConfirm)}${' '}${functions:escapeJavaScript(i18nContinue)}');">
@@ -85,14 +85,13 @@
                                         <button class="btn btn-fab btn-fab-xs" type="button" data-toggle="tooltip"
                                                 data-container="body" data-placement="bottom" title=""
                                                 data-original-title="${fn:escapeXml(i18nModuleWiring)}"
-                                                style="top: 1px;"
                                                 onclick="$('#wiringInfo${bundleId}').toggle(100);return false;">
                                             <i class="material-icons infoWiring">info_outline</i>
                                         </button>
                                         <button data-toggle="tooltip" data-placement="bottom" title=""
                                                 data-original-title="${i18nRefresh}" class="btn btn-fab btn-fab-xs"
                                                 type="submit" name="_eventId_refreshModule" id="refresh${bundleId}"
-                                                style="display: none; top: 1px;"
+                                                style="display: none;"
                                                 onclick="event.stopPropagation(); return true">
                                             <i class="material-icons">refresh</i>
                                         </button>
@@ -127,7 +126,7 @@
                                         <fmt:message key ="label.refresh" var="i18nRefresh"/><c:set var="i18nRefresh" value="${fn:escapeXml(i18nRefresh)}"/>
                                         <button class="btn btn-fab btn-fab-xs btn-danger" type="button"
                                                 data-toggle="tooltip" data-container="body" data-placement="bottom"
-                                                title="" data-original-title="${i18nRefresh}" style="top: 1px;"
+                                                title="" data-original-title="${i18nRefresh}"
                                                 onclick="if (confirm('${functions:escapeJavaScript(i18nModuleRefreshConfirm)}${' '}${dependentModulesWithVersion}\n${functions:escapeJavaScript(i18nContinue)}')) { $('#refresh${bundleId}').click(); };">
                                             <i class="material-icons">refresh</i>
                                         </button>
