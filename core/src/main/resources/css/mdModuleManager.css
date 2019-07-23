@@ -325,3 +325,12 @@
 .aligned-spacing-top-left{
     padding: 24px 0px 0px 16px;
 }
+
+.moduleManagerContainer .wiringColumn {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+}
+
+.moduleManagerContainer .wiringInfo {
+    margin-top: 8px;
+}

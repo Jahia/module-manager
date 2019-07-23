@@ -320,7 +320,7 @@
                                             key="serverSettings.manageModules.module.state.${fn:toLowerCase(version.value.state.state)}"/>
                                 </td>
                                 <c:if test="${not isStudio}">
-                                    <td>
+                                    <td class="wiringColumn">
                                         <c:set var="isActiveVersion" value="${version.key == activeVersion.version}"/>
                                         <c:set var="showWiring" value="true"/>
                                         <%@include file="common/moduleVersionActions.jspf" %>
