@@ -172,7 +172,7 @@
             </div>
         </div>
         <div class="checkbox">
-            <label for="globalModuleAutoStart" class="autoStartModule black-text">
+            <label for="globalModuleAutoStart" class="autoStartModule">
                 <input type="checkbox" name="globalModuleAutoStart"
                        id="globalModuleAutoStart" ${developmentMode ? 'checked="checked"' : ''}/>
                 <fmt:message key="serverSettings.manageModules.download.autoStart"/>&nbsp;
