@@ -216,6 +216,10 @@
     margin-right: 8px;
 }
 
+.moduleManagerContainer .chip form {
+    height: 30px;
+}
+
 .moduleManagerContainer .moduleChipContainer {
     display: inline-flex;
 }
