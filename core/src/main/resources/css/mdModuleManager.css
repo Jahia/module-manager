@@ -197,11 +197,11 @@
     cursor: pointer;
     background: rgb(224, 224, 224);
     color: rgb(66, 66, 66);
-    border-radius: 16px;
-    min-height: 32px;
+    border-radius: 15px;
+    min-height: 30px;
     line-height: 30px;
     margin: 2px 8px 2px 8px;
-    padding: 0 1px 2px 8px;
+    padding: 0 1px 0 8px;
     float: left;
     box-sizing: border-box;
     max-width: 100%;
@@ -218,6 +218,13 @@
 
 .moduleManagerContainer .chip form {
     height: 30px;
+    display: inline-flex;
+    align-items: center;
+    flex-direction: row;
+}
+
+.moduleManagerContainer .chip form :not(:last-child) {
+    margin-right: 6px;
 }
 
 .moduleManagerContainer .moduleChipContainer {
@@ -259,6 +266,7 @@
     position: relative;
     display: inline-flex;
     align-items: center;
+    flex-direction: row;
 }
 
 .moduleManagerContainer .refreshModule button {
