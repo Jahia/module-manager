@@ -221,6 +221,7 @@
     display: inline-flex;
     align-items: center;
     flex-direction: row;
+    flex-shrink: 0;
 }
 
 .moduleManagerContainer .chip form :not(:last-child) {
