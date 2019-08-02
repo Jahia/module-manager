@@ -200,8 +200,7 @@
     border-radius: 15px;
     min-height: 30px;
     line-height: 30px;
-    margin: 2px 8px 2px 8px;
-    padding: 0 1px 0 8px;
+    padding-left: 8px;
     float: left;
     box-sizing: border-box;
     max-width: 100%;
@@ -211,6 +210,10 @@
     display: inline-flex;
 }
 
+.moduleManagerContainer .chip:not(:last-child) {
+    margin-bottom: 8px;
+}
+
 .moduleManagerContainer .chip > small {
     margin-left: 8px;
     margin-right: 8px;
@@ -218,10 +221,14 @@
 
 .moduleManagerContainer .chip form {
     height: 30px;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     flex-direction: row;
-    flex-shrink: 0;
+    align-self: flex-end;
+}
+
+.moduleManagerContainer .no-chip form {
+    align-self: flex-start;
 }
 
 .moduleManagerContainer .chip form :not(:last-child) {
@@ -267,7 +274,12 @@
     position: relative;
     display: inline-flex;
     align-items: center;
-    flex-direction: row;
+    flex-direction: column;
+}
+
+.moduleManagerContainer .actions p {
+    width: 100%;
+    padding-right: 8px;
 }
 
 .moduleManagerContainer .refreshModule button {
