@@ -61,7 +61,7 @@
         <jahia-module-type>system</jahia-module-type>
         <jahia-deploy-on-site>system</jahia-deploy-on-site>
         <export-package>org.jahia.modules.modulemanager.forge</export-package>
-        <jackson.version>2.9.8</jackson.version>
+        <jackson.version>2.10.0</jackson.version>
         <jersey.version>2.6</jersey.version>
     </properties>
 
