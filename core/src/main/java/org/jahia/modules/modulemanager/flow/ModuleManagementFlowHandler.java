@@ -819,7 +819,7 @@ public class ModuleManagementFlowHandler implements Serializable {
                 if (module != null && module.getState().getState() == ModuleState.State.WAITING_TO_BE_IMPORTED) {
                     msgKey = "serverSettings.manageModules.start.waitingToBeImported";
                 }
-                requestContext.getMessageContext().addMessage(new MessageBuilder().info().source(startedBundleId)
+                requestContext.getMessageContext().addMessage(new MessageBuilder().info().source(Long.toString(startedBundleId))
                         .code(msgKey).arg(b.getSymbolicName()).build());
                 requestContext.getExternalContext().getSessionMap().remove("moduleHasBeenStarted");
             }
