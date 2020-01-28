@@ -63,6 +63,7 @@
         <export-package>org.jahia.modules.modulemanager.forge</export-package>
         <jackson.version>2.9.8</jackson.version>
         <jersey.version>2.6</jersey.version>
+        <jahia-module-signature>MC0CFH0NjJLNsASV2J99JqNhc4fokWw9AhUAirI+GGlmg8Bf4F3oJeIWtFgU78c=</jahia-module-signature>
     </properties>
 
     <repositories>

@@ -60,6 +60,7 @@
     <properties>
         <jahia-depends>module-manager</jahia-depends>
         <jahia-module-type>system</jahia-module-type>
+        <jahia-module-signature>MCwCFBZr/Uf8BFr/0nJjARJCS04rBDtAAhQ+K7/AKMQrpQk9PiU8qG5eRdf6Xw==</jahia-module-signature>
     </properties>
 
     <repositories>
