@@ -6,3 +6,8 @@
 module-manager.iml
 /.DS_Store
 /pom.txt
+/src/main/resources/javascript/apps
+/node
+/node_modules
+/yarn-error.log
+/.yalc
