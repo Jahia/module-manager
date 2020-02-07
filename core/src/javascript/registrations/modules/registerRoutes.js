@@ -1,6 +1,6 @@
 import {registry} from '@jahia/ui-extender';
 
-export const registerRoutes = function (t) {
+export const registerRoutes = function () {
     const level = 'server';
     const parentTarget = 'administration-server';
 
@@ -13,7 +13,7 @@ export const registerRoutes = function (t) {
         route: route,
         defaultPath: path,
         icon: null,
-        label: t('modules.label'),
+        label: 'module-manager:modules.label',
         childrenTarget: 'systemcomponents',
         isSelectable: true,
         level: level
