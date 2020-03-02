@@ -12,6 +12,7 @@ export const registerRoutes = function () {
         path: path,
         route: route,
         defaultPath: path,
+        requiredPermission: 'adminTemplates',
         icon: null,
         label: 'module-manager:modules.label',
         childrenTarget: 'systemcomponents',
