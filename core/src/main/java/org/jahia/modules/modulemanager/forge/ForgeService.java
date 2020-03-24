@@ -44,6 +44,8 @@
 package org.jahia.modules.modulemanager.forge;
 
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.URI;
+import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -70,6 +72,9 @@ import javax.jcr.RepositoryException;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.*;
 
 /**
@@ -290,7 +295,13 @@ public class ForgeService {
     public File downloadModuleFromForge(String forgeId, String url) {
         for (Forge forge : forges) {
             if (forgeId.equals(forge.getId())) {
-                GetMethod httpMethod = new GetMethod(url);
+                GetMethod httpMethod = new GetMethod();
+                try {
+                    httpMethod.setURI(new URI(url, false, "UTF-8"));
+                } catch (URIException e) {
+                    logger.error(e.getMessage(),e);
+                    return null;
+                }
                 httpMethod.addRequestHeader("Authorization", "Basic " + Base64.encode((forge.getUser() + ":" + forge.getPassword()).getBytes()));
                 HttpClient httpClient = httpClientService.getHttpClient(url);
                 try {
