@@ -2,7 +2,7 @@ import {registry} from '@jahia/ui-extender';
 
 export const registerRoutes = function () {
     registry.addOrReplace('adminRoute', 'manageModules', {
-        targets: ['administration-server-systemComponents:2'],
+        targets: ['administration-server-systemComponents:10'],
         requiredPermission: 'adminTemplates',
         icon: null,
         label: 'module-manager:modules.label',
