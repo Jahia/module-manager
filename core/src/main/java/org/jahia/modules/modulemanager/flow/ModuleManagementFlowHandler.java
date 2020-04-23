@@ -110,6 +110,7 @@ public class ModuleManagementFlowHandler implements Serializable {
 
     private static final long serialVersionUID = -4195379181264451784L;
     private static final Logger logger = LoggerFactory.getLogger(ModuleManagementFlowHandler.class);
+    public static final Version jahiaVersion = new Version(Jahia.VERSION);
 
     @Autowired
     private transient JahiaTemplateManagerService templateManagerService;
@@ -209,7 +210,8 @@ public class ModuleManagementFlowHandler implements Serializable {
                         .code("serverSettings.manageModules.install.required.version.missing.error").error().build());
                 return;
             }
-            if (new Version(jahiaRequiredVersion).compareTo(new Version(Jahia.VERSION)) > 0) {
+            Version requiredVersion = new Version(jahiaRequiredVersion);
+            if (requiredVersion.compareTo(jahiaVersion) > 0 || requiredVersion.getMajorVersion() != jahiaVersion.getMajorVersion()) {
                 context.addMessage(new MessageBuilder().source("moduleFile")
                         .code("serverSettings.manageModules.install.required.version.error")
                         .args(jahiaRequiredVersion, Jahia.VERSION).error().build());

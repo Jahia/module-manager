@@ -248,7 +248,7 @@ public class ForgeService {
                                 JSONObject object = moduleVersions.getJSONObject(j);
                                 Version version = new Version(object.getString("version"));
                                 Version requiredVersion = new Version(StringUtils.substringAfter(object.getString("requiredVersion"), "version-"));
-                                if (requiredVersion.compareTo(jahiaVersion) <= 0) {
+                                if (requiredVersion.compareTo(jahiaVersion) <= 0 && requiredVersion.getMajorVersion() == jahiaVersion.getMajorVersion()) {
                                     sortedVersions.put(version, object);
                                 }
                             }
