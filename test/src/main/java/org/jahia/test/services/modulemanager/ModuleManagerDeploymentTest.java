@@ -87,14 +87,14 @@ public class ModuleManagerDeploymentTest extends JahiaTestCase {
     }
 
     private static void uninstallTestModule() throws BundleException {
-        Bundle bundle = BundleUtils.getBundleBySymbolicName("dummy1", "1.0.0");
+        Bundle bundle = BundleUtils.getBundleBySymbolicName("dummy1", "2.0.0");
         if (bundle != null) {
             bundle.uninstall();
         }
     }
 
     private void assertModuleState(int expectedState) {
-        Bundle bundle = BundleUtils.getBundleBySymbolicName("dummy1", "1.0.0");
+        Bundle bundle = BundleUtils.getBundleBySymbolicName("dummy1", "2.0.0");
         assertNotNull(bundle);
         assertEquals(expectedState, bundle.getState());
     }
@@ -105,21 +105,21 @@ public class ModuleManagerDeploymentTest extends JahiaTestCase {
 
     private void installModule() {
         getModuleManager().install(
-                managerService.getTemplatePackageById("jahia-test-module").getResource("dummy1-1.0.jar"), null);
+                managerService.getTemplatePackageById("jahia-test-module").getResource("dummy1-2.0.0.jar"), null);
 
         assertModuleState(Bundle.INSTALLED);
     }
 
     private void startModule() {
-        getModuleManager().start("org.jahia.modules/dummy1/1.0.0", null);
+        getModuleManager().start("org.jahia.modules/dummy1/2.0.0", null);
 
         assertModuleState(Bundle.ACTIVE);
         assertTrue(managerService.getTemplatePackageRegistry().getAvailableVersionsForModule("dummy1")
-                .contains(new ModuleVersion("1.0")));
+                .contains(new ModuleVersion("2.0.0")));
     }
 
     private void stopModule() {
-        getModuleManager().stop("org.jahia.modules/dummy1/1.0.0", null);
+        getModuleManager().stop("org.jahia.modules/dummy1/2.0.0", null);
 
         assertModuleState(Bundle.RESOLVED);
     }
@@ -145,8 +145,8 @@ public class ModuleManagerDeploymentTest extends JahiaTestCase {
     }
 
     private void uninstallModule() {
-        getModuleManager().uninstall("org.jahia.modules/dummy1/1.0.0", null);
+        getModuleManager().uninstall("org.jahia.modules/dummy1/2.0.0", null);
 
-        assertNull(BundleUtils.getBundleBySymbolicName("dummy1", "1.0.0"));
+        assertNull(BundleUtils.getBundleBySymbolicName("dummy1", "2.0.0"));
     }
 }
