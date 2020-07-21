@@ -2,7 +2,7 @@
     <img src="https://www.jahia.com/modules/jahiacom-templates/images/jahia-3x.png" alt="Jahia logo" title="Jahia" align="right" height="60" />
 </a>
 
-# DX Module Manager
+DX Module Manager
 ======================
 
 DX module that provides enterprise level module management functionality
