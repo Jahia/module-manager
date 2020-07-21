@@ -1,4 +1,10 @@
+<a href="https://www.jahia.com/">
+    <img src="https://www.jahia.com/modules/jahiacom-templates/images/jahia-3x.png" alt="Jahia logo" title="Jahia" align="right" height="60" />
+</a>
+
 # DX Module Manager
+======================
+
 DX module that provides enterprise level module management functionality
 - API base url: http://{dx.host}:{dx.port}/{dx.tomcat.contextPath}/modules/api/bundles
 - User should have the `adminTemplates` permission in DX to be able to use this API
@@ -485,3 +491,7 @@ DX module that provides enterprise level module management functionality
   curl -s --user jon:root1234 --data --request POST http://localhost:8080/modules/api/bundles/org.jahia.modules/article/2.0.3
   .SNAPSHOT/_update
   ```
+
+## Open-Source
+
+This is an Open-Source module, you can find more details about Open-Source @ Jahia [in this repository](https://github.com/Jahia/open-source).
