@@ -221,7 +221,7 @@
                     <div class="form-group is-empty label-floating text-dark">
                         <div class="input-group">
                             <span class="input-group-btn no-padding">
-                                <button id="btnUpload" class="btn btn-primary btn-raised" type="submit"
+                                <button id="btnUpload" class="btn btn-primary btn-raised" type="submit" onclick="workInProgress('${i18nWaiting}');"
                                         name="_eventId_upload"
                                         style="display: none">
                                     <fmt:message key='label.upload'/>
