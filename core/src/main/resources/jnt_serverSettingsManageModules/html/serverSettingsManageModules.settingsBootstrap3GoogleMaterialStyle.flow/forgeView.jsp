@@ -106,10 +106,12 @@
                 $('.dataTables_filter input')
                     .attr("placeholder", "${i18nSearchModule}");
 
-                $('#' + tableId).on('click', 'tr', function () {
-                    var remoteUrl = $(this).find('td:first input[name="remoteUrl"]').val();
-                    $('#modalframe').attr('src', remoteUrl);
-                    $('#moduleDetailsModal').modal('show');
+                $('#' + tableId).on('click', 'tr', function (event) {
+                    if(event.target.parentElement.nodeName.toLowerCase() !== 'button') {
+                        var remoteUrl = $(this).find('td:first-child input[name="remoteUrl"]').val();
+                        $('#modalframe').attr('src', remoteUrl);
+                        $('#moduleDetailsModal').modal('show');
+                    }
                 });
 
                 $('.timestamp').cuteTime({refresh: 60000});
@@ -197,7 +199,7 @@
             <tbody>
             <c:forEach items="${requestScope.modules}" var="module">
                 <c:url value="${module.remoteUrl}" context="/" var="remoteUrl"/>
-                <tr onclick="$('#modalframe').attr('src', '${remoteUrl}')">
+                <tr>
                     <td>
                             <input type="hidden" name="remoteUrl" value="${remoteUrl}"/>
                             <c:if test="${not empty module.icon}">
