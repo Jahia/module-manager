@@ -240,6 +240,7 @@
                                             <input type="hidden" name="moduleUrl" value="${module.downloadUrl}"/>
                                             <input type="hidden" name="moduleAutoStart" value="${developmentMode}"/>
                                             <button data-toggle="tooltip" data-placement="bottom" title="${downloadLabel}"
+                                                    onclick="event.stopPropagation()"
                                                     data-original-title="" class="btn btn-fab btn-fab-xs button-download" type="submit"
                                                     name="_eventId_installForgeModule">
                                                 <i class="material-icons">file_download</i>
