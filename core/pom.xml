@@ -61,7 +61,7 @@
         <jahia-module-type>system</jahia-module-type>
         <jahia-deploy-on-site>system</jahia-deploy-on-site>
         <export-package>org.jahia.modules.modulemanager.forge</export-package>
-        <jackson.version>2.9.8</jackson.version>
+        <jackson.version>2.12.1</jackson.version>
         <jersey.version>2.6</jersey.version>
         <jahia-module-signature>MC0CFHQW/mzLSEbc7QrurPhWb+dplXAoAhUAhZLbhcDYJgSgfHlnIhH0gxrFHDA=</jahia-module-signature>
         <require-capability>osgi.extender;filter:="(osgi.extender=org.jahia.bundles.blueprint.extender.config)"</require-capability>
