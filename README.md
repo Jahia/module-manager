@@ -21,6 +21,12 @@ DX module that provides enterprise level module management functionality
  - [Refresh a bundle (since DX 7.3.1.1)](#refresh)
  - [Update a bundle (since DX 7.3.1.1)](#update)
 
+## Forewords: URL encoding
+
+When using special characters in the URL, such as `[` or `]`, those need to be encoded accordingly or a `HTTP Status 400 – Bad Request` error will be returned by tomcat.
+
+For example:
+`http://localhost:8080/modules/api/bundles/%5Barticle/3.0.0,blog/4.0.0%5D/_localInfo` will return details about the specified modules, while `http://root:root@localhost:8080/modules/api/bundles/[article/3.0.0,blog/4.0.0]/_localInfo` will return a 400 error due to non encoded characters.
 
 <a name="install"></a>**Install one or multiple bundle(s)**
 ----
