@@ -70,7 +70,9 @@ import org.jahia.services.modulemanager.BundleInfo;
 import org.jahia.services.modulemanager.Constants;
 import org.jahia.services.modulemanager.ModuleManagementException;
 import org.jahia.services.modulemanager.ModuleManager;
+import org.jahia.services.modulemanager.models.JahiaDepends;
 import org.jahia.services.render.RenderContext;
+import org.jahia.services.render.Template;
 import org.jahia.services.sites.JahiaSitesService;
 import org.jahia.services.templates.*;
 import org.jahia.settings.SettingsBean;
@@ -661,21 +663,26 @@ public class ModuleManagementFlowHandler implements Serializable {
                                                      boolean multipleVersionsOfModuleInstalled, Map<String, List<String>> directSiteDep,
                                                      Map<String, List<String>> templateSiteDep, Map<String, List<String>> transitiveSiteDep, Set<String> systemSiteRequiredModules, Map<String, String> errors) {
 
+        TemplatePackageRegistry registry = templateManagerService.getTemplatePackageRegistry();
         ModuleVersionState state = new ModuleVersionState();
-        Map<String, JahiaTemplatesPackage> registeredModules = templateManagerService.getTemplatePackageRegistry()
-                .getRegisteredModules();
+        Map<String, JahiaTemplatesPackage> registeredModules = registry.getRegisteredModules();
         String moduleId = pkg.getId();
 
         // check for unresolved dependencies
         if (!pkg.getDepends().isEmpty()) {
             for (String dependency : pkg.getDepends()) {
-                if (templateManagerService.getTemplatePackageRegistry().getAvailableVersionsForModule(dependency).isEmpty()) {
+                if (registry.getAvailableVersionsForModule(dependency).isEmpty()) {
                     state.getUnresolvedDependencies().add(dependency);
                 }
             }
         }
-        List<JahiaTemplatesPackage> dependantModules = templateManagerService.getTemplatePackageRegistry()
-                .getDependantModules(pkg);
+
+        for (JahiaDepends d : pkg.getVersionDepends()) {
+            JahiaTemplatesPackage p = templateManagerService.getAnyDeployedTemplatePackage(d.toString());
+            if (p == null) state.getUnresolvedDependencies().add(d.toString());
+        }
+
+        List<JahiaTemplatesPackage> dependantModules = registry.getDependantModules(pkg);
         for (JahiaTemplatesPackage dependant : dependantModules) {
             state.getDependencies().add(dependant.getId());
         }
