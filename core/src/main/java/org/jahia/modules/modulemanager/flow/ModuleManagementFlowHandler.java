@@ -60,7 +60,8 @@ import org.jahia.modules.modulemanager.forge.ForgeService;
 import org.jahia.modules.modulemanager.forge.Module;
 import org.jahia.osgi.BundleUtils;
 import org.jahia.osgi.FrameworkService;
-import org.jahia.security.license.LicenseCheckerService;
+import org.jahia.security.spi.LicenseCheckUtil;
+import org.jahia.security.spi.LicenseCheckerService;
 import org.jahia.services.content.JCRNodeWrapper;
 import org.jahia.services.content.JCRSessionWrapper;
 import org.jahia.services.content.decorator.JCRSiteNode;
@@ -219,6 +220,15 @@ public class ModuleManagementFlowHandler implements Serializable {
                         .args(jahiaRequiredVersion, Jahia.VERSION).error().build());
                 return;
             }
+            //Check license
+            String licenseFeature = manifestAttributes.getValue("Jahia-Key");
+            if (licenseFeature != null && !LicenseCheckUtil.isAllowed(licenseFeature)) {
+                context.addMessage(new MessageBuilder().source("moduleFile")
+                        .code("serverSettings.manageModules.install.module.missing.license")
+                        .args(originalFilename, licenseFeature)
+                        .error().build());
+                return;
+            }
 
             if (manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_NAME) != null) {
                 handlePackage(jarFile, manifestAttributes, originalFilename, forceUpdate, autoStart, context);
@@ -246,11 +256,11 @@ public class ModuleManagementFlowHandler implements Serializable {
 
         //Check license
         String licenseFeature = manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_LICENSE);
-        if (licenseFeature != null && !LicenseCheckerService.Stub.isAllowed(licenseFeature)) {
+        if (licenseFeature != null && !LicenseCheckUtil.isAllowed(licenseFeature)) {
             context.addMessage(new MessageBuilder().source("moduleFile")
                     .code("serverSettings.manageModules.install.package.missing.license")
                     .args(originalFilename, licenseFeature)
-                    .build());
+                    .error().build());
             return;
         }
 
