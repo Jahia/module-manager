@@ -43,9 +43,11 @@
  */
 package org.jahia.test.services.modulemanager;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import javax.jcr.RepositoryException;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
@@ -56,6 +58,7 @@ import org.jahia.services.content.JCRTemplate;
 import org.jahia.services.modulemanager.persistence.jcr.BundleInfoJcrHelper;
 import org.jahia.test.JahiaTestCase;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assert;
@@ -74,42 +77,46 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
     private static final String MODULE_MANAGER_TEST_GROUP = "org.jahia.test";
     private static final String MODULE_MANAGER_TEST_NAME = "module-manager-test";
     private static final String MODULE_MANAGER_TEST_FULL_NAME = (MODULE_MANAGER_TEST_GROUP + "/" + MODULE_MANAGER_TEST_NAME);
+    private static final String LOCATION = "location";
+    private static final String STATE = "state";
+    private static final String SYMBOLIC_NAME = "symbolicName";
+    private static final String VERSION = "version";
 
     private static String moduleManagerVersion;
 
     @BeforeClass
-    public static void oneTimeSetUp() throws Exception {
+    public static void oneTimeSetUp() {
         moduleManagerVersion = getModuleManagerVersion();
     }
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() throws IOException {
         loginRoot();
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() throws IOException {
         logout();
     }
 
     @Test
-    public void shouldRetrieveSingleModuleInfoByKey() throws Exception {
+    public void shouldRetrieveSingleModuleInfoByKey() throws JSONException {
         verifyModuleInfoRetrieval(getModuleManagerKey(MODULE_MANAGER_NAME));
     }
 
     @Test
-    public void shouldRetrieveSingleModuleInfoByFullKey() throws Exception {
+    public void shouldRetrieveSingleModuleInfoByFullKey() throws JSONException {
         verifyModuleInfoRetrieval(getModuleManagerKey(MODULE_MANAGER_FULL_NAME));
     }
 
     @Test
-    public void shouldGetErrorNotRetrieveSingleModuleInfoByWrongKey() throws Exception {
+    public void shouldGetErrorNotRetrieveSingleModuleInfoByWrongKey() {
         verifyModuleInfoRetrievalError(MODULE_MANAGER_NAME, HttpServletResponse.SC_BAD_REQUEST);
         verifyModuleInfoRetrievalError("nonExistingBundle/1.0.0", HttpServletResponse.SC_NOT_FOUND);
     }
 
     @Test
-    public void shouldRetrieveMultipleModuleInfosByKey() throws Exception {
+    public void shouldRetrieveMultipleModuleInfosByKey() throws JSONException {
         verifyModuleInfosRetrieval(
             getModuleManagerKey(MODULE_MANAGER_NAME),
             getModuleManagerKey(MODULE_MANAGER_TEST_NAME)
@@ -117,7 +124,7 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
     }
 
     @Test
-    public void shouldRetrieveMultipleModuleInfosByFullKey() throws Exception {
+    public void shouldRetrieveMultipleModuleInfosByFullKey() throws JSONException {
         verifyModuleInfosRetrieval(
             getModuleManagerKey(MODULE_MANAGER_FULL_NAME),
             getModuleManagerKey(MODULE_MANAGER_TEST_FULL_NAME)
@@ -125,18 +132,18 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
     }
 
     @Test
-    public void shouldGetErrorNotRetrieveMultipleModuleInfosByWrongKey() throws Exception {
+    public void shouldGetErrorNotRetrieveMultipleModuleInfosByWrongKey() {
         verifyModuleInfoRetrievalError(getMultipleBundlesSelector(MODULE_MANAGER_NAME, getModuleManagerKey(MODULE_MANAGER_NAME)), HttpServletResponse.SC_BAD_REQUEST);
         verifyModuleInfoRetrievalError(getMultipleBundlesSelector("nonExistingBundle/1.0.0", getModuleManagerKey(MODULE_MANAGER_FULL_NAME)), HttpServletResponse.SC_NOT_FOUND);
     }
 
     @Test
-    public void shouldRetrieveBucketModuleInfosByName() throws Exception {
+    public void shouldRetrieveBucketModuleInfosByName() throws JSONException {
         verifyBucketModuleInfoRetrieval(MODULE_MANAGER_NAME, getModuleManagerKey(MODULE_MANAGER_FULL_NAME));
     }
 
     @Test
-    public void shouldRetrieveAllModuleInfosByGroup() throws Exception {
+    public void shouldRetrieveAllModuleInfosByGroup() throws JSONException {
         JSONObject response = getBundleInfo(JAHIA_MODULES_GROUP + "/*/*");
         @SuppressWarnings("rawtypes")
         Iterator keyIterator = response.keys();
@@ -148,52 +155,52 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
     }
 
     @Test
-    public void shouldRetrieveBucketModuleInfosByGroupAndName() throws Exception {
+    public void shouldRetrieveBucketModuleInfosByGroupAndName() throws JSONException {
         verifyBucketModuleInfoRetrieval(MODULE_MANAGER_FULL_NAME, getModuleManagerKey(MODULE_MANAGER_FULL_NAME));
     }
 
     @Test
-    public void shouldRetrieveNoBucketModuleInfosByWrongName() throws Exception {
+    public void shouldRetrieveNoBucketModuleInfosByWrongName() throws JSONException {
         JSONObject response = getBundleInfo("nonExistingBundle/*");
         Assert.assertEquals(0, response.length());
     }
 
     @Test
-    public void shouldRetrieveAllModuleInfos() throws Exception {
+    public void shouldRetrieveAllModuleInfos() throws JSONException {
         JSONObject response = getBundleInfo("*");
         verifyModuleInfo(response.getJSONObject(getModuleManagerKey(MODULE_MANAGER_FULL_NAME)));
         verifyModuleInfo(response.getJSONObject(getModuleManagerKey(MODULE_MANAGER_TEST_FULL_NAME)));
     }
 
     @Test
-    public void shouldHaveFragmentType() throws Exception {
+    public void shouldHaveFragmentType() throws JSONException {
         JSONObject moduleInfo = getBundleInfo(getBlueprintExtenderConfigSelector());
         Assert.assertEquals("FRAGMENT", moduleInfo.getString("type"));
         Assert.assertEquals("RESOLVED", moduleInfo.getString("osgiState"));
     }
 
     @Test
-    public void shouldStoreAllPersistentBundleStates() throws Exception {
+    public void shouldStoreAllPersistentBundleStates() throws RepositoryException, JSONException, IOException {
 
         PostResult response = post(getBaseServerURL() + Jahia.getContextPath() + "/modules/api/bundles/_storeAllLocalPersistentStates");
 
-        Assert.assertEquals(200, response.statusCode);
-        JSONArray bubdleInfosApi = new JSONArray(response.responseBody);
+        Assert.assertEquals(200, response.getStatusCode());
+        JSONArray bubdleInfosApi = new JSONArray(response.getResponseBody());
 
         HashMap<String, JSONObject> bundleInfoByLocationApi = new HashMap<>(bubdleInfosApi.length());
         for (int i = 0; i < bubdleInfosApi.length(); i++) {
             JSONObject bundleInfoApi = bubdleInfosApi.getJSONObject(i);
-            bundleInfoByLocationApi.put(bundleInfoApi.getString("location"), bundleInfoApi);
+            bundleInfoByLocationApi.put(bundleInfoApi.getString(LOCATION), bundleInfoApi);
         }
 
         Bundle[] bundlesOsgi = FrameworkService.getBundleContext().getBundles();
         Assert.assertEquals(bundleInfoByLocationApi.size(), bundlesOsgi.length);
         for (Bundle bundleOsgi : bundlesOsgi) {
             JSONObject bundleInfoApi = bundleInfoByLocationApi.get(bundleOsgi.getLocation());
-            Assert.assertEquals(bundleInfoApi.getString("location"), bundleOsgi.getLocation());
-            Assert.assertEquals(bundleInfoApi.getInt("state"), BundleUtils.getPersistentState(bundleOsgi));
-            Assert.assertEquals(bundleInfoApi.getString("symbolicName"), bundleOsgi.getSymbolicName());
-            Assert.assertEquals(bundleInfoApi.getString("version"), BundleUtils.getModuleVersion(bundleOsgi));
+            Assert.assertEquals(bundleInfoApi.getString(LOCATION), bundleOsgi.getLocation());
+            Assert.assertEquals(bundleInfoApi.getInt(STATE), BundleUtils.getPersistentState(bundleOsgi));
+            Assert.assertEquals(bundleInfoApi.getString(SYMBOLIC_NAME), bundleOsgi.getSymbolicName());
+            Assert.assertEquals(bundleInfoApi.getString(VERSION), BundleUtils.getModuleVersion(bundleOsgi));
         }
 
         String bundleInfosJson = JCRTemplate.getInstance().doExecuteWithSystemSession(
@@ -203,20 +210,20 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
         Assert.assertEquals(bundleInfoByLocationApi.size(), bundleInfosJcr.length());
         for (int i = 0; i < bundleInfosJcr.length(); i++) {
             JSONObject bundleInfoJcr = bundleInfosJcr.getJSONObject(i);
-            JSONObject bundleInfoApi = bundleInfoByLocationApi.get(bundleInfoJcr.getString("location"));
-            Assert.assertEquals(bundleInfoApi.getString("location"), bundleInfoJcr.getString("location"));
-            Assert.assertEquals(bundleInfoApi.getInt("state"), bundleInfoJcr.getInt("state"));
-            Assert.assertEquals(bundleInfoApi.getString("symbolicName"), bundleInfoJcr.getString("symbolicName"));
-            Assert.assertEquals(bundleInfoApi.getString("version"), bundleInfoJcr.getString("version"));
+            JSONObject bundleInfoApi = bundleInfoByLocationApi.get(bundleInfoJcr.getString(LOCATION));
+            Assert.assertEquals(bundleInfoApi.getString(LOCATION), bundleInfoJcr.getString(LOCATION));
+            Assert.assertEquals(bundleInfoApi.getInt(STATE), bundleInfoJcr.getInt(STATE));
+            Assert.assertEquals(bundleInfoApi.getString(SYMBOLIC_NAME), bundleInfoJcr.getString(SYMBOLIC_NAME));
+            Assert.assertEquals(bundleInfoApi.getString(VERSION), bundleInfoJcr.getString(VERSION));
         }
     }
 
-    private void verifyModuleInfoRetrieval(String bundleKey) throws Exception {
+    private void verifyModuleInfoRetrieval(String bundleKey) throws JSONException {
         JSONObject response = getBundleInfo(bundleKey);
         verifyModuleInfo(response);
     }
 
-    private void verifyModuleInfosRetrieval(String... bundleKeys) throws Exception {
+    private void verifyModuleInfosRetrieval(String... bundleKeys) throws JSONException {
         JSONObject response = getBundleInfo(getMultipleBundlesSelector(bundleKeys));
         Assert.assertEquals(bundleKeys.length, response.length());
         for (String bundleKey : bundleKeys) {
@@ -224,7 +231,7 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
         }
     }
 
-    private void verifyBucketModuleInfoRetrieval(String bundleBucketKey, String... expectedBundleKeys) throws Exception {
+    private void verifyBucketModuleInfoRetrieval(String bundleBucketKey, String... expectedBundleKeys) throws JSONException {
         JSONObject response = getBundleInfo(bundleBucketKey + "/*");
         Assert.assertEquals(expectedBundleKeys.length, response.length());
         for (String expectedBundleKey : expectedBundleKeys) {
@@ -232,17 +239,17 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
         }
     }
 
-    private void verifyModuleInfoRetrievalError(String bundleSelector, int expectedResponseCode) throws Exception {
+    private void verifyModuleInfoRetrievalError(String bundleSelector, int expectedResponseCode) {
         getAsText(getUrl(bundleSelector), expectedResponseCode);
     }
 
-    private static void verifyModuleInfo(JSONObject moduleInfo) throws Exception {
+    private static void verifyModuleInfo(JSONObject moduleInfo) throws JSONException {
         Assert.assertEquals("MODULE", moduleInfo.getString("type"));
         Assert.assertEquals("ACTIVE", moduleInfo.getString("osgiState"));
         Assert.assertEquals("STARTED", moduleInfo.getString("moduleState"));
     }
 
-    private static String getModuleManagerKey(String moduleName) throws Exception {
+    private static String getModuleManagerKey(String moduleName) {
         return (moduleName + '/' + moduleManagerVersion);
     }
 
@@ -250,7 +257,7 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
         return ("%5B" + StringUtils.join(bundleKeys, ',') + "%5D");
     }
 
-    private JSONObject getBundleInfo(String bundleSelector) throws Exception {
+    private JSONObject getBundleInfo(String bundleSelector) throws JSONException {
         return new JSONObject(getAsText(getUrl(bundleSelector)));
     }
 
@@ -258,7 +265,7 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
         return "/modules/api/bundles/" + bundleSelector + "/_localInfo";
     }
 
-    private static String getModuleManagerVersion() throws Exception {
+    private static String getModuleManagerVersion() {
         Bundle moduleManager = null;
         for (Bundle bundle : FrameworkService.getBundleContext().getBundles()) {
             if (MODULE_MANAGER_NAME.equals(bundle.getSymbolicName()) && MODULE_MANAGER_GROUP.equals(BundleUtils.getModuleGroupId(bundle))) {
@@ -274,7 +281,7 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
         return moduleManager.getVersion().toString();
     }
 
-    private static String getBlueprintExtenderConfigSelector() throws Exception {
+    private static String getBlueprintExtenderConfigSelector() {
         Bundle foundBundle = null;
         String symbolicName = "org.jahia.bundles.blueprint.extender.config";
         for (Bundle bundle : FrameworkService.getBundleContext().getBundles()) {
