@@ -43,36 +43,11 @@
  */
 package org.jahia.modules.modulemanager.rest;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.ClientErrorException;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.InternalServerErrorException;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.ServerErrorException;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.felix.fileinstall.ArtifactUrlTransformer;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -80,15 +55,29 @@ import org.jahia.data.templates.ModuleState;
 import org.jahia.data.templates.ModuleState.State;
 import org.jahia.exceptions.JahiaRuntimeException;
 import org.jahia.osgi.BundleState;
+import org.jahia.osgi.FrameworkService;
 import org.jahia.services.SpringContextSingleton;
 import org.jahia.services.modulemanager.*;
 import org.jahia.services.modulemanager.spi.BundleService;
 import org.jahia.services.modulemanager.spi.BundleService.FragmentInformation;
 import org.jahia.settings.readonlymode.ReadOnlyModeException;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.*;
 
 /**
  * The REST service implementation for module manager API.
@@ -96,7 +85,7 @@ import org.springframework.core.io.Resource;
  * @author bdjiba
  */
 @Path("/api/bundles")
-@Produces({ MediaType.APPLICATION_JSON })
+@Produces({MediaType.APPLICATION_JSON})
 public class ModuleManagerResource {
 
     private static final String PATH_GET_INFO = "/{bundleKey:[^\\[\\]\\*]+}/";
@@ -195,27 +184,43 @@ public class ModuleManagerResource {
         File tempFile;
         try {
             tempFile = File.createTempFile(FilenameUtils.getBaseName(filename) + "-",
-                    "." + FilenameUtils.getExtension(filename), FileUtils.getTempDirectory());
+                                           "." + FilenameUtils.getExtension(filename), FileUtils.getTempDirectory());
             FileUtils.copyInputStreamToFile(inputStream, tempFile);
         } catch (IOException e) {
             log.error("Error copy uploaded stream to local temp file for " + filename, e);
             throw new InternalServerErrorException("Error while deploying bundle " + filename, e);
         }
-        return new FileSystemResource(tempFile);
+        BundleContext bundleContext = FrameworkService.getBundleContext();
+        Resource bundleResource = new FileSystemResource(tempFile);
+        log.info("Transforming resource if needed");
+        try {
+            Collection<ServiceReference<ArtifactUrlTransformer>> serviceReferences = bundleContext.getServiceReferences(ArtifactUrlTransformer.class, null);
+            for (ServiceReference<ArtifactUrlTransformer> serviceReference : serviceReferences) {
+                ArtifactUrlTransformer transformer = bundleContext.getService(serviceReference);
+                if (transformer.canHandle(bundleResource.getFile())) {
+                    URL transformedURL = transformer.transform(new URL("file:"+bundleResource.getFile().getPath()));
+                    bundleResource = new UrlResource(transformedURL);
+                }
+
+            }
+        } catch (Exception e) {
+            log.warn("Could not transform the bundle {}", e.getMessage());
+        }
+        return bundleResource;
     }
 
     /**
      * Install the given bundle on the specified group of nodes. If nodes parameter is empty then deploy to default group.
      *
      * @param bundleParts parts of the request body containing binaries of modules to install
-     * @param target the group of cluster nodes targeted by the install operation
-     * @param start whether the installed bundle should be started right away
+     * @param target      the group of cluster nodes targeted by the install operation
+     * @param start       whether the installed bundle should be started right away
      * @return the operation result
      * @throws WebApplicationException when the operation fails
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response install(@FormDataParam("bundle")List<FormDataBodyPart> bundleParts, @FormDataParam("target") String target, @FormDataParam("start") boolean start) throws WebApplicationException {
+    public Response install(@FormDataParam("bundle") List<FormDataBodyPart> bundleParts, @FormDataParam("target") String target, @FormDataParam("start") boolean start) throws WebApplicationException {
 
         if (bundleParts == null || bundleParts.isEmpty()) {
             throw new ClientErrorException("At least one bundle file is required", Response.Status.BAD_REQUEST);
@@ -223,7 +228,7 @@ public class ModuleManagerResource {
 
         long startTime = System.currentTimeMillis();
         log.info("Received request to install {} bundles on target {}. Should start the bundles after: {}",
-                new Object[] { bundleParts.size(), target, start });
+                 new Object[]{bundleParts.size(), target, start});
 
         try {
 
@@ -282,7 +287,7 @@ public class ModuleManagerResource {
      * Updates the specified bundle.
      *
      * @param bundleKey the bundle key
-     * @param target the group of cluster nodes targeted by this operation
+     * @param target    the group of cluster nodes targeted by this operation
      * @return the operation status
      * @throws WebApplicationException in case of an error during update operation
      */
@@ -292,7 +297,7 @@ public class ModuleManagerResource {
             throws WebApplicationException {
 
         validateBundleKey(bundleKey, "update");
-        log.info("Received request to update bundle {} on target {}", new Object[] { bundleKey, target });
+        log.info("Received request to update bundle {} on target {}", new Object[]{bundleKey, target});
 
         try {
             OperationResult result = getModuleManager().update(bundleKey, target);
@@ -316,7 +321,7 @@ public class ModuleManagerResource {
      * Starts the specified bundle.
      *
      * @param bundleKey the bundle key
-     * @param target the group of cluster nodes targeted by this operation
+     * @param target    the group of cluster nodes targeted by this operation
      * @return the operation status
      * @throws WebApplicationException in case of an error during start operation
      */
@@ -326,7 +331,7 @@ public class ModuleManagerResource {
             throws WebApplicationException {
 
         validateBundleKey(bundleKey, "start");
-        log.info("Received request to start bundle {} on target {}", new Object[] { bundleKey, target });
+        log.info("Received request to start bundle {} on target {}", new Object[]{bundleKey, target});
 
         try {
             OperationResult result = getModuleManager().start(bundleKey, target);
@@ -350,7 +355,7 @@ public class ModuleManagerResource {
      * Stops the specified bundle.
      *
      * @param bundleKey the bundle key
-     * @param target the group of cluster nodes targeted by this operation
+     * @param target    the group of cluster nodes targeted by this operation
      * @return the operation status
      * @throws WebApplicationException in case of an error during stop operation
      */
@@ -360,7 +365,7 @@ public class ModuleManagerResource {
             throws WebApplicationException {
 
         validateBundleKey(bundleKey, "stop");
-        log.info("Received request to stop bundle {} on target {}", new Object[] { bundleKey, target });
+        log.info("Received request to stop bundle {} on target {}", new Object[]{bundleKey, target});
 
         try {
             OperationResult result = getModuleManager().stop(bundleKey, target);
@@ -385,7 +390,7 @@ public class ModuleManagerResource {
      * Uninstalls the specified bundle.
      *
      * @param bundleKey the bundle key
-     * @param target the group of cluster nodes targeted by this operation
+     * @param target    the group of cluster nodes targeted by this operation
      * @return the operation status
      * @throws WebApplicationException in case of an error during uninstall operation
      */
@@ -395,7 +400,7 @@ public class ModuleManagerResource {
             throws WebApplicationException {
 
         validateBundleKey(bundleKey, "stop");
-        log.info("Received request to uninstall bundle {} on target {}", new Object[] { bundleKey, target });
+        log.info("Received request to uninstall bundle {} on target {}", new Object[]{bundleKey, target});
 
         try {
             OperationResult result = getModuleManager().uninstall(bundleKey, target);
@@ -419,7 +424,7 @@ public class ModuleManagerResource {
      * Refreshes the specified bundle.
      *
      * @param bundleKey the bundle key
-     * @param target the group of cluster nodes targeted by this operation
+     * @param target    the group of cluster nodes targeted by this operation
      * @return the operation status
      * @throws WebApplicationException in case of an error during refresh operation
      */
@@ -429,7 +434,7 @@ public class ModuleManagerResource {
             throws WebApplicationException {
 
         validateBundleKey(bundleKey, "refresh");
-        log.info("Received request to refresh bundle {} on target {}", new Object[] { bundleKey, target });
+        log.info("Received request to refresh bundle {} on target {}", new Object[]{bundleKey, target});
 
         try {
             OperationResult result = getModuleManager().refresh(bundleKey, target);
@@ -453,7 +458,7 @@ public class ModuleManagerResource {
      * Get info about a single bundle.
      *
      * @param bundleKey the bundle key
-     * @param target the group of cluster nodes targeted by this operation
+     * @param target    the group of cluster nodes targeted by this operation
      * @return a map of bundle info by cluster node name; each map value is either a BundleInfoDto object or a ModuleManagerExceptionMapper.ErrorInfo in case there was an error communicating with corresponding cluster node
      */
     @GET
@@ -480,7 +485,7 @@ public class ModuleManagerResource {
      * Get info about multiple bundles.
      *
      * @param bundleKeys comma separated list of bundle keys
-     * @param target the group of cluster nodes targeted by this operation
+     * @param target     the group of cluster nodes targeted by this operation
      * @return a map of bundle info by cluster node name; each map value is either a nested map of BundleInfoDto by bundle key or a ModuleManagerExceptionMapper.ErrorInfo in case there was an error communicating with corresponding cluster node
      */
     @GET
@@ -514,7 +519,7 @@ public class ModuleManagerResource {
      * Get info about multiple bundles sharing a single bundle group/name.
      *
      * @param bundleBucketKey the bundle group/name
-     * @param target the group of cluster nodes targeted by this operation
+     * @param target          the group of cluster nodes targeted by this operation
      * @return a map of bundle info by cluster node name; each map value is either a nested map of BundleInfoDto by bundle key or a ModuleManagerExceptionMapper.ErrorInfo in case there was an error communicating with corresponding cluster node
      */
     @GET
@@ -733,6 +738,7 @@ public class ModuleManagerResource {
     private interface BundleInfoRetrievalHandler<K, I, D> {
 
         Map<String, I> getBundleInfo(K bundleKeys, String target);
+
         D getBundleInfoDto(I bundleInfo);
     }
 
