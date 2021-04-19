@@ -45,6 +45,7 @@ package org.jahia.modules.modulemanager.rest;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.felix.fileinstall.ArtifactUrlTransformer;
@@ -78,6 +79,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * The REST service implementation for module manager API.
@@ -178,7 +180,7 @@ public class ModuleManagerResource {
         return (ModuleManager) SpringContextSingleton.getBean("ModuleManager");
     }
 
-    private Resource getUploadedFileAsResource(InputStream inputStream, String filename)
+    private UploadedBundle getUploadedFileAsResource(InputStream inputStream, String filename)
             throws InternalServerErrorException {
 
         File tempFile;
@@ -192,7 +194,6 @@ public class ModuleManagerResource {
         }
         BundleContext bundleContext = FrameworkService.getBundleContext();
         Resource bundleResource = new FileSystemResource(tempFile);
-        log.info("Transforming resource if needed");
         try {
             Collection<ServiceReference<ArtifactUrlTransformer>> serviceReferences = bundleContext.getServiceReferences(ArtifactUrlTransformer.class, null);
             for (ServiceReference<ArtifactUrlTransformer> serviceReference : serviceReferences) {
@@ -204,9 +205,9 @@ public class ModuleManagerResource {
 
             }
         } catch (Exception e) {
-            log.warn("Could not transform the bundle {}", e.getMessage());
+            log.warn("Could not transform the uploaded file {}", e.getMessage());
         }
-        return bundleResource;
+        return new UploadedBundle(bundleResource, tempFile);
     }
 
     /**
@@ -228,11 +229,11 @@ public class ModuleManagerResource {
 
         long startTime = System.currentTimeMillis();
         log.info("Received request to install {} bundles on target {}. Should start the bundles after: {}",
-                 new Object[]{bundleParts.size(), target, start});
+                 bundleParts.size(), target, start);
 
         try {
 
-            ArrayList<Resource> bundleResources = new ArrayList<>(bundleParts.size());
+            ArrayList<UploadedBundle> bundleResources = new ArrayList<>(bundleParts.size());
 
             try {
 
@@ -240,35 +241,24 @@ public class ModuleManagerResource {
                     FormDataContentDisposition fileDisposition = bundlePart.getFormDataContentDisposition();
                     InputStream bundleInputStream = bundlePart.getValueAs(InputStream.class);
                     try {
-                        Resource bundleResource = getUploadedFileAsResource(bundleInputStream, fileDisposition.getFileName());
+                        UploadedBundle bundleResource = getUploadedFileAsResource(bundleInputStream, fileDisposition.getFileName());
                         bundleResources.add(bundleResource);
                     } finally {
-                        try {
-                            bundleInputStream.close();
-                        } catch (IOException e) {
-                            throw new JahiaRuntimeException(e);
-                        }
+                        IOUtils.closeQuietly(bundleInputStream);
                     }
                 }
 
-                OperationResult result = getModuleManager().install(bundleResources, target, start);
+                OperationResult result = getModuleManager().install(bundleResources.stream().map(UploadedBundle::getBundleResource).collect(Collectors.toList()),
+                                                                    target, start);
                 return Response.ok(result).build();
             } finally {
-                for (Resource bundleResource : bundleResources) {
-                    try {
-                        File bundleFile = bundleResource.getFile();
-                        bundleFile.delete();
-                    } catch (Exception e) {
-                        if (log.isDebugEnabled()) {
-                            log.warn("Unable to clean installed bundle file. Cause: " + e.getMessage(), e);
-                        } else {
-                            log.warn("Unable to clean installed bundle file (details in DEBUG logging level). Cause: " + e.getMessage());
-                        }
-                    }
+                for (UploadedBundle bundleResource : bundleResources) {
+                        File bundleFile = bundleResource.getTempFile();
+                        FileUtils.deleteQuietly(bundleFile);
                 }
             }
         } catch (ModuleManagementInvalidArgumentException e) {
-            log.error("Unable to install module. Cause: " + e.getMessage());
+            log.error("Unable to install module. Cause: {}", e.getMessage());
             throw new ClientErrorException("Unable to install module. Cause: " + e.getMessage(), Response.Status.BAD_REQUEST, e);
         } catch (Exception e) {
             Throwable cause = ExceptionUtils.getRootCause(e);
@@ -297,7 +287,7 @@ public class ModuleManagerResource {
             throws WebApplicationException {
 
         validateBundleKey(bundleKey, "update");
-        log.info("Received request to update bundle {} on target {}", new Object[]{bundleKey, target});
+        log.info("Received request to update bundle {} on target {}", bundleKey, target);
 
         try {
             OperationResult result = getModuleManager().update(bundleKey, target);
@@ -311,7 +301,7 @@ public class ModuleManagerResource {
             if (cause instanceof ReadOnlyModeException) {
                 throw new ServerErrorException(cause.getMessage(), Response.Status.SERVICE_UNAVAILABLE, e);
             } else {
-                log.error("Error while updating bundle " + bundleKey, e);
+                log.error("Error while updating bundle {}", bundleKey, e);
                 throw new InternalServerErrorException("Error while updating bundle " + bundleKey, e);
             }
         }
@@ -331,7 +321,7 @@ public class ModuleManagerResource {
             throws WebApplicationException {
 
         validateBundleKey(bundleKey, "start");
-        log.info("Received request to start bundle {} on target {}", new Object[]{bundleKey, target});
+        log.info("Received request to start bundle {} on target {}", bundleKey, target);
 
         try {
             OperationResult result = getModuleManager().start(bundleKey, target);
@@ -345,7 +335,7 @@ public class ModuleManagerResource {
             if (cause instanceof ReadOnlyModeException) {
                 throw new ServerErrorException(cause.getMessage(), Response.Status.SERVICE_UNAVAILABLE, e);
             } else {
-                log.error("Error while starting bundle " + bundleKey, e);
+                log.error("Error while starting bundle {}", bundleKey, e);
                 throw new InternalServerErrorException("Error while starting bundle " + bundleKey, e);
             }
         }
@@ -365,7 +355,7 @@ public class ModuleManagerResource {
             throws WebApplicationException {
 
         validateBundleKey(bundleKey, "stop");
-        log.info("Received request to stop bundle {} on target {}", new Object[]{bundleKey, target});
+        log.info("Received request to stop bundle {} on target {}", bundleKey, target);
 
         try {
             OperationResult result = getModuleManager().stop(bundleKey, target);
@@ -379,7 +369,7 @@ public class ModuleManagerResource {
             if (cause instanceof ReadOnlyModeException) {
                 throw new ServerErrorException(cause.getMessage(), Response.Status.SERVICE_UNAVAILABLE, e);
             } else {
-                log.error("Error while stopping bundle " + bundleKey, e);
+                log.error("Error while stopping bundle {}", bundleKey, e);
                 throw new InternalServerErrorException("Error while stopping bundle " + bundleKey, e);
 
             }
@@ -400,7 +390,7 @@ public class ModuleManagerResource {
             throws WebApplicationException {
 
         validateBundleKey(bundleKey, "stop");
-        log.info("Received request to uninstall bundle {} on target {}", new Object[]{bundleKey, target});
+        log.info("Received request to uninstall bundle {} on target {}", bundleKey, target);
 
         try {
             OperationResult result = getModuleManager().uninstall(bundleKey, target);
@@ -414,7 +404,7 @@ public class ModuleManagerResource {
             if (cause instanceof ReadOnlyModeException) {
                 throw new ServerErrorException(cause.getMessage(), Response.Status.SERVICE_UNAVAILABLE, e);
             } else {
-                log.error("Error while uninstalling bundle " + bundleKey, e);
+                log.error("Error while uninstalling bundle {}", bundleKey, e);
                 throw new InternalServerErrorException("Error while uninstalling bundle " + bundleKey, e);
             }
         }
@@ -434,7 +424,7 @@ public class ModuleManagerResource {
             throws WebApplicationException {
 
         validateBundleKey(bundleKey, "refresh");
-        log.info("Received request to refresh bundle {} on target {}", new Object[]{bundleKey, target});
+        log.info("Received request to refresh bundle {} on target {}", bundleKey, target);
 
         try {
             OperationResult result = getModuleManager().refresh(bundleKey, target);
@@ -492,14 +482,8 @@ public class ModuleManagerResource {
     @Path(PATH_GET_INFOS + "_info")
     public Map<String, Object> getInfos(@PathParam("bundleKeys") String bundleKeys, @QueryParam("target") String target) {
 
-        final LinkedHashSet<String> keys = new LinkedHashSet<String>();
-        processBundleKeys(bundleKeys, new BundleKeyProcessor() {
-
-            @Override
-            public void process(String bundleKey) {
-                keys.add(bundleKey);
-            }
-        });
+        final LinkedHashSet<String> keys = new LinkedHashSet<>();
+        processBundleKeys(bundleKeys, keys::add);
 
         return getBundleInfo(keys, target, new BundleInfoRetrievalHandler<Collection<String>, Map<String, BundleService.BundleInformation>, Map<String, BundleInfoDto>>() {
 
@@ -576,8 +560,7 @@ public class ModuleManagerResource {
     @Path("/{bundleKey:[^\\[\\]]*}/_localState")
     public BundleState getLocalState(@PathParam("bundleKey") String bundleKey) {
         validateBundleKey(bundleKey, "getLocalState");
-        BundleState state = getLocalBundleState(getModuleManager(), bundleKey);
-        return state;
+        return getLocalBundleState(getModuleManager(), bundleKey);
     }
 
     /**
@@ -591,15 +574,10 @@ public class ModuleManagerResource {
     public Map<String, BundleState> getLocalStates(@PathParam("bundleKeys") String bundleKeys) {
 
         final ModuleManager moduleManager = getModuleManager();
-        final LinkedHashMap<String, BundleState> stateByKey = new LinkedHashMap<String, BundleState>();
+        final LinkedHashMap<String, BundleState> stateByKey = new LinkedHashMap<>();
 
-        processBundleKeys(bundleKeys, new BundleKeyProcessor() {
-
-            @Override
-            public void process(String bundleKey) {
-                BundleState state = getLocalBundleState(moduleManager, bundleKey);
-                stateByKey.put(bundleKey, state);
-            }
+        processBundleKeys(bundleKeys, bundleKey -> {
+            stateByKey.put(bundleKey, getLocalBundleState(moduleManager, bundleKey));
         });
 
         return stateByKey;
@@ -615,8 +593,7 @@ public class ModuleManagerResource {
     @Path(PATH_GET_INFO + "_localInfo")
     public BundleInfoDto getLocalInfo(@PathParam("bundleKey") String bundleKey) {
         validateBundleKey(bundleKey, "getLocalInfo");
-        BundleInfoDto info = getLocalBundleInfo(getModuleManager(), bundleKey);
-        return info;
+        return getLocalBundleInfo(getModuleManager(), bundleKey);
     }
 
     /**
@@ -630,15 +607,11 @@ public class ModuleManagerResource {
     public Map<String, BundleInfoDto> getLocalInfos(@PathParam("bundleKeys") String bundleKeys) {
 
         final ModuleManager moduleManager = getModuleManager();
-        final LinkedHashMap<String, BundleInfoDto> infoByKey = new LinkedHashMap<String, BundleInfoDto>();
+        final LinkedHashMap<String, BundleInfoDto> infoByKey = new LinkedHashMap<>();
 
-        processBundleKeys(bundleKeys, new BundleKeyProcessor() {
-
-            @Override
-            public void process(String bundleKey) {
-                BundleInfoDto info = getLocalBundleInfo(moduleManager, bundleKey);
-                infoByKey.put(bundleKey, info);
-            }
+        processBundleKeys(bundleKeys, bundleKey -> {
+            BundleInfoDto info = getLocalBundleInfo(moduleManager, bundleKey);
+            infoByKey.put(bundleKey, info);
         });
 
         return infoByKey;
@@ -718,7 +691,7 @@ public class ModuleManagerResource {
             throw new ClientErrorException(e.getMessage(), Status.BAD_REQUEST);
         }
 
-        Map<String, Object> result = new LinkedHashMap<String, Object>(infoByHost.size());
+        Map<String, Object> result = new LinkedHashMap<>(infoByHost.size());
         for (Map.Entry<String, I> entry : infoByHost.entrySet()) {
             String hostName = entry.getKey();
             I bundleInfo = entry.getValue();
@@ -819,6 +792,24 @@ public class ModuleManagerResource {
         @SuppressWarnings("unused")
         public String getCause() {
             return cause;
+        }
+    }
+
+    private class UploadedBundle {
+        private final Resource bundleResource;
+        private final File tempFile;
+
+        public UploadedBundle(Resource bundleResource, File tempFile) {
+            this.bundleResource = bundleResource;
+            this.tempFile = tempFile;
+        }
+
+        public Resource getBundleResource() {
+            return bundleResource;
+        }
+
+        public File getTempFile() {
+            return tempFile;
         }
     }
 }
