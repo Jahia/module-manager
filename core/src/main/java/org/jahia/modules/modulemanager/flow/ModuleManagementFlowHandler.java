@@ -178,27 +178,36 @@ public class ModuleManagementFlowHandler implements Serializable {
                     .code("serverSettings.manageModules.install.moduleFileRequired").build());
             return false;
         }
+
         String originalFilename = moduleFile.getOriginalFilename();
+        boolean canHandleExtension = FilenameUtils.isExtension(StringUtils.lowerCase(originalFilename), "jar");
         File file = null;
         try {
             file = File.createTempFile("module-", "." + StringUtils.substringAfterLast(originalFilename, "."));
             moduleFile.transferTo(file);
 
-            //Handling bundles
-            boolean canHandleFile = FilenameUtils.isExtension(StringUtils.lowerCase(originalFilename), "jar");
-            BundleContext bundleContext = FrameworkService.getBundleContext();
-            Collection<ServiceReference<ArtifactUrlTransformer>> serviceReferences = bundleContext.getServiceReferences(ArtifactUrlTransformer.class, null);
-            for (ServiceReference<ArtifactUrlTransformer> serviceReference : serviceReferences) {
-                ArtifactUrlTransformer transformer = bundleContext.getService(serviceReference);
-                if (transformer.canHandle(file)) {
-                    URL transformedURL = transformer.transform(new URL("file:" + file.getPath()));
-                    FileUtils.copyInputStreamToFile(transformedURL.openConnection().getInputStream(), file);
-                    canHandleFile = true;
+            //If it cannot be handled as Jar, look for impl that can handle this extension
+            if(!canHandleExtension) {
+                BundleContext bundleContext = FrameworkService.getBundleContext();
+                Collection<ServiceReference<ArtifactUrlTransformer>> serviceReferences = bundleContext.getServiceReferences(ArtifactUrlTransformer.class, null);
+                for (ServiceReference<ArtifactUrlTransformer> serviceReference : serviceReferences) {
+                    ArtifactUrlTransformer transformer = bundleContext.getService(serviceReference);
+                    if (transformer.canHandle(file)) {
+                        File fileTemp = File.createTempFile("module-", "." + StringUtils.substringAfterLast(originalFilename, "."));
+                        try {
+                            URL transformedURL = transformer.transform(new URL("file:" + file.getPath()));
+                            FileUtils.copyInputStreamToFile(transformedURL.openConnection().getInputStream(), fileTemp);
+                            installBundles(fileTemp, context, originalFilename, forceUpdate, autoStart);
+                            return true;
+                        } finally {
+                            FileUtils.deleteQuietly(fileTemp);
+                        }
+                    }
                 }
             }
 
-            //Validating if jahia can handle the uploaded file
-            if (!canHandleFile) {
+            //If it is not a jar and none impl can handle this extension
+            if (!canHandleExtension) {
                 context.addMessage(new MessageBuilder().error().source("moduleFile")
                         .code("serverSettings.manageModules.install.wrongFormat").build());
                 return false;
