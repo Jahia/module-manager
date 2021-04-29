@@ -182,10 +182,12 @@ public class ModuleManagementFlowHandler implements Serializable {
         File file = null;
         try {
             file = File.createTempFile("module-", "." + StringUtils.substringAfterLast(originalFilename, "."));
-            moduleFile.transferTo(file);
 
             //Handling bundles
             boolean canHandleFile = FilenameUtils.isExtension(StringUtils.lowerCase(originalFilename), "jar");
+            if(canHandleFile)
+                moduleFile.transferTo(file);
+
             BundleContext bundleContext = FrameworkService.getBundleContext();
             Collection<ServiceReference<ArtifactUrlTransformer>> serviceReferences = bundleContext.getServiceReferences(ArtifactUrlTransformer.class, null);
             for (ServiceReference<ArtifactUrlTransformer> serviceReference : serviceReferences) {
