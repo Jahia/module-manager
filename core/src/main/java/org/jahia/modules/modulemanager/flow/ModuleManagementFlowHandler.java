@@ -47,10 +47,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.felix.fileinstall.ArtifactUrlTransformer;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.dom4j.DocumentException;
-import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.jahia.bin.Jahia;
 import org.jahia.commons.Version;
 import org.jahia.data.templates.JahiaTemplatesPackage;
@@ -60,11 +59,9 @@ import org.jahia.data.templates.ModulesPackage;
 import org.jahia.exceptions.JahiaException;
 import org.jahia.modules.modulemanager.forge.ForgeService;
 import org.jahia.modules.modulemanager.forge.Module;
-import org.jahia.modules.modulemanager.rest.ModuleManagerResource;
 import org.jahia.osgi.BundleUtils;
 import org.jahia.osgi.FrameworkService;
 import org.jahia.security.spi.LicenseCheckUtil;
-import org.jahia.security.spi.LicenseCheckerService;
 import org.jahia.services.content.JCRNodeWrapper;
 import org.jahia.services.content.JCRSessionWrapper;
 import org.jahia.services.content.decorator.JCRSiteNode;
@@ -74,16 +71,16 @@ import org.jahia.services.modulemanager.BundleInfo;
 import org.jahia.services.modulemanager.Constants;
 import org.jahia.services.modulemanager.ModuleManagementException;
 import org.jahia.services.modulemanager.ModuleManager;
-import org.jahia.services.modulemanager.OperationResult;
 import org.jahia.services.modulemanager.models.JahiaDepends;
 import org.jahia.services.render.RenderContext;
-import org.jahia.services.render.Template;
 import org.jahia.services.sites.JahiaSitesService;
 import org.jahia.services.templates.*;
 import org.jahia.settings.SettingsBean;
 import org.jahia.utils.i18n.Messages;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.ServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,8 +89,6 @@ import org.springframework.binding.message.MessageContext;
 import org.springframework.binding.message.MessageResolver;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.webflow.core.collection.MutableAttributeMap;
 import org.springframework.webflow.execution.RequestContext;
@@ -103,7 +98,6 @@ import javax.jcr.nodetype.NodeTypeIterator;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
 import java.net.URL;
 import java.util.*;
@@ -111,7 +105,6 @@ import java.util.Map.Entry;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-import java.util.stream.Collectors;
 
 /**
  * WebFlow handler for managing modules.
@@ -186,18 +179,32 @@ public class ModuleManagementFlowHandler implements Serializable {
             return false;
         }
         String originalFilename = moduleFile.getOriginalFilename();
-        //TODO Handle this check later
-//        if (!FilenameUtils.isExtension(StringUtils.lowerCase(originalFilename), "jar")) {
-//            context.addMessage(new MessageBuilder().error().source("moduleFile")
-//                    .code("serverSettings.manageModules.install.wrongFormat").build());
-//            return false;
-//        }
         File file = null;
         try {
             file = File.createTempFile("module-", "." + StringUtils.substringAfterLast(originalFilename, "."));
             moduleFile.transferTo(file);
-//            installBundles(file, context, originalFilename, forceUpdate, autoStart);
-            installNotJarBundles(file, context, originalFilename, forceUpdate, autoStart); //TODO FIX IT
+
+            //Handling bundles
+            boolean canHandleFile = FilenameUtils.isExtension(StringUtils.lowerCase(originalFilename), "jar");
+            BundleContext bundleContext = FrameworkService.getBundleContext();
+            Collection<ServiceReference<ArtifactUrlTransformer>> serviceReferences = bundleContext.getServiceReferences(ArtifactUrlTransformer.class, null);
+            for (ServiceReference<ArtifactUrlTransformer> serviceReference : serviceReferences) {
+                ArtifactUrlTransformer transformer = bundleContext.getService(serviceReference);
+                if (transformer.canHandle(file)) {
+                    URL transformedURL = transformer.transform(new URL("file:" + file.getPath()));
+                    FileUtils.copyInputStreamToFile(transformedURL.openConnection().getInputStream(), file);
+                    canHandleFile = true;
+                }
+            }
+
+            //Validating if jahia can handle the uploaded file
+            if (!canHandleFile) {
+                context.addMessage(new MessageBuilder().error().source("moduleFile")
+                        .code("serverSettings.manageModules.install.wrongFormat").build());
+                return false;
+            }
+
+            installBundles(file, context, originalFilename, forceUpdate, autoStart);
             return true;
         } catch (Exception e) {
             context.addMessage(new MessageBuilder().source("moduleFile")
@@ -210,138 +217,6 @@ public class ModuleManagementFlowHandler implements Serializable {
             FileUtils.deleteQuietly(file);
         }
         return false;
-    }
-
-    private ModuleInstallationResult installNotJarBundles(File file, MessageContext context, String originalFilename, boolean forceUpdate, boolean autoStart) throws IOException, BundleException {
-        try {
-
-            String symbolicName = "npm-plugin-example";
-            String version = "1.0.0";
-            String groupId = "npm-plugin-example";
-
-
-            String successMessage = (autoStart
-                    ? "serverSettings.manageModules.install.uploadedAndStarted"
-                    : "serverSettings.manageModules.install.uploaded");
-
-            boolean shouldAutoStart = autoStart;
-
-            if (groupId != null) {
-                // GroupId set only for jahia modules
-                if (templateManagerService.differentModuleWithSameIdExists(symbolicName, groupId)) {
-                    context.addMessage(new MessageBuilder().source("moduleFile")
-                            .code("serverSettings.manageModules.install.moduleWithSameIdExists")
-                            .arg(symbolicName)
-                            .error()
-                            .build());
-                    return null;
-                }
-                ModuleVersion moduleVersion = new ModuleVersion(version);
-                Set<ModuleVersion> allVersions = templatePackageRegistry.getAvailableVersionsForModule(symbolicName);
-                if (!forceUpdate) {
-                    if (!moduleVersion.isSnapshot()) {
-                        if (allVersions.contains(moduleVersion)) {
-                            context.addMessage(new MessageBuilder().source("moduleExists")
-                                    .code("serverSettings.manageModules.install.moduleExists")
-                                    .args(symbolicName, version)
-                                    .build());
-                            return null;
-                        }
-                    }
-                }
-
-                if (autoStart &&
-                        !Boolean.valueOf(SettingsBean.getInstance().getPropertiesFile().getProperty("org.jahia.modules.autoStartOlderVersions"))) {
-                    // verify that a newer version is not active already
-                    JahiaTemplatesPackage currentActivePackage = templateManagerService.getTemplatePackageRegistry()
-                            .lookupById(symbolicName);
-                    ModuleVersion currentVersion = currentActivePackage != null ? currentActivePackage.getVersion() : null;
-                    if (currentActivePackage != null && moduleVersion.compareTo(currentVersion) < 0) {
-                        // we do not start the uploaded older version automatically
-                        shouldAutoStart = false;
-                        successMessage = "serverSettings.manageModules.install.uploadedNotStartedDueToNewerVersionActive";
-                    }
-                }
-            }
-
-            String resolutionError = null;
-
-
-            /////////// CHANGES ///////////////
-            Resource bundleResource = new UrlResource("npm://file:"+file.getPath());
-//            npm://file:/usr/local/tomcat/temp/npm-plugin-example-v1.0.0-11418345161006468691.tgz
-            ///////// CHANGES ///////////////
-
-
-            try {
-                moduleManager.install(bundleResource, null, shouldAutoStart);
-            } catch (ModuleManagementException e) {
-                Throwable cause = e.getCause();
-                if (cause != null && cause instanceof BundleException && ((BundleException) cause).getType() == BundleException.RESOLVE_ERROR) {
-                    // we are dealing with unresolved dependencies here
-                    resolutionError = cause.getMessage();
-                } else {
-                    // re-throw the exception
-                    throw e;
-                }
-            }
-
-            Bundle bundle = BundleUtils.getBundle(symbolicName, version);
-
-            if (BundleUtils.isJahiaBundle(bundle)) {
-
-                JahiaTemplatesPackage module = BundleUtils.getModule(bundle);
-
-                if (module.getState().getState() == ModuleState.State.WAITING_TO_BE_IMPORTED) {
-                    // This only can happen in a cluster.
-                    successMessage = "serverSettings.manageModules.install.waitingToBeImported";
-                }
-
-//                if (resolutionError != null) {
-//                    List<String> missingDeps = getMissingDependenciesFrom(module.getDepends(), providedBundles);
-//                    if (!missingDeps.isEmpty()) {
-//                        createMessageForMissingDependencies(context, missingDeps);
-//                    } else {
-//                        MessageResolver errorMessage = new MessageBuilder().source("moduleFile")
-//                                .code("serverSettings.manageModules.resolutionError").arg(resolutionError).error().build();
-//                        if (collectedResolutionErrors != null) {
-//                            // we just collect the resolution errors for multiple module to double-check them after all modules are installed
-//                            collectedResolutionErrors.put(bundle, errorMessage);
-//                            return new ModuleInstallationResult(bundle, successMessage);
-//                        } else {
-//                            // we directly add error message
-//                            context.addMessage(errorMessage);
-//                        }
-//                    }
-//                } else if (module.getState().getState() == ModuleState.State.ERROR_WITH_DEFINITIONS) {
-//                    context.addMessage(new MessageBuilder().source("moduleFile")
-//                            .code("serverSettings.manageModules.errorWithDefinitions")
-//                            .arg(((Exception) module.getState().getDetails()).getCause().getMessage())
-//                            .error()
-//                            .build());
-//                } else {
-//                    return new ModuleInstallationResult(bundle, successMessage);
-//                }
-            } else {
-                successMessage = (autoStart
-                        ? "serverSettings.manageModules.install.uploadedAndStarted.bundle"
-                        : "serverSettings.manageModules.install.uploaded.bundle");
-
-                if (resolutionError != null) {
-                    MessageResolver errorMessage = new MessageBuilder().source("moduleFile")
-                            .code("serverSettings.manageModules.resolutionError.bundle").arg(resolutionError).error().build();
-//                    if (collectedResolutionErrors != null) {
-//                        // we just collect the resolution errors for multiple module to double-check them after all modules are installed
-//                        collectedResolutionErrors.put(bundle, errorMessage);
-//                    }
-                }
-                return new ModuleInstallationResult(bundle, successMessage);
-            }
-        } finally {
-            System.out.println("DONE");//TODO REMOVE IT
-        }
-
-        return null;
     }
 
     private void installBundles(File file, MessageContext context, String originalFilename, boolean forceUpdate, boolean autoStart) throws IOException, BundleException {
@@ -472,7 +347,7 @@ public class ModuleManagementFlowHandler implements Serializable {
             if (symbolicName == null) {
                 symbolicName = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_ROOT_FOLDER);
             }
-            String version = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_IMPL_VERSION);
+            String version = StringUtils.defaultIfBlank(manifest.getMainAttributes().getValue(Constants.ATTR_NAME_BUNDLE_VERSION), manifest.getMainAttributes().getValue(Constants.ATTR_NAME_IMPL_VERSION));
             String groupId = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_GROUP_ID);
 
             String successMessage = (autoStart
