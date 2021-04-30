@@ -356,7 +356,7 @@ public class ModuleManagementFlowHandler implements Serializable {
             if (symbolicName == null) {
                 symbolicName = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_ROOT_FOLDER);
             }
-            String version = StringUtils.defaultIfBlank(manifest.getMainAttributes().getValue(Constants.ATTR_NAME_BUNDLE_VERSION), manifest.getMainAttributes().getValue(Constants.ATTR_NAME_IMPL_VERSION));
+            String version = StringUtils.defaultIfBlank(manifest.getMainAttributes().getValue(Constants.ATTR_NAME_IMPL_VERSION), manifest.getMainAttributes().getValue(Constants.ATTR_NAME_BUNDLE_VERSION));
             String groupId = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_GROUP_ID);
 
             String successMessage = (autoStart
