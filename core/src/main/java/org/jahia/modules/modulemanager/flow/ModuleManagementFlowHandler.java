@@ -47,6 +47,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.felix.fileinstall.ArtifactUrlTransformer;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.dom4j.DocumentException;
 import org.jahia.bin.Jahia;
@@ -61,7 +62,6 @@ import org.jahia.modules.modulemanager.forge.Module;
 import org.jahia.osgi.BundleUtils;
 import org.jahia.osgi.FrameworkService;
 import org.jahia.security.spi.LicenseCheckUtil;
-import org.jahia.security.spi.LicenseCheckerService;
 import org.jahia.services.content.JCRNodeWrapper;
 import org.jahia.services.content.JCRSessionWrapper;
 import org.jahia.services.content.decorator.JCRSiteNode;
@@ -73,13 +73,14 @@ import org.jahia.services.modulemanager.ModuleManagementException;
 import org.jahia.services.modulemanager.ModuleManager;
 import org.jahia.services.modulemanager.models.JahiaDepends;
 import org.jahia.services.render.RenderContext;
-import org.jahia.services.render.Template;
 import org.jahia.services.sites.JahiaSitesService;
 import org.jahia.services.templates.*;
 import org.jahia.settings.SettingsBean;
 import org.jahia.utils.i18n.Messages;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.ServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,6 +99,7 @@ import javax.jcr.nodetype.NodeTypeIterator;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.net.URL;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.jar.Attributes;
@@ -176,16 +178,41 @@ public class ModuleManagementFlowHandler implements Serializable {
                     .code("serverSettings.manageModules.install.moduleFileRequired").build());
             return false;
         }
+
         String originalFilename = moduleFile.getOriginalFilename();
-        if (!FilenameUtils.isExtension(StringUtils.lowerCase(originalFilename), "jar")) {
-            context.addMessage(new MessageBuilder().error().source("moduleFile")
-                    .code("serverSettings.manageModules.install.wrongFormat").build());
-            return false;
-        }
+        boolean canHandleExtension = FilenameUtils.isExtension(StringUtils.lowerCase(originalFilename), "jar");
         File file = null;
         try {
             file = File.createTempFile("module-", "." + StringUtils.substringAfterLast(originalFilename, "."));
             moduleFile.transferTo(file);
+
+            //If it cannot be handled as Jar, look for impl that can handle this extension
+            if(!canHandleExtension) {
+                BundleContext bundleContext = FrameworkService.getBundleContext();
+                Collection<ServiceReference<ArtifactUrlTransformer>> serviceReferences = bundleContext.getServiceReferences(ArtifactUrlTransformer.class, null);
+                for (ServiceReference<ArtifactUrlTransformer> serviceReference : serviceReferences) {
+                    ArtifactUrlTransformer transformer = bundleContext.getService(serviceReference);
+                    if (transformer.canHandle(file)) {
+                        File fileTemp = File.createTempFile("module-", "." + StringUtils.substringAfterLast(originalFilename, "."));
+                        try {
+                            URL transformedURL = transformer.transform(new URL("file:" + file.getPath()));
+                            FileUtils.copyInputStreamToFile(transformedURL.openConnection().getInputStream(), fileTemp);
+                            installBundles(fileTemp, context, originalFilename, forceUpdate, autoStart);
+                            return true;
+                        } finally {
+                            FileUtils.deleteQuietly(fileTemp);
+                        }
+                    }
+                }
+            }
+
+            //If it is not a jar and none impl can handle this extension
+            if (!canHandleExtension) {
+                context.addMessage(new MessageBuilder().error().source("moduleFile")
+                        .code("serverSettings.manageModules.install.wrongFormat").build());
+                return false;
+            }
+
             installBundles(file, context, originalFilename, forceUpdate, autoStart);
             return true;
         } catch (Exception e) {
@@ -329,7 +356,7 @@ public class ModuleManagementFlowHandler implements Serializable {
             if (symbolicName == null) {
                 symbolicName = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_ROOT_FOLDER);
             }
-            String version = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_IMPL_VERSION);
+            String version = StringUtils.defaultIfBlank(manifest.getMainAttributes().getValue(Constants.ATTR_NAME_IMPL_VERSION), manifest.getMainAttributes().getValue(Constants.ATTR_NAME_BUNDLE_VERSION));
             String groupId = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_GROUP_ID);
 
             String successMessage = (autoStart
