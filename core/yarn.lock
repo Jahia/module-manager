@@ -1025,10 +1025,10 @@
     eslint-plugin-react "^7.16.0"
     eslint-plugin-react-hooks "^2.2.0"
 
-"@jahia/ui-extender@^0.1.1":
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/@jahia/ui-extender/-/ui-extender-0.5.1.tgz#d5295b7572a453da6ae158799d20efb23a0ed49f"
-  integrity sha512-1UfHVStcbZxbnzyYzMeJS82JHkFrplMAeaiB+duusMZsmX8CLpnT+tASLg6OzuJah+1xwi+zTB14gc92oIp51A==
+"@jahia/ui-extender@^0.5.1":
+  version "0.5.4"
+  resolved "https://registry.yarnpkg.com/@jahia/ui-extender/-/ui-extender-0.5.4.tgz#2a8d8798acb998f2b3111693e36dec8e8416650b"
+  integrity sha512-aMQpZwtEjEkSZ+/P6Wr4aPreqs/mv1XYeJY8aSwB+adjlNB79c/eKGNomF4TwvQsLiS6oOVdetTNiiSIQsPHIQ==
   dependencies:
     prop-types "^15.6.1"
     react "^16.12.0"
@@ -6533,9 +6533,9 @@ postcss-value-parser@^4.1.0:
   integrity sha512-97DXOFbQJhk71ne5/Mt6cOu6yxsSfM0QGQyl0L25Gca4yGWEGJaig7l7gbCX623VqTBNGLRLaVUCnNkcedlRSQ==
 
 postcss@^7.0.14, postcss@^7.0.32, postcss@^7.0.5, postcss@^7.0.6:
-  version "7.0.35"
-  resolved "https://registry.yarnpkg.com/postcss/-/postcss-7.0.35.tgz#d2be00b998f7f211d8a276974079f2e92b970e24"
-  integrity sha512-3QT8bBJeX/S5zKTTjTCIjRF3If4avAT6kqxcASlTWEtAFCb9NH0OUxNDfgZSWdP5fJnBYCMEWkIFfWeugjzYMg==
+  version "7.0.36"
+  resolved "https://registry.yarnpkg.com/postcss/-/postcss-7.0.36.tgz#056f8cffa939662a8f5905950c07d5285644dfcb"
+  integrity sha512-BebJSIUMwJHRH0HAQoxN4u1CN86glsrwsW0q7T+/m44eXOUAxSNdHRkNZPYz5vVUbg17hFgOQDE7fZk7li3pZw==
   dependencies:
     chalk "^2.4.2"
     source-map "^0.6.1"
