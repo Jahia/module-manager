@@ -76,6 +76,20 @@ parameters:
     type: string
     default: 'jahia/module-manager'
 
+references:
+  workdir: &workdir
+    working_directory: ~/source
+
+  persist-workspace: &persist-workspace
+    persist_to_workspace:
+      root: ~/source
+      paths:
+        - .
+
+  attach-workspace: &attach-workspace
+    attach_workspace:
+      at: .
+
 jobs:
   integration_testsjava:
     <<: *workdir
