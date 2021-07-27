@@ -373,7 +373,7 @@ workflows:
           SKIP_TESTRAIL: "true"
           SKIP_ARTIFACTS: false
           BUILD_TESTSIMAGE: true
-      - jahia-modules-orb/docker-publish:
+      - jahia-modules-orb/docker-tests-publish:
           context: QA_ENVIRONMENT
           requires:
             - Int. Tests - Jahia Latest - Built modules
