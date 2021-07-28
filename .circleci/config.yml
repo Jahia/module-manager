@@ -63,7 +63,7 @@ parameters:
     default: false
   SSH_KEY_FINGERPRINT:
     type: string
-    default: "<TO-BE-UPDATED>"
+    default: "65:da:76:4e:26:7d:84:54:44:5b:20:4e:c0:1a:35:ce"
 
   # Pipeline parameters below are used for the legacy framework
   AUDITCI_LEVEL:
@@ -437,6 +437,12 @@ workflows:
           ssh_key_fingerprints: << pipeline.parameters.SSH_KEY_FINGERPRINT >>
       - jahia-modules-orb/release:
           context: QA_ENVIRONMENT
+          module_id: << pipeline.parameters.MODULE_ID >>
+          github_slug: << pipeline.parameters.GITHUB_SLUG >>
+          release_id: << pipeline.parameters.RELEASE_ID >>
+          release_version: << pipeline.parameters.RELEASE_VERSION >>
+          primary_release_branch: << pipeline.parameters.PRIMARY_RELEASE_BRANCH >>
+          ssh_key_fingerprints:  << pipeline.parameters.SSH_KEY_FINGERPRINT >>
           requires:
             - jahia-modules-orb/generate-changelog
       - jahia-modules-orb/update-signature:
