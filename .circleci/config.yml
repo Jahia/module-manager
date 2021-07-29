@@ -156,10 +156,10 @@ jobs:
             if [ ! -d << pipeline.parameters.TESTSJAVA_PATH >>module-manager-test ]; then
                 mkdir << pipeline.parameters.TESTSJAVA_PATH >>module-manager-test
             fi
-            cp -R /home/circleci/source/module-manager/* << pipeline.parameters.TESTSJAVA_PATH >>module-manager/
-            cp -R /home/circleci/source/module-manager-test/* << pipeline.parameters.TESTSJAVA_PATH >>module-manager-test/
+            cp -R /home/circleci/source/* << pipeline.parameters.TESTSJAVA_PATH >>
+            cp -R /home/circleci/source/test/* << pipeline.parameters.TESTSJAVA_PATH >>test/
             if [ << parameters.SKIP_ARTIFACTS >> == false ]; then
-              sudo cp /home/circleci/source/module-manager/target/*.jar << pipeline.parameters.TESTSJAVA_PATH >>artifacts/
+              sudo cp /home/circleci/source/target/*.jar << pipeline.parameters.TESTSJAVA_PATH >>artifacts/
               sudo cp << pipeline.parameters.TESTSJAVA_PATH >>artifacts/module-manager*SNAPSHOT.jar << pipeline.parameters.TESTSJAVA_PATH >>artifacts/module-manager-SNAPSHOT.jar
               sudo cp /home/circleci/source/module-manager-test/target/*.jar << pipeline.parameters.TESTSJAVA_PATH >>artifacts/
               sudo cp << pipeline.parameters.TESTSJAVA_PATH >>artifacts/module-manager-test*SNAPSHOT.jar << pipeline.parameters.TESTSJAVA_PATH >>artifacts/module-manager-test-SNAPSHOT.jar
@@ -387,15 +387,15 @@ workflows:
             branches:
               only:
                 - << pipeline.parameters.PRIMARY_RELEASE_BRANCH >>
-      - jahia-modules-orb/integration-tests:
-          context: QA_ENVIRONMENT
-          requires:
-            - jahia-modules-orb/build
-          jahia_image: jahia/jahia-ee-dev:8-SNAPSHOT
-          tests_manifest: provisioning-manifest-build.yml
-          module_id: << pipeline.parameters.MODULE_ID >>
-          testrail_project: << pipeline.parameters.TESTRAIL_PROJECTNAME >>
-          testrail_milestone: << pipeline.parameters.TESTRAIL_MILESTONE >>
+#      - jahia-modules-orb/integration-tests:
+#          context: QA_ENVIRONMENT
+#          requires:
+#            - jahia-modules-orb/build
+#          jahia_image: jahia/jahia-ee-dev:8-SNAPSHOT
+#          tests_manifest: provisioning-manifest-build.yml
+#          module_id: << pipeline.parameters.MODULE_ID >>
+#          testrail_project: << pipeline.parameters.TESTRAIL_PROJECTNAME >>
+#          testrail_milestone: << pipeline.parameters.TESTRAIL_MILESTONE >>
 
   # The on-release workflow was created to handle the full release lifecycle after creating a release using GitHub
   # https://github.com/Jahia/sandbox/releases
