@@ -316,30 +316,6 @@ jobs:
             fi
       - *persist-workspace
 
-  docker-publish:
-    <<: *workdir
-    docker:
-      - image: cimg/openjdk:8.0.275-browsers
-    steps:
-      - *attach-workspace
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run:
-          name: Push << pipeline.parameters.TESTSJAVA_IMAGE >> image to docker hub
-          command: |
-            cd << pipeline.parameters.TESTSJAVA_PATH >>
-            docker load -i tests_image.tar
-            if [ "$CIRCLE_BRANCH" = "<< pipeline.parameters.PRIMARY_RELEASE_BRANCH >>" ]; then
-                IMAGE_TAG=latest
-            else
-                IMAGE_TAG=${CIRCLE_TAG/''}
-            fi
-            echo "Image tag is: $IMAGE_TAG"
-            docker tag << pipeline.parameters.TESTSJAVA_IMAGE >>:latest << pipeline.parameters.TESTSJAVA_IMAGE >>:$IMAGE_TAG
-            docker login -u $DOCKERHUB_LOGIN -p $DOCKERHUB_PASSWORD
-            echo "Tagged the image"
-            docker push << pipeline.parameters.TESTSJAVA_IMAGE >>:$IMAGE_TAG
-            echo "Pushed tag"
 
 workflows:
   version: 2
@@ -398,8 +374,11 @@ workflows:
           SKIP_TESTRAIL: "true"
           SKIP_ARTIFACTS: false
           BUILD_TESTSIMAGE: true
-      - docker-publish:
+      - jahia-modules-orb/docker-tests-publish:
           context: QA_ENVIRONMENT
+          primary_release_branch: << pipeline.parameters.PRIMARY_RELEASE_BRANCH >>
+          tests_image_name: << pipeline.parameters.TESTSJAVA_IMAGE >>
+          tests_path: << pipeline.parameters.TESTSJAVA_PATH >>
           requires:
             - Int. Tests - Jahia Latest - Built modules
           filters:
