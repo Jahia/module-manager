@@ -21,18 +21,18 @@ if [ ! -d ./artifacts ]; then
     mkdir -p ./artifacts
 fi
 
-if [ ! -d ./module-manager ]; then
-	mkdir ./module-manager
+if [ ! -d ./core ]; then
+	mkdir ./core
 fi
-cp -R ../module-manager/* ./module-manager/
-cp -R ./module-manager/target/* ./artifacts/
+cp -R ../core/{.[!.],..?,}* ./core/
+cp -R ./core/target/* ./artifacts/
 cp ./artifacts/module-manager*SNAPSHOT.jar ./artifacts/module-manager-SNAPSHOT.jar
 
-if [ ! -d ./module-manager-test ]; then
-	mkdir ./module-manager-test
+if [ ! -d ./test ]; then
+	mkdir ./test
 fi
-cp -R ../module-manager-test/* ./module-manager-test/
-cp -R ./module-manager-test/target/* ./artifacts/
+cp -R ../test/* ./test/
+cp -R ./test/target/* ./artifacts/
 cp ./artifacts/module-manager-test*SNAPSHOT.jar ./artifacts/module-manager-test-SNAPSHOT.jar
 
 
