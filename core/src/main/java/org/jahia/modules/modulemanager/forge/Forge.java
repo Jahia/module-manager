@@ -43,9 +43,10 @@
  */
 package org.jahia.modules.modulemanager.forge;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.xerces.impl.dv.util.Base64;
 import org.jahia.services.SpringContextSingleton;
 import org.jahia.services.notification.HttpClientService;
@@ -101,15 +102,15 @@ public class Forge implements Serializable {
         if (!StringUtils.equals((String) context.getUserValue("actionType"),"delete")) {
             // try basic http connexion
             try {
-                GetMethod httpMethod = new GetMethod(url + "/contents/modules-repository.moduleList.json");
-                httpMethod.addRequestHeader("Authorization", "Basic " + Base64.encode((user + ":" + password).getBytes()));
+                HttpGet httpMethod = new HttpGet(url + "/contents/modules-repository.moduleList.json");
+                httpMethod.addHeader("Authorization", "Basic " + Base64.encode((user + ":" + password).getBytes()));
                 HttpClient httpClient = ((HttpClientService) SpringContextSingleton.getBean("HttpClientService")).getHttpClient(url);
-                int i = httpClient.executeMethod(httpMethod);
-                if (i != 200) {
+                HttpResponse httpResponse = httpClient.execute(httpMethod);
+                if (httpResponse.getStatusLine().getStatusCode() != 200) {
                     context.getMessageContext().addMessage(new MessageBuilder()
                             .error()
                             .source("testUrl")
-                            .code("serverSettings.manageForges.error.cannotVerify").arg(i)
+                            .code("serverSettings.manageForges.error.cannotVerify").arg(httpResponse.getStatusLine().getStatusCode())
                             .build());
                 }
             } catch (Exception e) {
