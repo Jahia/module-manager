@@ -45,9 +45,9 @@ package org.jahia.modules.modulemanager.forge;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.xerces.impl.dv.util.Base64;
 import org.jahia.bin.Jahia;
 import org.jahia.commons.Version;
@@ -289,10 +289,9 @@ public class ForgeService {
             if (forgeId.equals(forge.getId())) {
                 HttpGet httpMethod = new HttpGet(url);
                 httpMethod.addHeader("Authorization", "Basic " + Base64.encode((forge.getUser() + ":" + forge.getPassword()).getBytes()));
-                HttpClient httpClient = httpClientService.getHttpClient(url);
-                try {
-                    HttpResponse httpResponse = httpClient.execute(httpMethod);
-                    if (httpResponse.getStatusLine().getStatusCode() == HttpServletResponse.SC_OK) {
+                CloseableHttpClient httpClient = httpClientService.getHttpClient(url);
+                try (CloseableHttpResponse httpResponse = httpClient.execute(httpMethod)) {
+                    if (httpResponse.getCode() == HttpServletResponse.SC_OK) {
                         File f = File.createTempFile("module", "." + StringUtils.substringAfterLast(url, "."));
                         FileUtils.copyInputStreamToFile(httpResponse.getEntity().getContent(), f);
                         return f;
@@ -300,8 +299,6 @@ public class ForgeService {
                 } catch (IOException e) {
                     logger.error(e.getMessage(),e);  //To change body of catch statement use File | Settings | File Templates.
                 }
-
-
             }
         }
         return null;

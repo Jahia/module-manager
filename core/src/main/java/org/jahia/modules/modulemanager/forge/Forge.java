@@ -44,9 +44,9 @@
 package org.jahia.modules.modulemanager.forge;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.xerces.impl.dv.util.Base64;
 import org.jahia.services.SpringContextSingleton;
 import org.jahia.services.notification.HttpClientService;
@@ -101,16 +101,15 @@ public class Forge implements Serializable {
     public void validateView(ValidationContext context) {
         if (!StringUtils.equals((String) context.getUserValue("actionType"),"delete")) {
             // try basic http connexion
-            try {
-                HttpGet httpMethod = new HttpGet(url + "/contents/modules-repository.moduleList.json");
-                httpMethod.addHeader("Authorization", "Basic " + Base64.encode((user + ":" + password).getBytes()));
-                HttpClient httpClient = ((HttpClientService) SpringContextSingleton.getBean("HttpClientService")).getHttpClient(url);
-                HttpResponse httpResponse = httpClient.execute(httpMethod);
-                if (httpResponse.getStatusLine().getStatusCode() != 200) {
+            HttpGet httpMethod = new HttpGet(url + "/contents/modules-repository.moduleList.json");
+            httpMethod.addHeader("Authorization", "Basic " + Base64.encode((user + ":" + password).getBytes()));
+            CloseableHttpClient httpClient = ((HttpClientService) SpringContextSingleton.getBean("HttpClientService")).getHttpClient(url);
+            try (CloseableHttpResponse httpResponse = httpClient.execute(httpMethod)) {
+                if (httpResponse.getCode() != 200) {
                     context.getMessageContext().addMessage(new MessageBuilder()
                             .error()
                             .source("testUrl")
-                            .code("serverSettings.manageForges.error.cannotVerify").arg(httpResponse.getStatusLine().getStatusCode())
+                            .code("serverSettings.manageForges.error.cannotVerify").arg(httpResponse.getCode())
                             .build());
                 }
             } catch (Exception e) {
