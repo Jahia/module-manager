@@ -43,20 +43,15 @@
  */
 package org.jahia.modules.modulemanager.forge;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.URI;
-import org.apache.commons.httpclient.URIException;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.xerces.impl.dv.util.Base64;
 import org.jahia.bin.Jahia;
 import org.jahia.commons.Version;
-import org.jahia.services.content.JCRCallback;
-import org.jahia.services.content.JCRContentUtils;
-import org.jahia.services.content.JCRNodeWrapper;
-import org.jahia.services.content.JCRSessionWrapper;
-import org.jahia.services.content.JCRTemplate;
+import org.jahia.services.content.*;
 import org.jahia.services.content.decorator.JCRUserNode;
 import org.jahia.services.notification.HttpClientService;
 import org.json.JSONArray;
@@ -72,9 +67,6 @@ import javax.jcr.RepositoryException;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.*;
 
 /**
@@ -295,27 +287,18 @@ public class ForgeService {
     public File downloadModuleFromForge(String forgeId, String url) {
         for (Forge forge : forges) {
             if (forgeId.equals(forge.getId())) {
-                GetMethod httpMethod = new GetMethod();
-                try {
-                    httpMethod.setURI(new URI(url, false, "UTF-8"));
-                } catch (URIException e) {
-                    logger.error(e.getMessage(),e);
-                    return null;
-                }
-                httpMethod.addRequestHeader("Authorization", "Basic " + Base64.encode((forge.getUser() + ":" + forge.getPassword()).getBytes()));
-                HttpClient httpClient = httpClientService.getHttpClient(url);
-                try {
-                    int status = httpClient.executeMethod(httpMethod);
-                    if (status == HttpServletResponse.SC_OK) {
+                HttpGet httpMethod = new HttpGet(url);
+                httpMethod.addHeader("Authorization", "Basic " + Base64.encode((forge.getUser() + ":" + forge.getPassword()).getBytes()));
+                CloseableHttpClient httpClient = httpClientService.getHttpClient(url);
+                try (CloseableHttpResponse httpResponse = httpClient.execute(httpMethod)) {
+                    if (httpResponse.getCode() == HttpServletResponse.SC_OK) {
                         File f = File.createTempFile("module", "." + StringUtils.substringAfterLast(url, "."));
-                        FileUtils.copyInputStreamToFile(httpMethod.getResponseBodyAsStream(), f);
+                        FileUtils.copyInputStreamToFile(httpResponse.getEntity().getContent(), f);
                         return f;
                     }
                 } catch (IOException e) {
                     logger.error(e.getMessage(),e);  //To change body of catch statement use File | Settings | File Templates.
                 }
-
-
             }
         }
         return null;
