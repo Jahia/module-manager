@@ -12,7 +12,7 @@
 
 <fmt:message key="serverSettings.manageModules.moduleWiring" var="i18nModuleWiring"/>
 <fmt:message key="serverSettings.manageModules.moduleWiringUses" var="i18nModuleWiringUses"/>
+<fmt:message key="serverSettings.manageModules.moduleWiringMissing" var="i18nModuleWiringMissing"/>
 <fmt:message key="serverSettings.manageModules.moduleWiringProvides" var="i18nModuleWiringProvides"/>
 <fmt:message key="serverSettings.manageModules.moduleRefresh" var="i18nModuleRefresh"/>
 <fmt:message key="serverSettings.manageModules.moduleRefreshConfirm" var="i18nModuleRefreshConfirm"/>
-
