@@ -78,6 +78,7 @@
             <c:if test="${showWiring}">
                 <c:set value="${version.value.moduleDependenciesWithVersion}" var="moduleDependenciesWithVersion"/>
                 <c:set value="${version.value.dependentModulesWithVersion}" var="dependentModulesWithVersion"/>
+                <c:set value="${version.value.dependencies}" var="moduleDependenciesWithoutVersion"/>
             </c:if>
             <c:if test="${not empty moduleDependenciesWithVersion or not empty dependentModulesWithVersion}">
                 <button class="btn btn-fab btn-fab-xs" type="button" data-toggle="tooltip"
@@ -86,6 +87,15 @@
                         onclick="$('#wiringInfo${bundleId}').toggle(100);return false;">
                     <i class="material-icons infoWiring">info_outline</i>
                 </button>
+                <button data-toggle="tooltip" data-placement="bottom" title=""
+                        data-original-title="${i18nRefresh}" class="btn btn-fab btn-fab-xs"
+                        type="submit" name="_eventId_refreshModule" id="refresh${bundleId}"
+                        style="display: none;"
+                        onclick="event.stopPropagation(); return true">
+                    <i class="material-icons">refresh</i>
+                </button>
+            </c:if>
+            <c:if test="${empty moduleDependenciesWithVersion and not empty moduleDependenciesWithoutVersion}">
                 <button data-toggle="tooltip" data-placement="bottom" title=""
                         data-original-title="${i18nRefresh}" class="btn btn-fab btn-fab-xs"
                         type="submit" name="_eventId_refreshModule" id="refresh${bundleId}"
@@ -121,6 +131,23 @@
                 </ul>
             </c:if>
             <fmt:message key="label.refresh" var="i18nRefresh"/><c:set var="i18nRefresh" value="${fn:escapeXml(i18nRefresh)}"/>
+            <button class="btn btn-fab btn-fab-xs btn-danger" type="button"
+                    data-toggle="tooltip" data-container="body" data-placement="bottom"
+                    title="" data-original-title="${i18nRefresh}"
+                    onclick="if (confirm('${functions:escapeJavaScript(i18nModuleRefreshConfirm)}${' '}${dependentModulesWithVersion}\n${functions:escapeJavaScript(i18nContinue)}')) { $('#refresh${bundleId}').click(); };">
+                <i class="material-icons">refresh</i>
+            </button>
+        </div>
+    </c:if>
+    <c:if test="${empty moduleDependenciesWithVersion and not empty moduleDependenciesWithoutVersion}">
+        <div id="wiringInfo${bundleId}" class="wiringInfo">
+
+            <c:if test="${not empty moduleDependenciesWithoutVersion}">
+                ${i18nModuleWiringMissing}
+                <ul></ul>
+            </c:if>
+            <fmt:message key="label.refresh" var="i18nRefresh"/><c:set var="i18nRefresh"
+                                                                       value="${fn:escapeXml(i18nRefresh)}"/>
             <button class="btn btn-fab btn-fab-xs btn-danger" type="button"
                     data-toggle="tooltip" data-container="body" data-placement="bottom"
                     title="" data-original-title="${i18nRefresh}"
