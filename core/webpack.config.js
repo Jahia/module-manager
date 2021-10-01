@@ -1,7 +1,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 // Get manifest
@@ -16,10 +16,13 @@ require('fs').readdirSync(normalizedPath).forEach(function (file) {
 module.exports = (env, argv) => {
     let config = {
         entry: {
-            main: [path.resolve(__dirname, 'src/javascript/publicPath'), path.resolve(__dirname, 'src/javascript/index.js')]
+            main: [
+                path.resolve(__dirname, 'src/javascript/publicPath'), 
+                path.resolve(__dirname, 'src/javascript/index.js')
+            ]
         },
         output: {
-            jsonpFunction: 'jahiaServerSettingsJsonp',
+            chunkLoadingGlobal: 'jahiaServerSettingsJsonp',
             path: path.resolve(__dirname, 'src/main/resources/javascript/apps/'),
             filename: 'jahia.bundle.js',
             chunkFilename: '[name].jahia.[chunkhash:6].js'
@@ -38,15 +41,20 @@ module.exports = (env, argv) => {
                 {
                     test: /\.jsx?$/,
                     include: [path.join(__dirname, 'src')],
-                    loader: 'babel-loader',
-                    query: {
-                        presets: [
-                            ['@babel/preset-env', {modules: false, targets: {safari: '7', ie: '10'}}],
-                            '@babel/preset-react'
-                        ],
-                        plugins: [
-                            '@babel/plugin-syntax-dynamic-import'
-                        ]
+                    use: {
+                        loader: 'babel-loader',
+                        options: {
+                            presets: [
+                                ['@babel/preset-env', {
+                                    modules: false,
+                                    targets: {chrome: '60', edge: '44', firefox: '54', safari: '12'}
+                                }],
+                                '@babel/preset-react'
+                            ],
+                            plugins: [
+                                '@babel/plugin-syntax-dynamic-import'
+                            ]
+                        }
                     }
                 },
                 {
@@ -69,12 +77,12 @@ module.exports = (env, argv) => {
                 manifest: require(manifest)
             }),
             new CleanWebpackPlugin({verbose: false}),
-            new webpack.HashedModuleIdsPlugin({
+            new webpack.ids.HashedModuleIdsPlugin({
                 hashFunction: 'sha256',
                 hashDigest: 'hex',
                 hashDigestLength: 20
             }),
-            new CopyWebpackPlugin([{from: './package.json', to: ''}])
+            new CopyWebpackPlugin({patterns: [{from: './package.json', to: ''}]})
         ],
         mode: argv.mode
     };
