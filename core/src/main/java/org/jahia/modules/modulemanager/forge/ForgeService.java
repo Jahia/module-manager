@@ -43,6 +43,7 @@
  */
 package org.jahia.modules.modulemanager.forge;
 
+import org.apache.commons.codec.net.URLCodec;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -59,6 +60,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -67,6 +70,8 @@ import javax.jcr.RepositoryException;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -287,7 +292,7 @@ public class ForgeService {
     public File downloadModuleFromForge(String forgeId, String url) {
         for (Forge forge : forges) {
             if (forgeId.equals(forge.getId())) {
-                HttpGet httpMethod = new HttpGet(url);
+                HttpGet httpMethod = new HttpGet(UriComponentsBuilder.fromHttpUrl(url).build(false).toUri());
                 httpMethod.addHeader("Authorization", "Basic " + Base64.encode((forge.getUser() + ":" + forge.getPassword()).getBytes()));
                 CloseableHttpClient httpClient = httpClientService.getHttpClient(url);
                 try (CloseableHttpResponse httpResponse = httpClient.execute(httpMethod)) {
