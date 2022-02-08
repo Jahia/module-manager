@@ -43,10 +43,10 @@
         <transition on="undeployModule" to="undeployModule"/>
         <transition on="updateModule" to="updateModule"/>
         <transition on="upload" to="view">
-            <evaluate expression="flowHandler.uploadModule(moduleFile.moduleFile, messageContext, requestParameters.moduleForceUpdate != null, requestParameters.moduleAutoStart != null)"/>
+            <evaluate expression="flowHandler.uploadModule(moduleFile.moduleFile, messageContext, requestParameters.moduleForceUpdate != null, requestParameters.moduleAutoStart != null, requestParameters.moduleValidateDefinitions == null)"/>
         </transition>
         <transition on="installModule" to="view">
-            <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, requestParameters.moduleAutoStart != null, messageContext)"/>
+            <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, requestParameters.moduleAutoStart != null, requestParameters.moduleValidateDefinitions == null, messageContext)"/>
         </transition>
         <transition on="installModuleAndStart" to="view">
             <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, true, messageContext)"/>

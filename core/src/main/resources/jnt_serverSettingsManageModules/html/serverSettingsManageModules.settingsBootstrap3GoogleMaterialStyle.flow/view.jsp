@@ -118,6 +118,7 @@
                         $('#moduleFilename').show();
                         $('#selectModuleButton').hide();
                         $('#moduleAutoStartLabel').show();
+                        $('#moduleValidateDefinitionsLabel').show();
                         $('#btnUpload').show();
                     }
                 });
@@ -245,6 +246,13 @@
                                     <fmt:message key="serverSettings.manageModules.upload.force"/>
                                 </label>
                             </c:if>
+
+                            <label for="moduleValidateDefinitions" id="moduleValidateDefinitionsLabel"
+                                   style="display: none">
+                                <input id="moduleValidateDefinitions" class="filled-in" type="checkbox"
+                                       name="moduleValidateDefinitions" ${developmentMode ? 'checked="checked"' : ''}/>
+                                <fmt:message key="serverSettings.manageModules.upload.validateDefinitions"/>
+                            </label>
                         </div>
                     </div>
                 </div>
