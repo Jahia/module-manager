@@ -171,6 +171,16 @@
     </ul>
 
     <div class="panel panel-default">
+        <div class="panel-body">
+            <c:forEach items="${flowRequestContext.messageContext.allMessages}" var="message">
+                <c:if test="${message.source eq 'moduleDefinitions'}">
+                    <div class="alert alert-warning">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        ${message.text}
+                    </div>
+                </c:if>
+            </c:forEach>
+        </div>
         <div class="panel-heading">
             <h4><fmt:message key="moduleManager.title.uploadModuleFromFile"/></h4>
         </div>

@@ -64,13 +64,11 @@ import org.jahia.osgi.FrameworkService;
 import org.jahia.security.spi.LicenseCheckUtil;
 import org.jahia.services.content.JCRNodeWrapper;
 import org.jahia.services.content.JCRSessionWrapper;
+import org.jahia.services.content.JCRStoreService;
 import org.jahia.services.content.decorator.JCRSiteNode;
 import org.jahia.services.content.nodetypes.ExtendedNodeType;
 import org.jahia.services.content.nodetypes.NodeTypeRegistry;
-import org.jahia.services.modulemanager.BundleInfo;
-import org.jahia.services.modulemanager.Constants;
-import org.jahia.services.modulemanager.ModuleManagementException;
-import org.jahia.services.modulemanager.ModuleManager;
+import org.jahia.services.modulemanager.*;
 import org.jahia.services.modulemanager.models.JahiaDepends;
 import org.jahia.services.render.RenderContext;
 import org.jahia.services.sites.JahiaSitesService;
@@ -119,6 +117,12 @@ public class ModuleManagementFlowHandler implements Serializable {
 
     @Autowired
     private transient JahiaTemplateManagerService templateManagerService;
+
+    @Autowired
+    private transient DefinitionsManagerService definitionsManagerService;
+
+    @Autowired
+    private transient JCRStoreService jcrStoreService;
 
     @Autowired
     private transient JahiaSitesService sitesService;
@@ -618,6 +622,38 @@ public class ModuleManagementFlowHandler implements Serializable {
             modulesByVersion.put(module.getVersion(), module);
         }
         return result;
+    }
+
+    public void validateDefinitions(MessageContext context) {
+        if (definitionsManagerService.skipDefinitionValidation()) {
+            logger.debug("Skipping CND definition validation...");
+            return;
+        }
+
+        Map<String, JahiaTemplatesPackage> modules = templateManagerService
+                .getTemplatePackageRegistry().getRegisteredModules();
+        for (String moduleId : modules.keySet()) {
+            try {
+                if (definitionsManagerService.isLatest(moduleId)) {
+                    continue;
+                }
+                DefinitionsManagerService.CND_STATUS status = definitionsManagerService.checkDefinition(moduleId);
+                if (status != DefinitionsManagerService.CND_STATUS.OK) {
+                    JahiaTemplatesPackage pkg = modules.get(moduleId);
+                    String latestVersion = jcrStoreService.getDefinitionVersion(pkg.getBundle().getSymbolicName());
+                    String currentVersion = pkg.getVersion().toString();
+                    logger.debug("'{}' module violates definition check with current started version {} against latest registered {}",
+                            moduleId, currentVersion, latestVersion);
+                    context.addMessage(new MessageBuilder().source("moduleDefinitions")
+                            .code("serverSettings.manageModules.module.state.definitionConflict")
+                            .arg(moduleId).arg(latestVersion).arg(currentVersion)
+                            .warning()
+                            .build());
+                }
+            } catch (IOException|RepositoryException e) {
+                logger.error("Unable to validate definition for module {}", moduleId);
+            }
+        }
     }
 
     /**
