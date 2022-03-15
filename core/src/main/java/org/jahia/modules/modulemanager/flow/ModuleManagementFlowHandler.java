@@ -36,13 +36,11 @@ import org.jahia.osgi.FrameworkService;
 import org.jahia.security.spi.LicenseCheckUtil;
 import org.jahia.services.content.JCRNodeWrapper;
 import org.jahia.services.content.JCRSessionWrapper;
+import org.jahia.services.content.JCRStoreService;
 import org.jahia.services.content.decorator.JCRSiteNode;
 import org.jahia.services.content.nodetypes.ExtendedNodeType;
 import org.jahia.services.content.nodetypes.NodeTypeRegistry;
-import org.jahia.services.modulemanager.BundleInfo;
-import org.jahia.services.modulemanager.Constants;
-import org.jahia.services.modulemanager.ModuleManagementException;
-import org.jahia.services.modulemanager.ModuleManager;
+import org.jahia.services.modulemanager.*;
 import org.jahia.services.modulemanager.models.JahiaDepends;
 import org.jahia.services.render.RenderContext;
 import org.jahia.services.sites.JahiaSitesService;
@@ -93,6 +91,12 @@ public class ModuleManagementFlowHandler implements Serializable {
     private transient JahiaTemplateManagerService templateManagerService;
 
     @Autowired
+    private transient DefinitionsManagerService definitionsManagerService;
+
+    @Autowired
+    private transient JCRStoreService jcrStoreService;
+
+    @Autowired
     private transient JahiaSitesService sitesService;
 
     @Autowired
@@ -125,11 +129,11 @@ public class ModuleManagementFlowHandler implements Serializable {
         return new ModuleFile();
     }
 
-    public boolean installModule(String forgeId, String url, boolean autoStart, MessageContext context) {
+    public boolean installModule(String forgeId, String url, boolean autoStart, boolean ignoreChecks, MessageContext context) {
         File file = null;
         try {
             file = forgeService.downloadModuleFromForge(forgeId, url);
-            installBundles(file, context, url, false, autoStart);
+            installBundles(file, context, url, false, autoStart, ignoreChecks);
             return true;
         } catch (Exception e) {
             context.addMessage(new MessageBuilder().source("moduleFile")
@@ -144,7 +148,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         return false;
     }
 
-    public boolean uploadModule(MultipartFile moduleFile, MessageContext context, boolean forceUpdate, boolean autoStart) {
+    public boolean uploadModule(MultipartFile moduleFile, MessageContext context, boolean forceUpdate, boolean autoStart, boolean ignoreChecks) {
         if (moduleFile == null) {
             context.addMessage(new MessageBuilder().error().source("moduleFile")
                     .code("serverSettings.manageModules.install.moduleFileRequired").build());
@@ -169,7 +173,7 @@ public class ModuleManagementFlowHandler implements Serializable {
                         try {
                             URL transformedURL = transformer.transform(new URL("file:" + file.getPath()));
                             FileUtils.copyInputStreamToFile(transformedURL.openConnection().getInputStream(), fileTemp);
-                            installBundles(fileTemp, context, originalFilename, forceUpdate, autoStart);
+                            installBundles(fileTemp, context, originalFilename, forceUpdate, autoStart, ignoreChecks);
                             return true;
                         } finally {
                             FileUtils.deleteQuietly(fileTemp);
@@ -185,7 +189,7 @@ public class ModuleManagementFlowHandler implements Serializable {
                 return false;
             }
 
-            installBundles(file, context, originalFilename, forceUpdate, autoStart);
+            installBundles(file, context, originalFilename, forceUpdate, autoStart, ignoreChecks);
             return true;
         } catch (Exception e) {
             context.addMessage(new MessageBuilder().source("moduleFile")
@@ -200,7 +204,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         return false;
     }
 
-    private void installBundles(File file, MessageContext context, String originalFilename, boolean forceUpdate, boolean autoStart) throws IOException, BundleException {
+    private void installBundles(File file, MessageContext context, String originalFilename, boolean forceUpdate, boolean autoStart, boolean ignoreChecks) throws IOException, BundleException {
 
         JarFile jarFile = new JarFile(file);
         try {
@@ -230,9 +234,9 @@ public class ModuleManagementFlowHandler implements Serializable {
             }
 
             if (manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_NAME) != null) {
-                handlePackage(jarFile, manifestAttributes, originalFilename, forceUpdate, autoStart, context);
+                handlePackage(jarFile, manifestAttributes, originalFilename, forceUpdate, autoStart, ignoreChecks, context);
             } else {
-                ModuleInstallationResult installationResult = installModule(file, context, null, null, forceUpdate, autoStart);
+                ModuleInstallationResult installationResult = installModule(file, context, null, null, forceUpdate, autoStart, ignoreChecks);
                 if (installationResult != null) {
                     addModuleInstallationMessage(installationResult, context);
                 }
@@ -243,7 +247,7 @@ public class ModuleManagementFlowHandler implements Serializable {
     }
 
     private void handlePackage(JarFile jarFile, Attributes manifestAttributes, String originalFilename,
-                               boolean forceUpdate, boolean autoStart, MessageContext context) throws IOException, BundleException {
+                               boolean forceUpdate, boolean autoStart, boolean ignoreChecks, MessageContext context) throws IOException, BundleException {
 
         // check package name validity
         String jahiaPackageName = manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_NAME);
@@ -271,7 +275,7 @@ public class ModuleManagementFlowHandler implements Serializable {
             Map<Bundle, MessageResolver> collectedResolutionErrors = new LinkedHashMap<>();
             List<ModuleInstallationResult> installationResults = new LinkedList<>();
             for (ModulesPackage.PackagedModule entry : pack.getModules().values()) {
-                ModuleInstallationResult installationResult = installModule(entry.getModuleFile(), context, providedBundles, collectedResolutionErrors, forceUpdate, autoStart);
+                ModuleInstallationResult installationResult = installModule(entry.getModuleFile(), context, providedBundles, collectedResolutionErrors, forceUpdate, autoStart, ignoreChecks);
                 if (installationResult != null) {
                     installationResults.add(installationResult);
                 }
@@ -318,7 +322,7 @@ public class ModuleManagementFlowHandler implements Serializable {
                 .build());
     }
 
-    private ModuleInstallationResult installModule(File file, MessageContext context, List<String> providedBundles, Map<Bundle, MessageResolver> collectedResolutionErrors, boolean forceUpdate, boolean autoStart) throws IOException, BundleException {
+    private ModuleInstallationResult installModule(File file, MessageContext context, List<String> providedBundles, Map<Bundle, MessageResolver> collectedResolutionErrors, boolean forceUpdate, boolean autoStart, boolean ignoreChecks) throws IOException, BundleException {
 
         JarFile jarFile = new JarFile(file);
         try {
@@ -378,10 +382,10 @@ public class ModuleManagementFlowHandler implements Serializable {
             String resolutionError = null;
 
             try {
-                moduleManager.install(new FileSystemResource(file), null, shouldAutoStart);
+                moduleManager.install(Collections.singleton(new FileSystemResource(file)), null, shouldAutoStart, ignoreChecks);
             } catch (ModuleManagementException e) {
                 Throwable cause = e.getCause();
-                if (cause != null && cause instanceof BundleException && ((BundleException) cause).getType() == BundleException.RESOLVE_ERROR) {
+                if (cause instanceof BundleException && ((BundleException) cause).getType() == BundleException.RESOLVE_ERROR) {
                     // we are dealing with unresolved dependencies here
                     resolutionError = cause.getMessage();
                 } else {
@@ -590,6 +594,38 @@ public class ModuleManagementFlowHandler implements Serializable {
             modulesByVersion.put(module.getVersion(), module);
         }
         return result;
+    }
+
+    public void validateDefinitions(MessageContext context) {
+        if (definitionsManagerService.skipDefinitionValidation()) {
+            logger.debug("Skipping CND definition validation...");
+            return;
+        }
+
+        Map<String, JahiaTemplatesPackage> modules = templateManagerService
+                .getTemplatePackageRegistry().getRegisteredModules();
+        for (String moduleId : modules.keySet()) {
+            try {
+                if (definitionsManagerService.isLatest(moduleId)) {
+                    continue;
+                }
+                DefinitionsManagerService.CND_STATUS status = definitionsManagerService.checkDefinition(moduleId);
+                if (status != DefinitionsManagerService.CND_STATUS.OK) {
+                    JahiaTemplatesPackage pkg = modules.get(moduleId);
+                    String latestVersion = jcrStoreService.getDefinitionVersion(pkg.getBundle().getSymbolicName());
+                    String currentVersion = pkg.getVersion().toString();
+                    logger.debug("'{}' module violates definition check with current started version {} against latest registered {}",
+                            moduleId, currentVersion, latestVersion);
+                    context.addMessage(new MessageBuilder().source("moduleDefinitions")
+                            .code("serverSettings.manageModules.module.state.definitionConflict")
+                            .arg(moduleId).arg(latestVersion).arg(currentVersion)
+                            .warning()
+                            .build());
+                }
+            } catch (IOException|RepositoryException e) {
+                logger.error("Unable to validate definition for module {}", moduleId);
+            }
+        }
     }
 
     /**

@@ -118,6 +118,7 @@
                         $('#moduleFilename').show();
                         $('#selectModuleButton').hide();
                         $('#moduleAutoStartLabel').show();
+                        $('#moduleValidateDefinitionsLabel').show();
                         $('#btnUpload').show();
                     }
                 });
@@ -170,6 +171,16 @@
     </ul>
 
     <div class="panel panel-default">
+        <div class="panel-body">
+            <c:forEach items="${flowRequestContext.messageContext.allMessages}" var="message">
+                <c:if test="${message.source eq 'moduleDefinitions'}">
+                    <div class="alert alert-warning">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        ${message.text}
+                    </div>
+                </c:if>
+            </c:forEach>
+        </div>
         <div class="panel-heading">
             <h4><fmt:message key="moduleManager.title.uploadModuleFromFile"/></h4>
         </div>
@@ -245,6 +256,13 @@
                                     <fmt:message key="serverSettings.manageModules.upload.force"/>
                                 </label>
                             </c:if>
+
+                            <label for="moduleValidateDefinitions" id="moduleValidateDefinitionsLabel"
+                                   style="display: none">
+                                <input id="moduleValidateDefinitions" class="filled-in" type="checkbox"
+                                       name="moduleValidateDefinitions" ${developmentMode ? 'checked="checked"' : ''}/>
+                                <fmt:message key="serverSettings.manageModules.upload.validateDefinitions"/>
+                            </label>
                         </div>
                     </div>
                 </div>

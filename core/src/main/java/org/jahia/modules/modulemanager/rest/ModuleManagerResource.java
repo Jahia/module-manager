@@ -193,7 +193,7 @@ public class ModuleManagerResource {
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response install(@FormDataParam("bundle") List<FormDataBodyPart> bundleParts, @FormDataParam("target") String target, @FormDataParam("start") boolean start) throws WebApplicationException {
+    public Response install(@FormDataParam("bundle") List<FormDataBodyPart> bundleParts, @FormDataParam("target") String target, @FormDataParam("start") boolean start, @FormDataParam("ignoreChecks") Boolean ignoreChecks) throws WebApplicationException {
 
         if (bundleParts == null || bundleParts.isEmpty()) {
             throw new ClientErrorException("At least one bundle file is required", Response.Status.BAD_REQUEST);
@@ -221,7 +221,7 @@ public class ModuleManagerResource {
                 }
 
                 OperationResult result = getModuleManager().install(bundleResources.stream().map(UploadedBundle::getBundleResource).collect(Collectors.toList()),
-                                                                    target, start);
+                                                                    target, start, ignoreChecks);
                 return Response.ok(result).build();
             } finally {
                 for (UploadedBundle bundleResource : bundleResources) {
