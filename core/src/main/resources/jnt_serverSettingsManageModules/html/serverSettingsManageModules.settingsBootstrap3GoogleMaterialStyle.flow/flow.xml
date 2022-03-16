@@ -50,10 +50,10 @@
             <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, requestParameters.moduleAutoStart != null, requestParameters.moduleValidateDefinitions == null, messageContext)"/>
         </transition>
         <transition on="installModuleAndStart" to="view">
-            <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, true, messageContext)"/>
+            <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, true, false, messageContext)"/>
         </transition>
         <transition on="installModuleOnly" to="view">
-            <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, false, messageContext)"/>
+            <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, false, false, messageContext)"/>
         </transition>
         <transition on="reloadModules" to="view">
             <evaluate expression="flowHandler.reloadModules()"/>
@@ -256,7 +256,7 @@
 
         <transition on="installForgeModule" to="forgeView">
             <!-- In this case the moduleAutoStart is a hidden input field and not a checkbox, so we additionally check if it is true or false -->
-            <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, requestParameters.moduleAutoStart != null &amp;&amp; requestParameters.moduleAutoStart == 'true', messageContext)"/>
+            <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, requestParameters.moduleAutoStart != null &amp;&amp; requestParameters.moduleAutoStart == 'true', false, messageContext)"/>
         </transition>
 
         <transition on="reloadModules" to="forgeView">

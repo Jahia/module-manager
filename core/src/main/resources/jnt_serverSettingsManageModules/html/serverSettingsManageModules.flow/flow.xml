@@ -249,7 +249,7 @@
 
         <transition on="installForgeModule" to="forgeView">
             <!-- In this case the moduleAutoStart is a hidden input field and not a checkbox, so we additionally check if it is true or false -->
-            <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, requestParameters.moduleAutoStart != null &amp;&amp; requestParameters.moduleAutoStart == 'true', messageContext)"/>
+            <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, requestParameters.moduleAutoStart != null &amp;&amp; requestParameters.moduleAutoStart == 'true', false, messageContext)"/>
         </transition>
 
         <transition on="reloadModules" to="forgeView">
