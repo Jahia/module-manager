@@ -221,7 +221,7 @@ public class ModuleManagerResource {
                 }
 
                 OperationResult result = getModuleManager().install(bundleResources.stream().map(UploadedBundle::getBundleResource).collect(Collectors.toList()),
-                                                                    target, start, ignoreChecks);
+                                                                    target, start, ignoreChecks != null && ignoreChecks);
                 return Response.ok(result).build();
             } finally {
                 for (UploadedBundle bundleResource : bundleResources) {
