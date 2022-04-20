@@ -616,8 +616,11 @@ public class ModuleManagementFlowHandler implements Serializable {
                     String currentVersion = pkg.getVersion().toString();
                     logger.debug("'{}' module violates definition check with current started version {} against latest registered {}",
                             moduleId, currentVersion, latestVersion);
+                    String messageCode = currentVersion.equals(latestVersion) ?
+                            "serverSettings.manageModules.module.state.definitionConflict.sameVersion" :
+                            "serverSettings.manageModules.module.state.definitionConflict";
                     context.addMessage(new MessageBuilder().source("moduleDefinitions")
-                            .code("serverSettings.manageModules.module.state.definitionConflict")
+                            .code(messageCode)
                             .arg(moduleId).arg(latestVersion).arg(currentVersion)
                             .warning()
                             .build());
