@@ -260,7 +260,7 @@
                             <label for="moduleValidateDefinitions" id="moduleValidateDefinitionsLabel"
                                    style="display: none">
                                 <input id="moduleValidateDefinitions" class="filled-in" type="checkbox"
-                                       name="moduleValidateDefinitions" ${developmentMode ? 'checked="checked"' : ''}/>
+                                       name="moduleValidateDefinitions" checked/>
                                 <fmt:message key="serverSettings.manageModules.upload.validateDefinitions"/>
                             </label>
                         </div>
