@@ -7,3 +7,15 @@
 <jmm = 'http://www.jahia.org/jahia/module-manager/1.0'>
 
 [jnt:serverSettingsManageModules] > jnt:content, jmix:siteComponent, mix:title, jmix:studioOnly
+
+[jnt:moduleLifeCycleConstraints]
++ * (jnt:moduleLifeCycleConstraint)
+
+[jnt:moduleLifeCycleConstraint] > jnt:content
+- moduleId (String) mandatory indexed=no
+- versionRange (String) multiple mandatory indexed=no
+- disableOperations (String) multiple mandatory indexed=no
+- info (String) indexed=no
+- warning (String) indexed=no
+- alert (String) indexed=no
+- error (String) indexed=no

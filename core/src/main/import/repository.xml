@@ -31,7 +31,7 @@
                         </main>
                     </src>
                 </sources>
-                
+
                 <portlets jcr:primaryType="jnt:portletFolder"/>
                 <files jcr:primaryType="jnt:folder"/>
                 <contents jcr:primaryType="jnt:contentFolder"/>
@@ -98,7 +98,7 @@
                         </system-components>
                     </server-settings-base-jahia-anthracite>
                 </templates>
-                
+                <module-lifecycle-constraints jcr:primaryType="jnt:moduleLifeCycleConstraints"/>
             </module-manager>
     </modules>
 </content>

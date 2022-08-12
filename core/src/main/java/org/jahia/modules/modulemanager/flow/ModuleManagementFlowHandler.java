@@ -31,6 +31,8 @@ import org.jahia.data.templates.ModulesPackage;
 import org.jahia.exceptions.JahiaException;
 import org.jahia.modules.modulemanager.forge.ForgeService;
 import org.jahia.modules.modulemanager.forge.Module;
+import org.jahia.modules.modulemanager.provisioning.ModuleLifeCycleConstraintsService;
+import org.jahia.modules.modulemanager.provisioning.ModuleLifeCycleConstraintsServiceInterface;
 import org.jahia.osgi.BundleUtils;
 import org.jahia.osgi.FrameworkService;
 import org.jahia.security.spi.LicenseCheckUtil;
@@ -685,10 +687,21 @@ public class ModuleManagementFlowHandler implements Serializable {
                 errors.put(entry.getKey(), BundleUtils.getContextStartException(entry.getKey()).getLocalizedMessage());
             }
 
+            ModuleLifeCycleConstraintsService moduleLifeCycleConstraintsService = (ModuleLifeCycleConstraintsService) BundleUtils.getOsgiService(ModuleLifeCycleConstraintsServiceInterface.class, null);
+
             for (Map.Entry<ModuleVersion, JahiaTemplatesPackage> moduleVersionEntry : entry.getValue().entrySet()) {
                 ModuleVersionState state = getModuleVersionState(context, moduleVersionEntry.getKey(),
                         moduleVersionEntry.getValue(), entry.getValue().size() > 1, directSiteDep, templateSiteDep, transitiveSiteDep, systemSiteRequiredModules, errors);
                 moduleVersions.put(moduleVersionEntry.getKey(), state);
+                // Override whatever was set for lifecycle states
+                boolean canDeploy = moduleLifeCycleConstraintsService.canDeploy(moduleVersionEntry.getValue().getBundle());
+                boolean canUndeploy = moduleLifeCycleConstraintsService.canUndeploy(moduleVersionEntry.getValue().getBundle());
+                boolean canStop = moduleLifeCycleConstraintsService.canStop(moduleVersionEntry.getValue().getBundle());
+                boolean canStart = moduleLifeCycleConstraintsService.canStart(moduleVersionEntry.getValue().getBundle());
+                state.setCanBeReinstalled(state.isCanBeReinstalled() && canDeploy);
+                state.setCanBeUninstalled(state.isCanBeUninstalled() && canUndeploy);
+                state.setCanBeStopped(state.isCanBeStopped() && canStop);
+                state.setCanBeStarted(state.isCanBeStarted() && canStart);
             }
         }
 

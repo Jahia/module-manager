@@ -1,0 +1,17 @@
+- addModuleLifeCycleConstraints:
+  moduleId: 'key'
+  version: '[1.2.0, 3.0.0['
+  disableOperations: ['stop']
+  messages:
+    info: "This is info"
+
+- addModuleLifeCycleConstraints:
+  moduleId: 'article'
+  version: '[3.0.0, 3.2.0['
+  disableOperations: ['stop']
+  messages:
+    info: "No luck for you!!! There is no stopping me!!!"
+    warning: "I'm warning you!!!"
+
+#- removeModuleLifeCycleConstraint:
+#    moduleId: 'key'
