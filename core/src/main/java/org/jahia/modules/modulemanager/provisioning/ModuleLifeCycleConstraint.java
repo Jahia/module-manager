@@ -77,4 +77,10 @@ public class ModuleLifeCycleConstraint {
     public void setError(String error) {
         this.error = error;
     }
+
+    public boolean idAndVersionRangeIsSame(ModuleLifeCycleConstraint c) {
+         return this.moduleId.equals(c.getModuleId())
+                 && this.versionRange.get(0).equals(c.getVersionRange().get(0))
+                 && this.versionRange.get(1).equals(c.getVersionRange().get(1));
+    }
 }

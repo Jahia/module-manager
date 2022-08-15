@@ -1,0 +1,21 @@
+package org.jahia.modules.modulemanager.rules
+
+
+import org.jahia.services.content.rules.*
+import org.jahia.services.content.JCRContentUtils
+import org.slf4j.Logger
+import org.jahia.settings.SettingsBean
+import org.jahia.osgi.BundleUtils
+import org.jahia.modules.modulemanager.provisioning.ModuleLifeCycleConstraintsServiceInterface
+
+expander rules.dsl
+
+rule "Read module lifecycle constraints from JCR"
+    when
+		A new node is created
+           - it has the type jnt:moduleLifeCycleConstraint
+    then
+>       if (!SettingsBean.getInstance().isProcessingServer()) {
+>           BundleUtils.getOsgiService(ModuleLifeCycleConstraintsServiceInterface.class, null).readConstraintsFromJCR();
+>       }
+end

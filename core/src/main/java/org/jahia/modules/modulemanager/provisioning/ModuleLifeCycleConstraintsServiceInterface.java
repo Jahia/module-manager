@@ -9,6 +9,8 @@ public interface ModuleLifeCycleConstraintsServiceInterface {
     boolean canStop(Bundle bundle);
     boolean canStart(Bundle bundle);
     boolean canUndeploy(Bundle bundle);
+    ModuleLifeCycleConstraint getConstraintForBundle(Bundle bundle);
     void addConstraint(ModuleLifeCycleConstraint moduleLifeCycleConstraint) throws RepositoryException;
+    void removeConstraint(ModuleLifeCycleConstraint moduleLifeCycleConstraint) throws RepositoryException;
     void readConstraintsFromJCR() throws RepositoryException;
 }

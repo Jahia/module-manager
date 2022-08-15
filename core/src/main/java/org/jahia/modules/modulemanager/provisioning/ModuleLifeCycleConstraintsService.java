@@ -1,6 +1,7 @@
 package org.jahia.modules.modulemanager.provisioning;
 
 import org.jahia.services.content.*;
+import org.jahia.settings.SettingsBean;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Version;
 import org.osgi.service.component.annotations.Activate;
@@ -39,13 +40,23 @@ public class ModuleLifeCycleConstraintsService implements ModuleLifeCycleConstra
 
     @Override
     public boolean canDeploy(Bundle bundle) {
-        Optional<ModuleLifeCycleConstraint> opt = constraints.stream().filter(con -> con.getModuleId().equals(bundle.getSymbolicName())).findFirst();
+        // TODO this is a hack since we can't have rules in none processing server, maybe we can have a listener
+        // or implement a dedicated update method if we are on none processing server
+        if (!SettingsBean.getInstance().isProcessingServer()) {
+            try {
+                constraints.clear();
+                readConstraintsFromJCR();
+                logger.info("Constraints have been read: {}", constraints.size());
+            } catch (RepositoryException e) {
+                e.printStackTrace();
+            }
+        }
+
+        Optional<ModuleLifeCycleConstraint> opt = constraints.stream().filter(con -> con.getModuleId().equals(bundle.getSymbolicName()) && versionWithinRange(bundle, con)).findFirst();
 
         if (opt.isPresent()) {
             ModuleLifeCycleConstraint c = opt.get();
-            if (versionWithinRange(bundle, c)) {
-                return !c.getDisableOperations().contains("deploy");
-            }
+            return !c.getDisableOperations().contains("deploy");
         }
 
         return true;
@@ -53,13 +64,11 @@ public class ModuleLifeCycleConstraintsService implements ModuleLifeCycleConstra
 
     @Override
     public boolean canStop(Bundle bundle) {
-        Optional<ModuleLifeCycleConstraint> opt = constraints.stream().filter(con -> con.getModuleId().equals(bundle.getSymbolicName())).findFirst();
+        Optional<ModuleLifeCycleConstraint> opt = constraints.stream().filter(con -> con.getModuleId().equals(bundle.getSymbolicName()) && versionWithinRange(bundle, con)).findFirst();
 
         if (opt.isPresent()) {
             ModuleLifeCycleConstraint c = opt.get();
-            if (versionWithinRange(bundle, c)) {
-                return !c.getDisableOperations().contains("stop");
-            }
+            return !c.getDisableOperations().contains("stop");
         }
 
         return true;
@@ -67,13 +76,11 @@ public class ModuleLifeCycleConstraintsService implements ModuleLifeCycleConstra
 
     @Override
     public boolean canStart(Bundle bundle) {
-        Optional<ModuleLifeCycleConstraint> opt = constraints.stream().filter(con -> con.getModuleId().equals(bundle.getSymbolicName())).findFirst();
+        Optional<ModuleLifeCycleConstraint> opt = constraints.stream().filter(con -> con.getModuleId().equals(bundle.getSymbolicName()) && versionWithinRange(bundle, con)).findFirst();
 
         if (opt.isPresent()) {
             ModuleLifeCycleConstraint c = opt.get();
-            if (versionWithinRange(bundle, c)) {
-                return !c.getDisableOperations().contains("start");
-            }
+            return !c.getDisableOperations().contains("start");
         }
 
         return true;
@@ -81,16 +88,23 @@ public class ModuleLifeCycleConstraintsService implements ModuleLifeCycleConstra
 
     @Override
     public boolean canUndeploy(Bundle bundle) {
-        Optional<ModuleLifeCycleConstraint> opt = constraints.stream().filter(con -> con.getModuleId().equals(bundle.getSymbolicName())).findFirst();
+        Optional<ModuleLifeCycleConstraint> opt = constraints.stream().filter(con -> con.getModuleId().equals(bundle.getSymbolicName()) && versionWithinRange(bundle, con)).findFirst();
 
         if (opt.isPresent()) {
             ModuleLifeCycleConstraint c = opt.get();
-            if (versionWithinRange(bundle, c)) {
-                return !c.getDisableOperations().contains("undeploy");
-            }
+            return !c.getDisableOperations().contains("undeploy");
         }
 
         return true;
+    }
+
+    @Override
+    public ModuleLifeCycleConstraint getConstraintForBundle(Bundle bundle) {
+        Optional<ModuleLifeCycleConstraint> opt = constraints.stream()
+                .filter(con -> con.getModuleId().equals(bundle.getSymbolicName()) && versionWithinRange(bundle, con))
+                .findFirst();
+        return opt.orElse(null);
+
     }
 
     @Override
@@ -100,12 +114,13 @@ public class ModuleLifeCycleConstraintsService implements ModuleLifeCycleConstra
             @Override
             public Boolean doInJCR(JCRSessionWrapper session) throws RepositoryException {
                 JCRNodeWrapper folder = session.getNode(MODULE_PATH + "/" + CONSTRAINTS_NODE);
-                // TODO node name may not be OK, can have multiple versions of the same
-                if (folder.hasNode(moduleLifeCycleConstraint.getModuleId())) {
-                    folder.getNode(moduleLifeCycleConstraint.getModuleId()).remove();
+                // TODO make sure nodename is OK
+                String nodeName = getNodeNameForConstraint(moduleLifeCycleConstraint);
+                if (folder.hasNode(nodeName)) {
+                    folder.getNode(nodeName).remove();
                 }
                 // TODO check for null
-                JCRNodeWrapper constraint = folder.addNode(moduleLifeCycleConstraint.getModuleId(), "jnt:moduleLifeCycleConstraint");
+                JCRNodeWrapper constraint = folder.addNode(nodeName, "jnt:moduleLifeCycleConstraint");
                 constraint.setProperty("moduleId", moduleLifeCycleConstraint.getModuleId());
                 constraint.setProperty("versionRange", moduleLifeCycleConstraint.getVersionRange().stream().map(Version::toString).toArray(String[]::new));
                 constraint.setProperty("disableOperations", moduleLifeCycleConstraint.getDisableOperations().toArray(new String[0]));
@@ -120,6 +135,27 @@ public class ModuleLifeCycleConstraintsService implements ModuleLifeCycleConstra
 
         if (result) {
             addConstraintToList(moduleLifeCycleConstraint);
+        }
+    }
+
+    @Override
+    public void removeConstraint(ModuleLifeCycleConstraint moduleLifeCycleConstraint) throws RepositoryException {
+        boolean result = JCRTemplate.getInstance().doExecuteWithSystemSession(new JCRCallback<Boolean>() {
+
+            @Override
+            public Boolean doInJCR(JCRSessionWrapper session) throws RepositoryException {
+                JCRNodeWrapper folder = session.getNode(MODULE_PATH + "/" + CONSTRAINTS_NODE);
+                String nodeName = getNodeNameForConstraint(moduleLifeCycleConstraint);
+                if (folder.hasNode(nodeName)) {
+                    folder.getNode(nodeName).remove();
+                }
+                session.save();
+                return true;
+            }
+        });
+
+        if (result) {
+            removeConstraintFromList(moduleLifeCycleConstraint);
         }
     }
 
@@ -143,7 +179,7 @@ public class ModuleLifeCycleConstraintsService implements ModuleLifeCycleConstra
                         JCRValueWrapper[] values = mc.getProperty("versionRange").getValues();
                         newMC.setVersionRange(Arrays.asList(new Version(values[0].getString()), new Version(values[1].getString())));
 
-                        JCRValueWrapper[] disabled = mc.getProperty("disabledOperations").getValues();
+                        JCRValueWrapper[] disabled = mc.getProperty("disableOperations").getValues();
                         List<String> operations = new ArrayList<>();
                         for (JCRValueWrapper value : disabled) {
                             operations.add(value.getString());
@@ -162,13 +198,23 @@ public class ModuleLifeCycleConstraintsService implements ModuleLifeCycleConstra
     }
 
     private void addConstraintToList(ModuleLifeCycleConstraint moduleLifeCycleConstraint) {
-        // TODO use module id + version as ID
-        constraints.removeIf(c -> c.getModuleId().equals(moduleLifeCycleConstraint.getModuleId()));
+        constraints.removeIf(c -> c.idAndVersionRangeIsSame(moduleLifeCycleConstraint));
         constraints.add(moduleLifeCycleConstraint);
+    }
+
+    private void removeConstraintFromList(ModuleLifeCycleConstraint moduleLifeCycleConstraint) {
+        constraints.removeIf(c -> c.idAndVersionRangeIsSame(moduleLifeCycleConstraint));
     }
 
     private boolean versionWithinRange(Bundle bundle, ModuleLifeCycleConstraint moduleLifeCycleConstraint) {
         List<Version> versionRange = moduleLifeCycleConstraint.getVersionRange();
-        return bundle.getVersion().compareTo(versionRange.get(0)) >= 0 && bundle.getVersion().compareTo(versionRange.get(1)) <=0;
+        return bundle.getVersion().compareTo(versionRange.get(0)) >= 0 && bundle.getVersion().compareTo(versionRange.get(1)) <= 0;
+    }
+
+    private String getNodeNameForConstraint(ModuleLifeCycleConstraint moduleLifeCycleConstraint) {
+        return String.format("%s-%s-%s",
+                moduleLifeCycleConstraint.getModuleId(),
+                moduleLifeCycleConstraint.getVersionRange().get(0).toString(),
+                moduleLifeCycleConstraint.getVersionRange().get(1).toString());
     }
 }
