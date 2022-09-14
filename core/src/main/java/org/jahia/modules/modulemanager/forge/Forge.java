@@ -37,6 +37,15 @@ public class Forge implements Serializable {
     String user;
     String password;
     String id;
+    String actionType;
+
+    public String getActionType() {
+        return actionType;
+    }
+
+    public void setActionType(String actionType) {
+        this.actionType = actionType;
+    }
 
     public String getUrl() {
         return url;
