@@ -1,0 +1,7 @@
+moduleLifeCycleConstraints:
+  - moduleId: "article"
+    disableOperations:
+      - STOP
+  - moduleId: "bookmarks"
+    disableOperations: [START, DEPLOY]
+    version: "[4,5]"
