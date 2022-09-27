@@ -29,7 +29,7 @@ import org.jahia.data.templates.ModuleState;
 import org.jahia.data.templates.ModuleState.State;
 import org.jahia.data.templates.ModulesPackage;
 import org.jahia.exceptions.JahiaException;
-import org.jahia.modules.modulemanager.configuration.OperationConstraint;
+import org.jahia.modules.modulemanager.configuration.OperationConstraints;
 import org.jahia.modules.modulemanager.configuration.OperationConstraintsService;
 import org.jahia.modules.modulemanager.forge.ForgeService;
 import org.jahia.modules.modulemanager.forge.Module;
@@ -694,12 +694,13 @@ public class ModuleManagementFlowHandler implements Serializable {
                 moduleVersions.put(moduleVersionEntry.getKey(), state);
 
                 Bundle b = moduleVersionEntry.getValue().getBundle();
-                OperationConstraint op = opConstraintService.getConstraintForBundle(b);
-                if (op != null) {
-                    state.setCanBeStarted(state.isCanBeStarted() && op.canStart());
-                    state.setCanBeStopped(state.isCanBeStopped() && op.canStop());
-                    state.setCanBeUninstalled(state.isCanBeUninstalled() && op.canUndeploy());
-                    state.setCanBeReinstalled(state.isCanBeReinstalled() && op.canDeploy());
+                OperationConstraints ops = opConstraintService.getConstraintForBundle(b);
+                if (ops != null) {
+                    org.osgi.framework.Version v = b.getVersion();
+                    state.setCanBeStarted(state.isCanBeStarted() && ops.canStart(v));
+                    state.setCanBeStopped(state.isCanBeStopped() && ops.canStop(v));
+                    state.setCanBeUninstalled(state.isCanBeUninstalled() && ops.canUndeploy(v));
+                    state.setCanBeReinstalled(state.isCanBeReinstalled() && ops.canDeploy(v));
                 }
             }
 

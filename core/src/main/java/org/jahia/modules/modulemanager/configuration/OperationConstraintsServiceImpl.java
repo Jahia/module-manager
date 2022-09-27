@@ -46,8 +46,7 @@ public class OperationConstraintsServiceImpl implements OperationConstraintsServ
 
     private static final Logger logger = LoggerFactory.getLogger(OperationConstraintsServiceImpl.class);
     private static final String CONSTRAINTS_CONFIG_KEY = "moduleLifeCycleConstraints";
-
-    private static final Map<String, OperationConstraint> constraints = new HashMap<>();
+    private static final Map<String, OperationConstraints> constraints = Collections.synchronizedMap(new HashMap<>());
 
     @Activate
     public void activate(Map<String, String> props) {
@@ -69,14 +68,19 @@ public class OperationConstraintsServiceImpl implements OperationConstraintsServ
             PropertiesValues constraintProp = constraintsProp.getValues(i);
             OperationConstraint constraint = OperationConstraint.parse(pid, constraintProp);
             if (constraint != null) {
-                constraints.put(constraint.getModuleId(), constraint);
+                OperationConstraints ops = constraints.get(constraint.getModuleId());
+                if (ops == null) {
+                    ops = new OperationConstraints();
+                }
+                ops.add(constraint);
+                constraints.put(constraint.getModuleId(), ops);
             }
         }
         logger.debug("Configuration parsed");
     }
 
     @Modified
-    public void modified(Map<String,String> props) {
+    public void modified(Map<String, String> props) {
         String pid = props.get("service.pid");
         logger.debug("Updating configuration {}...", pid);
         clearConstraintsByPid(pid);
@@ -87,18 +91,22 @@ public class OperationConstraintsServiceImpl implements OperationConstraintsServ
     private void clearConstraintsByPid(String pid) {
         if (pid != null) {
             Set<String> moduleIds = constraints.entrySet().stream()
-                    .filter(c -> c.getValue().getPid().equals(pid))
+                    .filter(c -> {
+                        OperationConstraints ops = c.getValue();
+                        ops.remove(pid);
+                        return ops.isEmpty();
+                    })
                     .map(Map.Entry::getKey)
                     .collect(Collectors.toSet());
             constraints.keySet().removeAll(moduleIds);
         }
     }
 
-    public OperationConstraint getConstraintForBundle(Bundle b) {
+    public OperationConstraints getConstraintForBundle(Bundle b) {
         String moduleId = b.getSymbolicName();
         Version version = b.getVersion();
 
-        OperationConstraint c = constraints.get(moduleId);
+        OperationConstraints c = constraints.get(moduleId);
         return (c != null && c.inRange(version)) ? c : null;
     }
 }

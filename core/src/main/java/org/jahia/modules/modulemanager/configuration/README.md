@@ -23,7 +23,6 @@ moduleLifeCycleConstraints:
   - moduleId: "bookmarks"
     disableOperations: [START, DEPLOY]
     version: "[4,5.2]"
-
 ```
 
 ### *cfg format*
@@ -55,10 +54,27 @@ moduleLifeCycleConstraints[1].disableOperations[1]="DEPLOY"
     * DEPLOY
   * Defaults to ***all*** operations disabled if not specified or given an empty list
 
-## Implementation notes/questions
+### Duplicate definitions
 
-* Do we need to worry about overriding default config file? I'm not sure if there's a way to protect that. Or safe to assume we're not going to override default config?
-* (Maybe for @tdraier) Constraint checks already in the module manager UI but need more work on the deployment scenario specifically for certain versions (to be implemented)
-* Do we need to handle priority? What happens when constraints are defined in more than one configuration?
-  * Currently latest edits overwrite old defintions but maybe we can keep track of them separately and apply them with logical AND (apply all rules). Or not sure if safe to assume no conflicts for now.
-* * I'm assuming configuration deployment applies to all nodes in a cluster (to be tested)?
+Duplicate definitions across different configurations for a given module ID are all applied individually. e.g. given the following rules from different configuration files:
+
+```
+moduleLifeCycleConstraints:
+  - moduleId: "my-module"
+    version: 3
+    disableOperations:
+      - STOP
+```
+
+and 
+
+```
+moduleLifeCycleConstraints:
+  - moduleId: "my-module"
+    version: 4
+    disableOperations:
+      - START
+```
+
+Then `module@v3.0.0` will only have STOP operation disabled and `module@v4.0.0` will only have START operation disabled (rules are applied individually and not merged).
+

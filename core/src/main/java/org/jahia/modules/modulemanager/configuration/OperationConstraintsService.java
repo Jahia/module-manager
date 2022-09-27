@@ -6,5 +6,5 @@ import org.osgi.framework.Bundle;
  * Service for processing operation constraints specified through configuration
  */
 public interface OperationConstraintsService {
-    OperationConstraint getConstraintForBundle(Bundle bundle);
+    OperationConstraints getConstraintForBundle(Bundle bundle);
 }
