@@ -29,6 +29,8 @@ import org.jahia.data.templates.ModuleState;
 import org.jahia.data.templates.ModuleState.State;
 import org.jahia.data.templates.ModulesPackage;
 import org.jahia.exceptions.JahiaException;
+import org.jahia.modules.modulemanager.configuration.OperationConstraints;
+import org.jahia.modules.modulemanager.configuration.OperationConstraintsService;
 import org.jahia.modules.modulemanager.forge.ForgeService;
 import org.jahia.modules.modulemanager.forge.Module;
 import org.jahia.osgi.BundleUtils;
@@ -673,6 +675,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         Set<String> systemSiteRequiredModules = getSystemSiteRequiredModules();
         context.getRequestScope().put("systemSiteRequiredModules", systemSiteRequiredModules);
 
+        OperationConstraintsService opConstraintService = BundleUtils.getOsgiService(OperationConstraintsService.class, null);
         for (Map.Entry<String, SortedMap<ModuleVersion, JahiaTemplatesPackage>> entry : getAllModuleVersions().entrySet()) {
 
             Map<ModuleVersion, ModuleVersionState> moduleVersions = states.get(entry.getKey());
@@ -689,7 +692,18 @@ public class ModuleManagementFlowHandler implements Serializable {
                 ModuleVersionState state = getModuleVersionState(context, moduleVersionEntry.getKey(),
                         moduleVersionEntry.getValue(), entry.getValue().size() > 1, directSiteDep, templateSiteDep, transitiveSiteDep, systemSiteRequiredModules, errors);
                 moduleVersions.put(moduleVersionEntry.getKey(), state);
+
+                Bundle b = moduleVersionEntry.getValue().getBundle();
+                OperationConstraints ops = opConstraintService.getConstraintForBundle(b);
+                if (ops != null) {
+                    org.osgi.framework.Version v = b.getVersion();
+                    state.setCanBeStarted(state.isCanBeStarted() && ops.canStart(v));
+                    state.setCanBeStopped(state.isCanBeStopped() && ops.canStop(v));
+                    state.setCanBeUninstalled(state.isCanBeUninstalled() && ops.canUndeploy(v));
+                    state.setCanBeReinstalled(state.isCanBeReinstalled() && ops.canDeploy(v));
+                }
             }
+
         }
 
         context.getRequestScope().put("moduleStates", states);

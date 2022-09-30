@@ -1,0 +1,17 @@
+moduleLifeCycleConstraints:
+  - moduleId: "content-editor"
+    disableOperations: [STOP]
+  - moduleId: "graphql-dxm-provider"
+    disableOperations: [STOP]
+  - moduleId: "jcontent"
+    disableOperations: [STOP]
+  - moduleId: "jahia-dashboard"
+    disableOperations: [STOP]
+  - moduleId: "jahia-page-composer"
+    disableOperations: [STOP]
+  - moduleId: "jcrestapi"
+    disableOperations: [STOP]
+  - moduleId: "rolesmanager"
+    disableOperations: [STOP]
+  - moduleId: "tools"
+    disableOperations: [STOP]
