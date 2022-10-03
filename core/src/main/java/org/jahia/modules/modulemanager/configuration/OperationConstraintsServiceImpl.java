@@ -102,11 +102,14 @@ public class OperationConstraintsServiceImpl implements OperationConstraintsServ
         }
     }
 
+    @Override
     public OperationConstraints getConstraintForBundle(Bundle b) {
-        String moduleId = b.getSymbolicName();
-        Version version = b.getVersion();
+        return getConstraintForBundle(b.getSymbolicName(), b.getVersion());
+    }
 
-        OperationConstraints c = constraints.get(moduleId);
+    @Override
+    public OperationConstraints getConstraintForBundle(String symbolicName, Version version) {
+        OperationConstraints c = constraints.get(symbolicName);
         return (c != null && c.inRange(version)) ? c : null;
     }
 }

@@ -31,6 +31,7 @@ import org.jahia.data.templates.ModulesPackage;
 import org.jahia.exceptions.JahiaException;
 import org.jahia.modules.modulemanager.configuration.OperationConstraints;
 import org.jahia.modules.modulemanager.configuration.OperationConstraintsService;
+import org.jahia.modules.modulemanager.configuration.OperationConstraintsUtil;
 import org.jahia.modules.modulemanager.forge.ForgeService;
 import org.jahia.modules.modulemanager.forge.Module;
 import org.jahia.osgi.BundleUtils;
@@ -324,11 +325,12 @@ public class ModuleManagementFlowHandler implements Serializable {
                 .build());
     }
 
-    private ModuleInstallationResult installModule(File file, MessageContext context, List<String> providedBundles, Map<Bundle, MessageResolver> collectedResolutionErrors, boolean forceUpdate, boolean autoStart, boolean ignoreChecks) throws IOException, BundleException {
+    private ModuleInstallationResult installModule(File file, MessageContext context, List<String> providedBundles,
+            Map<Bundle, MessageResolver> collectedResolutionErrors,
+            boolean forceUpdate, boolean autoStart, boolean ignoreChecks) throws IOException, BundleException {
 
         JarFile jarFile = new JarFile(file);
         try {
-
             Manifest manifest = jarFile.getManifest();
             String symbolicName = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_BUNDLE_SYMBOLIC_NAME);
             if (symbolicName == null) {
@@ -337,12 +339,14 @@ public class ModuleManagementFlowHandler implements Serializable {
             String version = StringUtils.defaultIfBlank(manifest.getMainAttributes().getValue(Constants.ATTR_NAME_IMPL_VERSION), manifest.getMainAttributes().getValue(Constants.ATTR_NAME_BUNDLE_VERSION));
             String groupId = manifest.getMainAttributes().getValue(Constants.ATTR_NAME_GROUP_ID);
 
+            if (!OperationConstraintsUtil.checkDeployConstraint(symbolicName, version, context)) {
+                return null;
+            }
+
             String successMessage = (autoStart
                     ? "serverSettings.manageModules.install.uploadedAndStarted"
                     : "serverSettings.manageModules.install.uploaded");
-
             boolean shouldAutoStart = autoStart;
-
             if (groupId != null) {
                 // GroupId set only for jahia modules
                 if (templateManagerService.differentModuleWithSameIdExists(symbolicName, groupId)) {
@@ -675,7 +679,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         Set<String> systemSiteRequiredModules = getSystemSiteRequiredModules();
         context.getRequestScope().put("systemSiteRequiredModules", systemSiteRequiredModules);
 
-        OperationConstraintsService opConstraintService = BundleUtils.getOsgiService(OperationConstraintsService.class, null);
+        OperationConstraintsService opConstraintsService = BundleUtils.getOsgiService(OperationConstraintsService.class, null);
         for (Map.Entry<String, SortedMap<ModuleVersion, JahiaTemplatesPackage>> entry : getAllModuleVersions().entrySet()) {
 
             Map<ModuleVersion, ModuleVersionState> moduleVersions = states.get(entry.getKey());
@@ -694,13 +698,15 @@ public class ModuleManagementFlowHandler implements Serializable {
                 moduleVersions.put(moduleVersionEntry.getKey(), state);
 
                 Bundle b = moduleVersionEntry.getValue().getBundle();
-                OperationConstraints ops = opConstraintService.getConstraintForBundle(b);
-                if (ops != null) {
-                    org.osgi.framework.Version v = b.getVersion();
-                    state.setCanBeStarted(state.isCanBeStarted() && ops.canStart(v));
-                    state.setCanBeStopped(state.isCanBeStopped() && ops.canStop(v));
-                    state.setCanBeUninstalled(state.isCanBeUninstalled() && ops.canUndeploy(v));
-                    state.setCanBeReinstalled(state.isCanBeReinstalled() && ops.canDeploy(v));
+                if (opConstraintsService != null) {
+                    OperationConstraints ops = opConstraintsService.getConstraintForBundle(b);
+                    if (ops != null) {
+                        org.osgi.framework.Version v = b.getVersion();
+                        state.setCanBeStarted(state.isCanBeStarted() && ops.canStart(v));
+                        state.setCanBeStopped(state.isCanBeStopped() && ops.canStop(v));
+                        state.setCanBeUninstalled(state.isCanBeUninstalled() && ops.canUndeploy(v));
+                        state.setCanBeReinstalled(state.isCanBeReinstalled() && ops.canDeploy(v));
+                    }
                 }
             }
 
