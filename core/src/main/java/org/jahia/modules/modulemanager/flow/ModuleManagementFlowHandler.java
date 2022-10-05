@@ -34,6 +34,8 @@ import org.jahia.modules.modulemanager.configuration.OperationConstraintsService
 import org.jahia.modules.modulemanager.configuration.OperationConstraintsUtil;
 import org.jahia.modules.modulemanager.forge.ForgeService;
 import org.jahia.modules.modulemanager.forge.Module;
+import org.jahia.modules.modulemanager.message.CustomMessage;
+import org.jahia.modules.modulemanager.message.MessageService;
 import org.jahia.osgi.BundleUtils;
 import org.jahia.osgi.FrameworkService;
 import org.jahia.security.spi.LicenseCheckUtil;
@@ -876,9 +878,20 @@ public class ModuleManagementFlowHandler implements Serializable {
         return new Date(forgeService.getLastUpdateTime());
     }
 
+    private void addCustomMessages(MessageContext messageContext) {
+        MessageService ms = BundleUtils.getOsgiService(MessageService.class, null);
+
+        if (ms != null) {
+            for (CustomMessage m : ms.getAllMessages()) {
+                m.addMessageToContext(messageContext);
+            }
+        }
+    }
+
     public void initModules(RequestContext requestContext, RenderContext renderContext) {
         // generate tables ids, used by datatable jquery plugin to store the state of a table in the user localestorage.
         // new flow = new ids
+        addCustomMessages(requestContext.getMessageContext());
         reloadTablesUUIDFromSession(requestContext);
         if (!requestContext.getFlowScope().contains("adminModuleTableUUID")) {
             requestContext.getFlowScope().put("adminModuleTableUUID", UUID.randomUUID().toString());

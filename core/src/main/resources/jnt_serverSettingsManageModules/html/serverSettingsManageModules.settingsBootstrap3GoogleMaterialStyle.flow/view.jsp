@@ -138,6 +138,25 @@
 
     <%@include file="common/moduleLabels.jspf" %>
 
+    <c:forEach items="${flowRequestContext.messageContext.allMessages}" var="message">
+        <c:if test="${message.source eq 'customMessage'}">
+            <c:choose>
+                <c:when test="${message.severity eq 'INFO'}">
+                    <div class="alert alert-info">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                            ${message.text}
+                    </div>
+                </c:when>
+                <c:when test="${message.severity eq 'WARNING'}">
+                    <div class="alert alert-warning">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                            ${message.text}
+                    </div>
+                </c:when>
+            </c:choose>
+        </c:if>
+    </c:forEach>
+
     <ul class="nav nav-tabs" id="myTab" role="tablist">
         <li class="nav-item active">
             <a class="nav-link" id="installed-modules-tab" data-toggle="tab" href="#installed-modules" role="tab"
