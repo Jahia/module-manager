@@ -138,6 +138,25 @@
 
     <%@include file="common/moduleLabels.jspf" %>
 
+    <c:forEach items="${flowRequestContext.messageContext.allMessages}" var="message">
+        <c:if test="${message.source eq 'customMessage'}">
+            <c:choose>
+                <c:when test="${message.severity eq 'INFO'}">
+                    <div class="alert alert-info">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                            ${message.text}
+                    </div>
+                </c:when>
+                <c:when test="${message.severity eq 'WARNING'}">
+                    <div class="alert alert-warning">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                            ${message.text}
+                    </div>
+                </c:when>
+            </c:choose>
+        </c:if>
+    </c:forEach>
+
     <ul class="nav nav-tabs" id="myTab" role="tablist">
         <li class="nav-item active">
             <a class="nav-link" id="installed-modules-tab" data-toggle="tab" href="#installed-modules" role="tab"
@@ -188,13 +207,13 @@
             <form:form modelAttribute="moduleFile" class="form" enctype="multipart/form-data" method="post">
                 <%--onsubmit="workInProgress('${i18nWaiting}');">--%>
                 <c:forEach items="${flowRequestContext.messageContext.allMessages}" var="message">
-                    <c:if test="${message.severity eq 'INFO'}">
+                    <c:if test="${message.severity eq 'INFO' and message.source ne 'customMessage'}">
                         <div class="alert alert-success">
                             <button type="button" class="close" data-dismiss="alert">&times;</button>
                                 ${message.text}
                         </div>
                     </c:if>
-                    <c:if test="${message.severity eq 'ERROR'}">
+                    <c:if test="${message.severity eq 'ERROR' and message.source ne 'customMessage'}">
                         <div class="alert alert-danger">
                             <button type="button" class="close" data-dismiss="alert">&times;</button>
                                 ${message.text}
