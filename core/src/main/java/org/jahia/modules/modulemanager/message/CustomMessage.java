@@ -7,6 +7,9 @@ import org.springframework.binding.message.Severity;
 
 import static org.springframework.binding.message.Severity.*;
 
+/**
+ * Custom message for display in module manager
+ */
 public class CustomMessage extends Message {
 
     private String pid;

@@ -11,6 +11,9 @@ import org.springframework.binding.message.Severity;
 
 import java.util.*;
 
+/**
+ * Service to manage custom messages displayed in module manager
+ */
 @Component(
         service = MessageService.class,
         immediate = true,
