@@ -207,13 +207,13 @@
             <form:form modelAttribute="moduleFile" class="form" enctype="multipart/form-data" method="post">
                 <%--onsubmit="workInProgress('${i18nWaiting}');">--%>
                 <c:forEach items="${flowRequestContext.messageContext.allMessages}" var="message">
-                    <c:if test="${message.severity eq 'INFO' and message.source  eq not 'customMessage'}">
+                    <c:if test="${message.severity eq 'INFO' and message.source ne 'customMessage'}">
                         <div class="alert alert-success">
                             <button type="button" class="close" data-dismiss="alert">&times;</button>
                                 ${message.text}
                         </div>
                     </c:if>
-                    <c:if test="${message.severity eq 'ERROR' and message.source  eq not 'customMessage'}">
+                    <c:if test="${message.severity eq 'ERROR' and message.source ne 'customMessage'}">
                         <div class="alert alert-danger">
                             <button type="button" class="close" data-dismiss="alert">&times;</button>
                                 ${message.text}
