@@ -10,18 +10,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.binding.message.Severity;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component(
         service = MessageService.class,
         immediate = true,
-        name = "org.jahia.modules.modulemanager.message"
+        name = "org.jahia.modules.modulemanager.message.admin"
 )
 public class MessageServiceImpl implements MessageService {
     private static final Logger logger = LoggerFactory.getLogger(MessageServiceImpl.class);
 
     private static final String CONFIG_KEY = "message";
-    private List<CustomMessage> messages = new ArrayList<>();
+    private static final List<CustomMessage> messages = new ArrayList<>();
 
     @Activate
     public void activate(Map<String, String> props) {
@@ -39,6 +38,8 @@ public class MessageServiceImpl implements MessageService {
             String m = messageProp.getProperty(key);
             messages.add(new CustomMessage(pid, "customMessage", m, Severity.valueOf(key.toUpperCase())));
         }
+
+        messages.sort(new MessageComparator());
         logger.debug("Configuration parsed");
     }
 
@@ -53,12 +54,25 @@ public class MessageServiceImpl implements MessageService {
 
     private void clearConstraintsByPid(String pid) {
         if (pid != null) {
-            messages = messages.stream().filter(m -> !m.getPid().equals(pid)).collect(Collectors.toList());
+            messages.forEach(m -> {
+                if (m.getPid().equals(pid)) {
+                    messages.remove(m);
+                }
+            });
         }
     }
 
     @Override
     public List<CustomMessage> getAllMessages() {
         return messages;
+    }
+
+    private class MessageComparator implements Comparator<CustomMessage> {
+
+        @Override
+        public int compare(CustomMessage m1, CustomMessage m2) {
+            return Integer.compare(m2.getSeverity().ordinal(), m1.getSeverity().ordinal());
+
+        }
     }
 }
