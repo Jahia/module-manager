@@ -30,6 +30,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.Version;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,10 +50,19 @@ public class OperationConstraintsServiceImpl implements OperationConstraintsServ
     private static final Map<String, OperationConstraints> constraints = Collections.synchronizedMap(new HashMap<>());
 
     @Activate
+    @Modified
     public void activate(Map<String, String> props) {
-        logger.debug("Activating configuration service");
-        clearConstraintsByPid(props.get("service.pid"));
+        String pid = props.get("service.pid");
+        logger.debug("Adding/updating configuration {}...", pid);
+        clearConstraintsByPid(pid);
         parseConfig(props);
+    }
+
+    @Deactivate
+    public void deactivate(Map<String, String> props) {
+        String pid = props.get("service.pid");
+        logger.debug("Removing configuration {}...", pid);
+        clearConstraintsByPid(pid);
     }
 
     /**
@@ -79,20 +89,13 @@ public class OperationConstraintsServiceImpl implements OperationConstraintsServ
         logger.debug("Configuration parsed");
     }
 
-    @Modified
-    public void modified(Map<String, String> props) {
-        String pid = props.get("service.pid");
-        logger.debug("Updating configuration {}...", pid);
-        clearConstraintsByPid(pid);
-        parseConfig(props);
-        logger.debug("Configuration updated.");
-    }
-
     private void clearConstraintsByPid(String pid) {
         if (pid != null) {
+            /* Go through each OperationConstraints element and remove any constraint associated with 'pid' configuration.
+             * If any OperationConstraints is empty after removal, then also remove them from constraints map as well. */
             Set<String> moduleIds = constraints.entrySet().stream()
-                    .filter(c -> {
-                        OperationConstraints ops = c.getValue();
+                    .filter(e -> {
+                        OperationConstraints ops = e.getValue();
                         ops.remove(pid);
                         return ops.isEmpty();
                     })
