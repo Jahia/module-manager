@@ -5,109 +5,110 @@
         <c:set var="unresolvedDependencies" value="${functions:join(moduleState.unresolvedDependencies, ', ')}"/>
         <p class="text-danger"><fmt:message key='serverSettings.manageModules.module.depends'/>: ${functions:join(moduleState.unresolvedDependencies, ', ')}</p>
     </c:if>
-    <c:if test="${moduleState.canBeStarted || moduleState.canBeStopped || moduleState.canBeUninstalled}" var="actionsAllowed">
-        <c:set var="moduleLabel">
-            <c:if test="${displayVersionAndState}">
-                &nbsp;${version.key}
-            </c:if>
-        </c:set>
-        <form class="form-inline" action="${flowExecutionUrl}" method="post" onsubmit="workInProgress('${i18nWaiting}'); event.stopPropagation();" type=""
-              data-sel-module="${version.value.id}"
-              data-sel-version="${version.key}">
-            <small>${moduleLabel}</small>
-            <input type="hidden" name="module" value="${version.value.id}"/>
-            <input type="hidden" name="version" value="${version.key}"/>
-            <c:if test="${not empty moduleState.unresolvedDependencies}">
-                <fmt:message key="serverSettings.manageModules.module.unresolvedDependencies" var="i18nUnresolvedDependencies">
-                    <fmt:param value="${unresolvedDependencies}"/>
-                </fmt:message>
-                <button  data-toggle="tooltip" data-placement="bottom" data-container="body"
-                         data-original-title="${i18nModuleStart}"
-                         class="btn btn-fab btn-fab-xs btn-success" type="submit"
-                         disabled="true" title="${fn:escapeXml(i18nUnresolvedDependencies)}"
-                         onclick="event.stopPropagation(); return true">
-                    <i class="material-icons startModule" on>play_arrow</i>
-                </button>
-            </c:if>
-            <c:if test="${moduleState.canBeStarted}">
-                <button data-toggle="tooltip" data-placement="bottom" title=""
-                        data-container="body" data-original-title="${i18nModuleStart}"
-                        class="btn btn-fab btn-fab-xs btn-success"
-                        type="submit" name="_eventId_startModule" data-sel-role="start"
-                        onclick="event.stopPropagation(); return true">
-                    <i class="material-icons startModule">play_arrow</i>
-                </button>
-            </c:if>
-            <c:if test="${moduleState.canBeStopped}">
-                <fmt:message key="serverSettings.manageModules.stopModule.confirm" var="i18nModuleStopConfirm">
-                    <fmt:param value="${version.value.name} (${version.key})"/>
-                </fmt:message>
-                <c:if test="${not empty moduleState.usedInSites}">
-                    <c:set var="i18nModuleStopConfirm">${i18nModuleStopConfirm}&nbsp;<fmt:message key="serverSettings.manageModules.stopModules.confirm.usedInSites">
-                        <fmt:param value="${functions:join(moduleState.usedInSites, ', ')}"/>
-                    </fmt:message></c:set>
-                </c:if>
-
-                <button data-toggle="tooltip" data-placement="bottom" title="" data-container="body"
-                        data-original-title="${i18nModuleStop}" class="btn btn-fab btn-fab-xs btn-danger"
-                        type="submit" name="_eventId_stopModule" data-sel-role="stop"
-                        onclick="event.stopPropagation(); return confirm('${functions:escapeJavaScript(i18nModuleStopConfirm)}${' '}${functions:escapeJavaScript(i18nContinue)}');">
-                    <i class="material-icons stopModule">stop</i>
-                </button>
-            </c:if>
-            <c:if test="${moduleState.canBeReinstalled}">
-                <button data-toggle="tooltip" data-placement="bottom" title="" data-container="body"
-                        data-original-title="${i18nModuleReinstall}" class="btn btn-fab btn-fab-xs"
-                        type="submit" name="_eventId_updateModule"
-                        onclick="event.stopPropagation(); return true">
-                    <i class="material-icons reinstallModule">rotate_90_degrees_ccw</i>
-                </button>
-            </c:if>
-            <c:if test="${moduleState.canBeUninstalled}">
-                <fmt:message key="serverSettings.manageModules.undeployModule.confirm" var="i18nModuleUndeployConfirm">
-                    <fmt:param value="${version.value.name} (${version.key})"/>
-                </fmt:message>
-                <button data-toggle="tooltip" data-placement="bottom" title=""
-                        data-original-title="${i18nModuleUndeploy}" data-container="body"
-                        class="btn btn-fab btn-danger btn-fab-xs" type="submit" name="_eventId_undeployModule"
-                        onclick="event.stopPropagation(); return confirm('${functions:escapeJavaScript(i18nModuleUndeployConfirm)}${' '}${functions:escapeJavaScript(i18nContinue)}');">
-                    <i class="material-icons unpublishModule">clear</i>
-                </button>
+    <c:set var="actionsAllowed" value="${moduleState.canBeStarted || moduleState.canBeStopped || moduleState.canBeUninstalled}"/>
+    <c:set var="moduleLabel">
+        <c:if test="${displayVersionAndState}">
+            &nbsp;${version.key}<c:if test="${!actionsAllowed}">&nbsp;</c:if>
+        </c:if>
+    </c:set>
+    <form class="form-inline" action="${flowExecutionUrl}" method="post" onsubmit="workInProgress('${i18nWaiting}'); event.stopPropagation();" type=""
+          data-sel-module="${version.value.id}"
+          data-sel-version="${version.key}">
+        <small>${moduleLabel}</small>
+        <input type="hidden" name="module" value="${version.value.id}"/>
+        <input type="hidden" name="version" value="${version.key}"/>
+        <c:if test="${not empty moduleState.unresolvedDependencies}">
+            <fmt:message key="serverSettings.manageModules.module.unresolvedDependencies" var="i18nUnresolvedDependencies">
+                <fmt:param value="${unresolvedDependencies}"/>
+            </fmt:message>
+            <button  data-toggle="tooltip" data-placement="bottom" data-container="body"
+                     data-original-title="${i18nModuleStart}"
+                     class="btn btn-fab btn-fab-xs btn-success" type="submit"
+                     disabled="true" title="${fn:escapeXml(i18nUnresolvedDependencies)}"
+                     onclick="event.stopPropagation(); return true">
+                <i class="material-icons startModule" on>play_arrow</i>
+            </button>
+        </c:if>
+        <c:if test="${moduleState.canBeStarted}">
+            <button data-toggle="tooltip" data-placement="bottom" title=""
+                    data-container="body" data-original-title="${i18nModuleStart}"
+                    class="btn btn-fab btn-fab-xs btn-success"
+                    type="submit" name="_eventId_startModule" data-sel-role="start"
+                    onclick="event.stopPropagation(); return true">
+                <i class="material-icons startModule">play_arrow</i>
+            </button>
+        </c:if>
+        <c:if test="${moduleState.canBeStopped}">
+            <fmt:message key="serverSettings.manageModules.stopModule.confirm" var="i18nModuleStopConfirm">
+                <fmt:param value="${version.value.name} (${version.key})"/>
+            </fmt:message>
+            <c:if test="${not empty moduleState.usedInSites}">
+                <c:set var="i18nModuleStopConfirm">${i18nModuleStopConfirm}&nbsp;<fmt:message key="serverSettings.manageModules.stopModules.confirm.usedInSites">
+                    <fmt:param value="${functions:join(moduleState.usedInSites, ', ')}"/>
+                </fmt:message></c:set>
             </c:if>
 
-            <c:if test="${showWiring}">
-                <c:set value="${version.value.moduleDependenciesWithVersion}" var="moduleDependenciesWithVersion"/>
-                <c:set value="${version.value.dependentModulesWithVersion}" var="dependentModulesWithVersion"/>
-                <c:set value="${version.value.dependencies}" var="moduleDependenciesWithoutVersion"/>
-            </c:if>
-            <c:if test="${not empty moduleDependenciesWithVersion or not empty dependentModulesWithVersion}">
-                <button class="btn btn-fab btn-fab-xs" type="button" data-toggle="tooltip"
-                        data-container="body" data-placement="bottom" title=""
-                        data-original-title="${fn:escapeXml(i18nModuleWiring)}"
-                        onclick="$('#wiringInfo${bundleId}').toggle(100);return false;">
-                    <i class="material-icons infoWiring">info_outline</i>
-                </button>
-                <button data-toggle="tooltip" data-placement="bottom" title=""
-                        data-original-title="${i18nRefresh}" class="btn btn-fab btn-fab-xs"
-                        type="submit" name="_eventId_refreshModule" id="refresh${bundleId}"
-                        style="display: none;"
-                        onclick="event.stopPropagation(); return true">
-                    <i class="material-icons">refresh</i>
-                </button>
-            </c:if>
-            <c:if test="${empty moduleDependenciesWithVersion and not empty moduleDependenciesWithoutVersion}">
-                <button data-toggle="tooltip" data-placement="bottom" title=""
-                        data-original-title="${i18nRefresh}" class="btn btn-fab btn-fab-xs"
-                        type="submit" name="_eventId_refreshModule" id="refresh${bundleId}"
-                        style="display: none;"
-                        onclick="event.stopPropagation(); return true">
-                    <i class="material-icons">refresh</i>
-                </button>
-            </c:if>
-        </form>
-    </c:if>
-    <c:if test="${displayVersionAndState && !actionsAllowed}"><small>${version.key}
-        <c:if test="${not empty currentModule.state.details}">&nbsp;(${currentModule.state.details})</c:if><c:if test="${not empty defaultVersion.state.details}">&nbsp;(${defaultVersion.state.details})</small></c:if>
+            <button data-toggle="tooltip" data-placement="bottom" title="" data-container="body"
+                    data-original-title="${i18nModuleStop}" class="btn btn-fab btn-fab-xs btn-danger"
+                    type="submit" name="_eventId_stopModule" data-sel-role="stop"
+                    onclick="event.stopPropagation(); return confirm('${functions:escapeJavaScript(i18nModuleStopConfirm)}${' '}${functions:escapeJavaScript(i18nContinue)}');">
+                <i class="material-icons stopModule">stop</i>
+            </button>
+        </c:if>
+        <c:if test="${moduleState.canBeReinstalled}">
+            <button data-toggle="tooltip" data-placement="bottom" title="" data-container="body"
+                    data-original-title="${i18nModuleReinstall}" class="btn btn-fab btn-fab-xs"
+                    type="submit" name="_eventId_updateModule"
+                    onclick="event.stopPropagation(); return true">
+                <i class="material-icons reinstallModule">rotate_90_degrees_ccw</i>
+            </button>
+        </c:if>
+        <c:if test="${moduleState.canBeUninstalled}">
+            <fmt:message key="serverSettings.manageModules.undeployModule.confirm" var="i18nModuleUndeployConfirm">
+                <fmt:param value="${version.value.name} (${version.key})"/>
+            </fmt:message>
+            <button data-toggle="tooltip" data-placement="bottom" title=""
+                    data-original-title="${i18nModuleUndeploy}" data-container="body"
+                    class="btn btn-fab btn-danger btn-fab-xs" type="submit" name="_eventId_undeployModule"
+                    onclick="event.stopPropagation(); return confirm('${functions:escapeJavaScript(i18nModuleUndeployConfirm)}${' '}${functions:escapeJavaScript(i18nContinue)}');">
+                <i class="material-icons unpublishModule">clear</i>
+            </button>
+        </c:if>
+
+        <c:if test="${showWiring}">
+            <c:set value="${version.value.moduleDependenciesWithVersion}" var="moduleDependenciesWithVersion"/>
+            <c:set value="${version.value.dependentModulesWithVersion}" var="dependentModulesWithVersion"/>
+            <c:set value="${version.value.dependencies}" var="moduleDependenciesWithoutVersion"/>
+        </c:if>
+        <c:if test="${not empty moduleDependenciesWithVersion or not empty dependentModulesWithVersion}">
+            <button class="btn btn-fab btn-fab-xs" type="button" data-toggle="tooltip"
+                    data-container="body" data-placement="bottom" title=""
+                    data-original-title="${fn:escapeXml(i18nModuleWiring)}"
+                    onclick="$('#wiringInfo${bundleId}').toggle(100);return false;">
+                <i class="material-icons infoWiring">info_outline</i>
+            </button>
+            <button data-toggle="tooltip" data-placement="bottom" title=""
+                    data-original-title="${i18nRefresh}" class="btn btn-fab btn-fab-xs"
+                    type="submit" name="_eventId_refreshModule" id="refresh${bundleId}"
+                    style="display: none;"
+                    onclick="event.stopPropagation(); return true">
+                <i class="material-icons">refresh</i>
+            </button>
+        </c:if>
+        <c:if test="${empty moduleDependenciesWithVersion and not empty moduleDependenciesWithoutVersion}">
+            <button data-toggle="tooltip" data-placement="bottom" title=""
+                    data-original-title="${i18nRefresh}" class="btn btn-fab btn-fab-xs"
+                    type="submit" name="_eventId_refreshModule" id="refresh${bundleId}"
+                    style="display: none;"
+                    onclick="event.stopPropagation(); return true">
+                <i class="material-icons">refresh</i>
+            </button>
+        </c:if>
+    </form>
+    <c:if test="${displayVersionAndState && !actionsAllowed}">
+        <small>
+        <c:if test="${not empty currentModule.state.details}">&nbsp;(${currentModule.state.details})</c:if>
+        <c:if test="${not empty defaultVersion.state.details}">&nbsp;(${defaultVersion.state.details})</small></c:if>
     </c:if>
 </div>
 
