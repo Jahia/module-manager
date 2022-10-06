@@ -31,10 +31,10 @@ moduleLifeCycleConstraints:
 moduleLifeCycleConstraints[0].moduleId=article
 moduleLifeCycleConstraints[0].disableOperations[0]=STOP
 
-moduleLifeCycleConstraints[1].moduleId="bookmarks"
-moduleLifeCycleConstraints[1].version="[4,5.2]"
-moduleLifeCycleConstraints[1].disableOperations[0]="START"
-moduleLifeCycleConstraints[1].disableOperations[1]="DEPLOY"
+moduleLifeCycleConstraints[1].moduleId=bookmarks
+moduleLifeCycleConstraints[1].version=[4,5.2]
+moduleLifeCycleConstraints[1].disableOperations[0]=START
+moduleLifeCycleConstraints[1].disableOperations[1]=DEPLOY
 ```
 
 ### Attribute definitions
