@@ -23,31 +23,28 @@
  */
 package org.jahia.modules.modulemanager.configuration;
 
-import org.apache.commons.lang3.StringUtils;
 import org.osgi.framework.Version;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Wrapper object representing collection of <code>OperationConstraint</code>s for each given pid
- *
- * @author gflores
  */
 public class OperationConstraints {
 
-    Map<String, OperationConstraint> ops = Collections.synchronizedMap(new HashMap<>());
+    Set<OperationConstraint> ops = Collections.synchronizedSet(new HashSet<>());
 
     /**
      * @param o Add to list of OperationConstraint.
-     * Do nothing if it already exists i.e. need to remove first before adding.
      */
     public void add(OperationConstraint o) {
-        ops.putIfAbsent(o.getPid(), o);
+        ops.add(o);
     }
 
     public void remove(String pid) {
-        ops.remove(pid);
+        ops.removeIf(oc -> oc.getPid().equals(pid));
     }
 
     public boolean isEmpty() {
@@ -55,26 +52,22 @@ public class OperationConstraints {
     }
 
     public boolean inRange(Version v) {
-        return ops.values().stream().anyMatch(o -> o.inRange(v));
+        return ops.stream().anyMatch(o -> o.inRange(v));
     }
 
     public boolean canDeploy(Version v) {
-        return ops.values().stream()
-                .allMatch(o -> !o.inRange(v) || o.canDeploy());
+        return ops.stream().allMatch(o -> !o.inRange(v) || o.canDeploy());
     }
 
     public boolean canUndeploy(Version v) {
-        return ops.values().stream()
-            .allMatch(o -> !o.inRange(v) || o.canUndeploy());
+        return ops.stream().allMatch(o -> !o.inRange(v) || o.canUndeploy());
     }
 
     public boolean canStop(Version v) {
-        return ops.values().stream()
-                .allMatch(o -> !o.inRange(v) || o.canStop());
+        return ops.stream().allMatch(o -> !o.inRange(v) || o.canStop());
     }
 
     public boolean canStart(Version v) {
-        return ops.values().stream()
-                .allMatch(o -> !o.inRange(v) || o.canStart());
+        return ops.stream().allMatch(o -> !o.inRange(v) || o.canStart());
     }
 }
