@@ -1,11 +1,6 @@
 {
   "name": "@jahia/module-manager",
   "version": "0.0.1",
-  "husky": {
-    "hooks": {
-      "pre-push": "yarn lint:fix"
-    }
-  },
   "scripts": {
     "test": "env-cmd --no-override jest",
     "testcli": "jest",
@@ -27,8 +22,8 @@
     "@jahia/jahia-ui-root": "0.0.1"
   },
   "jahia": {
-    "apps": {
-      "jahia": "javascript/apps/jahia.bundle.js"
+    "remotes": {
+      "jahia": "javascript/apps/remoteEntry.js"
     }
   },
   "dependencies": {
@@ -52,23 +47,19 @@
     "@jahia/eslint-config": "^1.0.0-beta.20190920132338",
     "babel-jest": "^27.2.4",
     "babel-loader": "^8.2.2",
-    "clean-webpack-plugin": "^4.0.0",
+    "clean-webpack-plugin": "^1.0.0",
     "copy-webpack-plugin": "^9.0.1",
     "css-loader": "^3.2.0",
     "eslint": "^6.8.0",
     "eslint-loader": "^3.0.2",
     "eslint-plugin-json": "^2.0.1",
-    "husky": "^3.0.9",
-    "jest": "^27.2.4",
-    "jest-image-snapshot": "^2.11.0",
-    "jest-teamcity-reporter": "github:mhodgson/jest-teamcity-reporter",
-    "node-sass": "^6.0.1",
     "path": "^0.12.7",
     "rimraf": "^3.0.0",
+    "sass": "^1.55.0",
     "sass-loader": "^12.1.0",
     "style-loader": "^3.3.0",
-    "webpack": "^5.55.1",
-    "webpack-bundle-analyzer": "^4.4.2",
-    "webpack-cli": "^4.8.0"
+    "webpack": "^5.74.0",
+    "webpack-bundle-analyzer": "^4.6.1",
+    "webpack-cli": "^4.10.0"
   }
 }
