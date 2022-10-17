@@ -61,7 +61,7 @@ module.exports = (env, argv) => {
         },
         plugins: [
             new ModuleFederationPlugin({
-                name: "jcontent",
+                name: "modulemanager",
                 library: { type: "assign", name: "appShell.remotes.modulemanager" },
                 filename: "remoteEntry.js",
                 exposes: {
