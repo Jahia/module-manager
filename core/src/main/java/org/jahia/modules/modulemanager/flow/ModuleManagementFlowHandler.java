@@ -15,6 +15,7 @@
  */
 package org.jahia.modules.modulemanager.flow;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -80,6 +81,7 @@ import java.util.Map.Entry;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.stream.Collectors;
 
 /**
  * WebFlow handler for managing modules.
@@ -1109,7 +1111,51 @@ public class ModuleManagementFlowHandler implements Serializable {
 
     public void refreshModule(String id, String version) throws RepositoryException {
         Bundle bundle = BundleUtils.getBundle(id, version);
+
+        // Collect dependents and dependencies before refresh
+        Set<JahiaTemplatesPackage> oldDependents = null;
+        Set<JahiaTemplatesPackage> oldDependencies = null;
+        if (bundle != null) {
+            JahiaTemplatesPackage pkg = BundleUtils.getModule(bundle);
+            oldDependents = pkg.getDependentModulesWithVersion();
+            oldDependencies = pkg.getModuleDependenciesWithVersion();
+        }
+
         moduleManager.refresh(BundleInfo.fromBundle(bundle).getKey(), null);
+        logDependencyDiff(bundle, oldDependents, oldDependencies);
+    }
+
+    private void logDependencyDiff(Bundle bundle, Set<JahiaTemplatesPackage> oldDependents, Set<JahiaTemplatesPackage> oldDependencies) {
+        // Get difference of dependencies and dependents after refresh
+        Collection<JahiaTemplatesPackage> dependentDiff = null;
+        Collection<JahiaTemplatesPackage> dependencyDiff = null;
+        if (bundle != null && bundle.getState() >= Bundle.RESOLVED) {
+            JahiaTemplatesPackage pkg = BundleUtils.getModule(bundle);
+            dependentDiff = CollectionUtils.disjunction(oldDependents, pkg.getDependentModulesWithVersion());
+            dependencyDiff = CollectionUtils.disjunction(oldDependencies, pkg.getModuleDependenciesWithVersion());
+        }
+
+        if ((dependentDiff != null &&!dependentDiff.isEmpty()) ||
+                (dependencyDiff != null && !dependencyDiff.isEmpty())) {
+            logger.error("Bundle wiring for bundle {} with version {} has been refreshed with wiring differences:",
+                    bundle.getSymbolicName(), bundle.getVersion());
+
+            if (dependentDiff != null &&!dependentDiff.isEmpty()) {
+                logger.error("Missing dependents: {}",
+                        dependentDiff.stream()
+                                .map(JahiaTemplatesPackage::getIdWithVersion)
+                                .collect(Collectors.joining(", "))
+                );
+            }
+
+            if (dependencyDiff != null && !dependencyDiff.isEmpty()) {
+                logger.error("Missing dependencies: {}",
+                        dependencyDiff.stream()
+                                .map(JahiaTemplatesPackage::getIdWithVersion)
+                                .collect(Collectors.joining(", "))
+                );
+            }
+        }
     }
 
     public void uninstallModule(String moduleId, String moduleVersion, RequestContext requestContext) throws RepositoryException, BundleException {
