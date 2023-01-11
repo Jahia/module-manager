@@ -70,7 +70,6 @@ import org.springframework.webflow.execution.RequestContext;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.nodetype.NodeTypeIterator;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -633,9 +632,20 @@ public class ModuleManagementFlowHandler implements Serializable {
                             .warning()
                             .build());
                 }
-            } catch (IOException|RepositoryException e) {
+            } catch (IOException | RepositoryException e) {
                 logger.error("Unable to validate definition for module {}", moduleId);
             }
+        }
+    }
+
+    public void checkForMultipleVersions(MessageContext context, Map<String, SortedMap<ModuleVersion, JahiaTemplatesPackage>> allModulesVersions) {
+        if (allModulesVersions.values().stream().anyMatch(moduleVersionJahiaTemplatesPackageSortedMap -> moduleVersionJahiaTemplatesPackageSortedMap.size() > 1)) {
+            String messageCode = SettingsBean.getInstance().isDevelopmentMode() ?
+                    "serverSettings.manageModules.module.state.multipleVersions.development" :
+                    "serverSettings.manageModules.module.state.multipleVersions.production";
+            MessageBuilder customMessage = new MessageBuilder().source("customMessage")
+                    .code(messageCode).arg("https://academy.jahia.com/documentation/developer/jahia/8/introducing-jahia-technical-concepts/about-osgi/jahia-osgi-implementation#recommendation");
+            context.addMessage(SettingsBean.getInstance().isDevelopmentMode() ? customMessage.info().build() : customMessage.warning().build());
         }
     }
 
