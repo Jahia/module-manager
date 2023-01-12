@@ -113,7 +113,7 @@ public class ModuleWiring {
             wiringList.forEach(w -> result.put(w.getCapabilityName(), w));
             return result;
         } else {
-            logger.error("Unable to get wiring for bundle {}. Bundle could be possibly inactive", bundle);
+            logger.info("Unable to get wiring for bundle {}.", bundle);
         }
         return null;
     }
