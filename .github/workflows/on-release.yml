@@ -35,6 +35,8 @@ jobs:
 
       - uses: jahia/jahia-modules-action/release@v2
         name: Release Module
+        env:
+          NEXUS_INTERNAL_URL: https://devtools.jahia.com/nexus/content/groups/internal/
         with:
           github_slug: Jahia/module-manager
           primary_release_branch: main
