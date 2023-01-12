@@ -77,7 +77,7 @@ public class ModuleWiring {
 
     @Override
     public String toString() {
-        return String.format("%s-%s<%s>", capabilityName, providerStr, providerState);
+        return String.format("%s - %s<%s>", capabilityName, providerStr, providerState);
     }
 
     public String toState(int state) {
