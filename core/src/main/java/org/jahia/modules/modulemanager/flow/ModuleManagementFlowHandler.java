@@ -15,6 +15,7 @@
  */
 package org.jahia.modules.modulemanager.flow;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -79,6 +80,7 @@ import java.util.Map.Entry;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.stream.Collectors;
 
 /**
  * WebFlow handler for managing modules.
@@ -1119,7 +1121,34 @@ public class ModuleManagementFlowHandler implements Serializable {
 
     public void refreshModule(String id, String version) throws RepositoryException {
         Bundle bundle = BundleUtils.getBundle(id, version);
+        Map<String, ModuleWiring> oldWirings = ModuleWiring.getWirings(bundle);
         moduleManager.refresh(BundleInfo.fromBundle(bundle).getKey(), null);
+        logWiringDiff(bundle, oldWirings);
+    }
+
+    private void logWiringDiff(Bundle bundle, final Map<String, ModuleWiring> oldWirings) {
+        Collection<ModuleWiring> wiringDiff = null;
+        Map<String, ModuleWiring> newWirings = null;
+
+        if (oldWirings != null) {
+            newWirings = ModuleWiring.getWirings(bundle);
+            if (newWirings != null) {
+                wiringDiff = CollectionUtils.disjunction(oldWirings.values(), newWirings.values());
+            }
+        }
+
+        if (wiringDiff != null && !wiringDiff.isEmpty()) {
+            logger.error("Bundle wiring for bundle {} has been refreshed with wiring differences:", bundle);
+            // Collect and log latest wiring states
+            Collection<String> changedWirings = wiringDiff.stream()
+                    .map(ModuleWiring::getCapabilityName)
+                    .collect(Collectors.toSet());
+            for (String c: changedWirings) {
+                logger.error("Changed package wiring - BEFORE: {}, AFTER: {}", oldWirings.get(c), newWirings.get(c));
+            }
+        } else if (oldWirings != null && newWirings != null && logger.isDebugEnabled()) {
+            logger.debug("No wiring differences for bundle {}", bundle);
+        }
     }
 
     public void uninstallModule(String moduleId, String moduleVersion, RequestContext requestContext) throws RepositoryException, BundleException {
