@@ -15,13 +15,13 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: Create Release Notes
-      uses: Decathlon/release-notes-generator-action@v3.1.5
+      uses: Decathlon/release-notes-generator-action@v3.1.6
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         OUTPUT_FOLDER: temp_release_notes
         USE_MILESTONE_TITLE: "true"
     - name: Upload Release Notes
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: release-notes
         path: temp_release_notes/
