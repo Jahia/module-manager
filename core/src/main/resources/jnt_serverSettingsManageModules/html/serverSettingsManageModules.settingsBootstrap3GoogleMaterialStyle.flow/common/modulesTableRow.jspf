@@ -3,6 +3,20 @@
     <tr data-sel-role="module-row-${entry.key}">
         <td>
             <span><b>${currentModule != null ? currentModule.name : defaultVersion.name}</b> &nbsp;(${entry.key})</span>
+            <c:if test="${not empty optionalDependenciesForAvailableModules[entry.key]}">
+                <c:set var="isUnstarted" value="false"/>
+                <c:forEach items="${optionalDependenciesForAvailableModules[entry.key]}" var="optDep">
+                    <c:if test="${optDep.isUnstarted}">
+                        <c:set var="isUnstarted" value="true"/>
+                    </c:if>
+                </c:forEach>
+
+                <c:if test="${isUnstarted}">
+                    <div>
+                        <em><fmt:message key="serverSettings.manageModules.module.unstartedOptionalDependencies"/></em>
+                    </div>
+                </c:if>
+            </c:if>
             <c:if test="${isMandatoryDependency}">
                 <span class="text-error" title="${i18nMandatoryDependency}"><a href="#mandatory-dependency" class="text-error"><strong>*</strong></a></span>
             </c:if>

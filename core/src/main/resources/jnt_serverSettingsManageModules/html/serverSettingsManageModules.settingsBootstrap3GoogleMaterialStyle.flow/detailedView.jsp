@@ -468,6 +468,37 @@
                 </c:forEach>
             </div>
         </c:if>
+        <c:if test="${not empty optionalDependenciesForAvailableModules[activeVersion.id]}">
+            <div class="row">
+                <h5 class="cardTitle"><fmt:message key="serverSettings.manageModules.module.optionalDependencies"/></h5>
+                <div class="card material-table">
+                    <table class="table table-bordered table-striped no-pointer no-ver-margin">
+                        <thead>
+                        <tr>
+                            <th style="width:33%"><fmt:message key="serverSettings.manageModules.module.dependency.label"/></th>
+                            <th style="width:33%"><fmt:message key="serverSettings.manageModules.status"/></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach items="${optionalDependenciesForAvailableModules[activeVersion.id]}" var="optDep">
+                                <tr>
+                                    <c:choose>
+                                        <c:when test="${not empty optDep.jahiaTemplatesPackage}">
+                                            <td>${optDep.jahiaTemplatesPackage.name}</td>
+                                            <td>${optDep.jahiaTemplatesPackage.state}</td>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <td>${optDep.moduleId}</td>
+                                            <td><fmt:message key="serverSettings.manageModules.module.notinstalled"/></td>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </c:if>
         <c:if test="${not empty dependantModules}">
             <div class="row">
                 <h5 class="cardTitle"><fmt:message key="serverSettings.manageModules.module.dependantModules"/></h5>
