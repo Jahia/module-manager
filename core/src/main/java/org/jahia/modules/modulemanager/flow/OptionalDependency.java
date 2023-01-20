@@ -3,6 +3,9 @@ package org.jahia.modules.modulemanager.flow;
 import org.jahia.data.templates.JahiaTemplatesPackage;
 import org.jahia.data.templates.ModuleState;
 
+/**
+ * Optional dependency model
+ */
 public class OptionalDependency {
     private JahiaTemplatesPackage jahiaTemplatesPackage;
     private String moduleId;

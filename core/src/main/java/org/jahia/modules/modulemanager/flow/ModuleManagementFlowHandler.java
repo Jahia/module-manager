@@ -605,6 +605,11 @@ public class ModuleManagementFlowHandler implements Serializable {
         return result;
     }
 
+    /**
+     * Collect optional dependencies for all available modules
+     *
+     * @return a map of module ids and OptionDependency objects
+     */
     public Map<String, List<OptionalDependency>> getOptionalDependenciesForAvailableModules() {
         Map<String, List<OptionalDependency>> result = new HashMap<>();
         Map<Bundle, ModuleState> moduleStatesByBundle = templateManagerService.getModuleStates();
