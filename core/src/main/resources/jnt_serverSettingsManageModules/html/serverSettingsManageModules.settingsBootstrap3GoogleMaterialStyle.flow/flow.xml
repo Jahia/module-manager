@@ -28,6 +28,7 @@
             <evaluate expression="flowHandler.validateDefinitions(messageContext)"/>
             <evaluate expression="flowHandler.checkForMultipleVersions(messageContext, requestScope.allModuleVersions)"/>
             <evaluate expression="flowHandler.availableUpdates" result="requestScope.availableUpdates"/>
+            <evaluate expression="flowHandler.optionalDependenciesForAvailableModules" result="requestScope.optionalDependenciesForAvailableModules"/>
             <evaluate expression="JahiaTemplateManagerService.templatePackageRegistry.registeredModules" result="requestScope.registeredModules"/>
             <evaluate expression="JahiaTemplateManagerService.sourceControlFactory.supportedSourceControls" result="requestScope.sourceControls"/>
             <evaluate expression="flowHandler.populateSitesInformation(flowRequestContext)" />
@@ -94,6 +95,7 @@
             <evaluate expression="flowHandler.loadModuleInformation(flowRequestContext)" result="requestScope.detailedModule"/>
             <evaluate expression="JahiaTemplateManagerService.sourceControlFactory.supportedSourceControls"
                       result="requestScope.sourceControls"/>
+            <evaluate expression="flowHandler.optionalDependenciesForAvailableModules" result="requestScope.optionalDependenciesForAvailableModules"/>
         </on-render>
         <transition on="startModule" to="startModule"/>
         <transition on="stopModule" to="stopModule"/>

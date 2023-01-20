@@ -605,6 +605,31 @@ public class ModuleManagementFlowHandler implements Serializable {
         return result;
     }
 
+    /**
+     * Collect optional dependencies for all available modules
+     *
+     * @return a map of module ids and OptionDependency objects
+     */
+    public Map<String, List<OptionalDependency>> getOptionalDependenciesForAvailableModules() {
+        Map<String, List<OptionalDependency>> result = new HashMap<>();
+        Map<Bundle, ModuleState> moduleStatesByBundle = templateManagerService.getModuleStates();
+        for (Bundle bundle : moduleStatesByBundle.keySet()) {
+            JahiaTemplatesPackage module = BundleUtils.getModule(bundle);
+            result.put(module.getId(), getOptionalDependenciesForModule(module));
+        }
+        return result;
+    }
+
+    private List<OptionalDependency> getOptionalDependenciesForModule(JahiaTemplatesPackage module) {
+        List<OptionalDependency> result = new ArrayList<>();
+        for (JahiaDepends jd : module.getVersionDepends()) {
+            if (jd.isOptional()) {
+                result.add(new OptionalDependency(jd.getModuleName(), templateManagerService.getTemplatePackageById(jd.getModuleName())));
+            }
+        }
+        return result;
+    }
+
     public void validateDefinitions(MessageContext context) {
         if (definitionsManagerService.skipDefinitionValidation()) {
             logger.debug("Skipping CND definition validation...");
