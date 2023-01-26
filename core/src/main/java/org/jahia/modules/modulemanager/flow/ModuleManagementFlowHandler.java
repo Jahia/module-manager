@@ -785,8 +785,10 @@ public class ModuleManagementFlowHandler implements Serializable {
         }
 
         for (JahiaDepends d : pkg.getVersionDepends()) {
-            JahiaTemplatesPackage p = templateManagerService.getAnyDeployedTemplatePackage(d.toString());
-            if (p == null) state.getUnresolvedDependencies().add(d.toString());
+            if (!d.isOptional()) {
+                JahiaTemplatesPackage p = templateManagerService.getAnyDeployedTemplatePackage(d.getModuleName());
+                if (p == null) state.getUnresolvedDependencies().add(d.toString());
+            }
         }
 
         List<JahiaTemplatesPackage> dependantModules = registry.getDependantModules(pkg);
