@@ -97,7 +97,7 @@
                     "aoColumns" : [
                         { sWidth: '75%' },
                         { sWidth: '15%' },
-                        { sWidth: '10%' }
+                        { sWidth: '10%',"bSearchable": false }
                     ]
                 };
 
