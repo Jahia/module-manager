@@ -52,7 +52,7 @@ For example:
 
    `start=[boolean]`: `true`, if the bundle should be started right after installation
 
-   `target=[string]`: The group of cluster nodes targeted by the operation
+   `target=[string]`: The group of cluster nodes targeted by the operation, or `local` to deploy to a node individually using standard non-clustered module deployment
 
    **Required:**
 
@@ -100,7 +100,7 @@ For example:
 
 *  **Params**
 
-   `target=[string]`: The group of cluster nodes targeted by the operation
+   `target=[string]`: The group of cluster nodes targeted by the operation, or `local` to deploy to a node individually using standard non-clustered module deployment
 
    **Required:**
 
@@ -141,7 +141,7 @@ For example:
 
 *  **Params**
 
-   `target=[string]`: The group of cluster nodes targeted by the operation
+   `target=[string]`: The group of cluster nodes targeted by the operation, or `local` to deploy to a node individually using standard non-clustered module deployment
 
    **Required:**
 
@@ -182,7 +182,7 @@ For example:
 
 *  **Params**
 
-   `target=[string]`: The group of cluster nodes targeted by the operation
+   `target=[string]`: The group of cluster nodes targeted by the operation, or `local` to deploy to a node individually using standard non-clustered module deployment
 
    **Required:**
 
@@ -223,7 +223,7 @@ For example:
 
 *  **Params**
 
-   `target=[string]`: The group of cluster nodes targeted by the operation
+   `target=[string]`: The group of cluster nodes targeted by the operation, or `local` to deploy to a node individually using standard non-clustered module deployment
 
    **Required:**
 
@@ -428,7 +428,7 @@ For example:
 
 *  **Params**
 
-   `target=[string]`: The group of cluster nodes targeted by the operation
+   `target=[string]`: The group of cluster nodes targeted by the operation, or `local` to deploy to a node individually using standard non-clustered module deployment
 
    **Required:**
 
@@ -470,7 +470,7 @@ For example:
 
 *  **Params**
 
-   `target=[string]`: The group of cluster nodes targeted by the operation
+   `target=[string]`: The group of cluster nodes targeted by the operation, or `local` to deploy to a node individually using standard non-clustered module deployment
 
    **Required:**
 
