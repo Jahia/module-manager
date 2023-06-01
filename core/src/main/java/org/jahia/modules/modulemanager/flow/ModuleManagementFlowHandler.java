@@ -1021,6 +1021,13 @@ public class ModuleManagementFlowHandler implements Serializable {
         Bundle bundle = BundleUtils.getBundle(moduleId, version);
         moduleManager.start(new BundleInfo(BundleUtils.getModuleGroupId(bundle), bundle.getSymbolicName(),
                 bundle.getVersion().toString()).getKey(), null);
+
+        if (BundleUtils.getBundle(moduleId, version) == null) {
+            // Bundle somehow disappear ...
+            throw new ModuleManagementException("Module '" + moduleId + " (" + version + ")' could not be started. " +
+                    "Something went wrong during the startup.");
+        }
+
         if (bundle.getState() == Bundle.ACTIVE) {
             requestContext.getExternalContext().getSessionMap().put("moduleHasBeenStarted", Long.valueOf(bundle.getBundleId()));
         }
