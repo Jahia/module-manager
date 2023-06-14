@@ -33,7 +33,7 @@
         <jahia-module-type>system</jahia-module-type>
         <jahia-deploy-on-site>system</jahia-deploy-on-site>
         <export-package>org.jahia.modules.modulemanager.forge</export-package>
-        <jahia-module-signature>MC0CFCGtT6mUi9iDtEdSqwNJVyifo8DOAhUAkNXQjpRZ7/hLln8Lyuzh9R7zMPg=</jahia-module-signature>
+        <jahia-module-signature>MCwCFC1drTbJglmgOYIVYb484UlgRD61AhRu3mWFqxHTV5MJu15G1nIevdHOow==</jahia-module-signature>
         <require-capability>osgi.extender;filter:="(osgi.extender=org.jahia.bundles.blueprint.extender.config)"</require-capability>
         <yarn.arguments>build:production</yarn.arguments>
         <jahia.plugin.version>6.1</jahia.plugin.version>
