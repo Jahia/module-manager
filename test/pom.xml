@@ -32,7 +32,7 @@
     <properties>
         <jahia-depends>module-manager</jahia-depends>
         <jahia-module-type>system</jahia-module-type>
-        <jahia-module-signature>MCwCFByUsAviohsAj16ImgyeuIyl9KbBAhQj0q6BqjeKbjSCZt2Wq+iTgA+2WQ==</jahia-module-signature>
+        <jahia-module-signature>MCwCFFPWYPGYH81OEqTMjLPH2CAappmTAhQ26kYQTSMZGzqH/Z2fq5XiXMPBQA==</jahia-module-signature>
         <require-capability>osgi.extender;filter:="(osgi.extender=org.jahia.bundles.blueprint.extender.config)"</require-capability>
     </properties>
 
