@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.jahia.modules</groupId>
         <artifactId>module-manager-parent</artifactId>
-        <version>2.9.0-SNAPSHOT</version>
+        <version>3.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>module-manager</artifactId>
     <packaging>bundle</packaging>
@@ -33,7 +33,7 @@
         <jahia-module-type>system</jahia-module-type>
         <jahia-deploy-on-site>system</jahia-deploy-on-site>
         <export-package>org.jahia.modules.modulemanager.forge</export-package>
-        <jahia-module-signature>MCwCFC1drTbJglmgOYIVYb484UlgRD61AhRu3mWFqxHTV5MJu15G1nIevdHOow==</jahia-module-signature>
+        <jahia-module-signature>MC0CFEpshlIogFSyrTVCkhauVwBGPtvGAhUAgsB4ySEfTljuMUEbU142ZJkqxVI=</jahia-module-signature>
         <require-capability>osgi.extender;filter:="(osgi.extender=org.jahia.bundles.blueprint.extender.config)"</require-capability>
         <yarn.arguments>build:production</yarn.arguments>
         <jahia.plugin.version>6.1</jahia.plugin.version>
@@ -151,7 +151,7 @@
                             <goal>install-node-and-yarn</goal>
                         </goals>
                         <configuration>
-                            <nodeVersion>v14.21.3</nodeVersion>
+                            <nodeVersion>v16.20.2</nodeVersion>
                             <yarnVersion>v1.22.11</yarnVersion>
                         </configuration>
                     </execution>

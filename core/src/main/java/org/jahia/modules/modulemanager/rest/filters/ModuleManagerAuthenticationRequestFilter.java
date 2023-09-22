@@ -54,24 +54,13 @@ public class ModuleManagerAuthenticationRequestFilter implements ContainerReques
     @Context
     HttpServletRequest httpServletRequest;
 
-    private Subject getAuthenticatedSubject() {
-        try {
-            return WebUtils.getAuthenticatedSubject(httpServletRequest);
-        } catch (AuthenticationException e) {
-            throw new NotAuthorizedException(e.getMessage(), HttpServletRequest.BASIC_AUTH);
-        }
-    }
-
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         JahiaUser user = JCRSessionFactory.getInstance().getCurrentUser();
         String username = JahiaUserManagerService.GUEST_USERNAME;
-        if (JahiaUserManagerService.isGuest(user)) {
-            Subject subject = getAuthenticatedSubject();
-            if (subject != null && subject.hasRole(REQUIRED_ROLE)) {
-                // user has the required role: allow access
-                return;
-            }
+        if (JahiaUserManagerService.isGuest(user) && WebUtils.authenticatedSubjectHasRole(httpServletRequest, REQUIRED_ROLE)) {
+            // user has the required role: allow access
+            return;
         } else {
             try {
                 JCRSessionWrapper currentUserSession = JCRSessionFactory.getInstance().getCurrentUserSession();
