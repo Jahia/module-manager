@@ -21,7 +21,6 @@ import java.security.Principal;
 import javax.annotation.Priority;
 import javax.jcr.RepositoryException;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -29,8 +28,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-import org.apache.shiro.authc.AuthenticationException;
-import org.apache.shiro.subject.Subject;
 import org.jahia.services.content.JCRSessionFactory;
 import org.jahia.services.content.JCRSessionWrapper;
 import org.jahia.services.usermanager.JahiaUser;
