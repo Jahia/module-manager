@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.jahia.modules</groupId>
         <artifactId>module-manager-parent</artifactId>
-        <version>2.9.0-SNAPSHOT</version>
+        <version>3.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>module-manager-test</artifactId>
     <groupId>org.jahia.test</groupId>
@@ -32,7 +32,7 @@
     <properties>
         <jahia-depends>module-manager</jahia-depends>
         <jahia-module-type>system</jahia-module-type>
-        <jahia-module-signature>MCwCFFPWYPGYH81OEqTMjLPH2CAappmTAhQ26kYQTSMZGzqH/Z2fq5XiXMPBQA==</jahia-module-signature>
+        <jahia-module-signature>MCwCFEIj5cZ0OoM+QgUMnLxzCF73tIMTAhRkU+lG++uAtUUw5K6bjfGhExWW4A==</jahia-module-signature>
         <require-capability>osgi.extender;filter:="(osgi.extender=org.jahia.bundles.blueprint.extender.config)"</require-capability>
     </properties>
 
@@ -61,7 +61,7 @@
         <dependency>
             <groupId>org.jahia.modules</groupId>
             <artifactId>module-manager</artifactId>
-            <version>2.9.0-SNAPSHOT</version>
+            <version>3.0.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
