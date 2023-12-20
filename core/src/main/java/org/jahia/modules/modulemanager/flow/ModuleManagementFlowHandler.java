@@ -682,7 +682,7 @@ public class ModuleManagementFlowHandler implements Serializable {
      * @return a map, keyed by the module name, with all available module updates
      */
     public Map<String, Module> getAvailableUpdates() {
-        OperationConstraintsService osgiService = BundleUtils.getOsgiService(OperationConstraintsService.class, null);
+        OperationConstraintsService opConstraintsService = BundleUtils.getOsgiService(OperationConstraintsService.class, null);
         Map<String, Module> availableUpdate = new HashMap<String, Module>();
         Map<String, SortedMap<ModuleVersion, JahiaTemplatesPackage>> moduleStates = getAllModuleVersions();
         for (String key : moduleStates.keySet()) {
@@ -691,7 +691,7 @@ public class ModuleManagementFlowHandler implements Serializable {
             if (forgeModule != null) {
                 ModuleVersion forgeVersion = new ModuleVersion(forgeModule.getVersion());
                 org.osgi.framework.Version osgiVersion = new org.osgi.framework.Version(JahiaDepends.toOsgiVersion(forgeVersion.toString()));
-                OperationConstraints ops = osgiService.getConstraintForBundle(key, osgiVersion);
+                OperationConstraints ops = opConstraintsService.getConstraintForBundle(key, osgiVersion);
                 if (!isSameOrNewerVersionPresent(key, forgeVersion) && (ops == null || ops.canDeploy(osgiVersion))) {
                     availableUpdate.put(key, forgeModule);
                 }
@@ -975,12 +975,12 @@ public class ModuleManagementFlowHandler implements Serializable {
     }
 
     public List<Module> getForgeModules() {
-        OperationConstraintsService osgiService = BundleUtils.getOsgiService(OperationConstraintsService.class, null);
+        OperationConstraintsService opConstraintsService = BundleUtils.getOsgiService(OperationConstraintsService.class, null);
         List<Module> installedModule = new ArrayList<Module>();
         List<Module> newModules = new ArrayList<Module>();
         for (Module module : forgeService.getModules()) {
             org.osgi.framework.Version osgiVersion = new org.osgi.framework.Version(JahiaDepends.toOsgiVersion(module.getVersion().toString()));
-            OperationConstraints ops = osgiService.getConstraintForBundle(module.getId(), osgiVersion);
+            OperationConstraints ops = opConstraintsService.getConstraintForBundle(module.getId(), osgiVersion);
             module.setInstallable(!templateManagerService.differentModuleWithSameIdExists(module.getId(), module.getGroupId()) && (ops == null || ops.canDeploy(osgiVersion)));
 
             JahiaTemplatesPackage pkg = templateManagerService.getTemplatePackageRegistry().lookupById(module.getId());
