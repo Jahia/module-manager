@@ -1091,6 +1091,14 @@
     redux "^4.0.5"
     rxjs "^6.5.3"
 
+"@jahia/webpack-config@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@jahia/webpack-config/-/webpack-config-1.1.0.tgz#629b3dd0dadf52a757d52e4a42a673151e031a19"
+  integrity sha512-3rSlzpPCLyFUKbmMw0tKH2eIjY2pn66xN6MJDK7+cqY+kWNFFOvBVdILm/G8PhJ3hejmVTKhQZRe3C9imFzxkw==
+  dependencies:
+    camelcase "5"
+    semver "^7.4.0"
+
 "@jest/transform@^27.5.1":
   version "27.5.1"
   resolved "https://registry.yarnpkg.com/@jest/transform/-/transform-27.5.1.tgz#6c3501dcc00c4c08915f292a600ece5ecfe1f409"
@@ -1934,7 +1942,7 @@ callsites@^3.0.0:
   resolved "https://registry.yarnpkg.com/callsites/-/callsites-3.1.0.tgz#b3630abd8943432f54b3f0519238e33cd7df2f73"
   integrity sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==
 
-camelcase@^5.3.1:
+camelcase@5, camelcase@^5.3.1:
   version "5.3.1"
   resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-5.3.1.tgz#e3c9b31569e106811df242f715725a1f4c494320"
   integrity sha512-L28STB170nwWS63UjtlEOE3dldQApaJXZkOI1uMFfzf3rRuPegHaHesyee+YxQ+W6SvRDQV6UrdOdRiR153wJg==
@@ -4259,7 +4267,7 @@ semver@^7.3.2:
   dependencies:
     lru-cache "^6.0.0"
 
-semver@^7.3.5:
+semver@^7.3.5, semver@^7.4.0:
   version "7.5.4"
   resolved "https://registry.yarnpkg.com/semver/-/semver-7.5.4.tgz#483986ec4ed38e1c6c48c34894a9182dbff68a6e"
   integrity sha512-1bCSESV6Pv+i21Hvpxp3Dx+pSD8lIPt8uVjRrxAUt/nbswYc+tK6Y2btiULjd4+fnq15PX+nqQDC7Oft7WkwcA==
