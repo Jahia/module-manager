@@ -28,8 +28,10 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
+import org.jahia.osgi.BundleUtils;
 import org.jahia.services.content.JCRSessionFactory;
 import org.jahia.services.content.JCRSessionWrapper;
+import org.jahia.services.securityfilter.PermissionService;
 import org.jahia.services.usermanager.JahiaUser;
 import org.jahia.services.usermanager.JahiaUserManagerService;
 import org.jahia.utils.WebUtils;
@@ -43,8 +45,6 @@ import org.slf4j.LoggerFactory;
 public class ModuleManagerAuthenticationRequestFilter implements ContainerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(ModuleManagerAuthenticationRequestFilter.class);
-
-    private static final String REQUIRED_PERMISSON = "adminTemplates";
 
     private static final String REQUIRED_ROLE = "toolManager";
 
@@ -63,30 +63,30 @@ public class ModuleManagerAuthenticationRequestFilter implements ContainerReques
                 JCRSessionWrapper currentUserSession = JCRSessionFactory.getInstance().getCurrentUserSession();
                 final JahiaUser jahiaUser = currentUserSession.getUser();
                 username = jahiaUser.getUserKey();
-                if (currentUserSession.getRootNode().hasPermission(REQUIRED_PERMISSON)) {
+                if (hasPermission(getAction(requestContext))) {
                     requestContext.setSecurityContext(new SecurityContext() {
-    
+
                         @Override
                         public String getAuthenticationScheme() {
                             return httpServletRequest.getScheme();
                         }
-    
+
                         @Override
                         public Principal getUserPrincipal() {
                             return jahiaUser;
                         }
-    
+
                         @Override
                         public boolean isSecure() {
                             return httpServletRequest.isSecure();
                         }
-    
+
                         @Override
                         public boolean isUserInRole(String role) {
                             return httpServletRequest.isUserInRole(role);
                         }
                     });
-                    
+
                     return;
                 }
             } catch (RepositoryException e) {
@@ -101,5 +101,24 @@ public class ModuleManagerAuthenticationRequestFilter implements ContainerReques
         log.warn("Unauthorized access to the resource {} by user {}", httpServletRequest.getRequestURI(), username);
         requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED)
                 .entity(String.format("User %s is not allowed to access resource %s", username, httpServletRequest.getRequestURI())).build());
+    }
+
+    private String getAction(ContainerRequestContext requestContext) {
+        String path = requestContext.getUriInfo().getPath();
+        return path.contains("/_") ? path.substring(path.lastIndexOf("/_") + 2) : path;
+    }
+    private boolean hasPermission(String endpoint) {
+        boolean hasPermission;
+        try {
+            PermissionService permissionService = BundleUtils.getOsgiService(PermissionService.class, null);
+            hasPermission = permissionService.hasPermission("module_manager." + endpoint);
+            if (!hasPermission) {
+                log.warn("No permission to execute bundle operation");
+                log.debug("Endpoint: {}", endpoint);
+            }
+            return hasPermission;
+        } catch (RepositoryException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
