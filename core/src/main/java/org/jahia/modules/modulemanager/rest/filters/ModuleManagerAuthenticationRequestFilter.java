@@ -55,6 +55,7 @@ public class ModuleManagerAuthenticationRequestFilter implements ContainerReques
     public void filter(ContainerRequestContext requestContext) throws IOException {
         JahiaUser user = JCRSessionFactory.getInstance().getCurrentUser();
         String username = JahiaUserManagerService.GUEST_USERNAME;
+        // toolManager seems to be an old role which is not used anymore. It should be removed once validated.
         if (JahiaUserManagerService.isGuest(user) && WebUtils.authenticatedSubjectHasRole(httpServletRequest, REQUIRED_ROLE)) {
             // user has the required role: allow access
             return;
