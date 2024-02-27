@@ -1,0 +1,11 @@
+module_manager:
+  description: Can manage modules deployment
+  metadata:
+    visible: true
+  auto_apply:
+    - always: true
+  constraints:
+    - user_permission: adminTemplates
+      path: /
+  grants:
+    - api: module_manager
