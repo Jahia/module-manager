@@ -46,57 +46,48 @@ public class ModuleManagerAuthenticationRequestFilter implements ContainerReques
 
     private static final Logger log = LoggerFactory.getLogger(ModuleManagerAuthenticationRequestFilter.class);
 
-    private static final String REQUIRED_ROLE = "toolManager";
-
     @Context
     HttpServletRequest httpServletRequest;
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        JahiaUser user = JCRSessionFactory.getInstance().getCurrentUser();
-        String username = JahiaUserManagerService.GUEST_USERNAME;
-        // toolManager seems to be an old role which is not used anymore. It should be removed once validated.
-        if (JahiaUserManagerService.isGuest(user) && WebUtils.authenticatedSubjectHasRole(httpServletRequest, REQUIRED_ROLE)) {
-            // user has the required role: allow access
-            return;
-        } else {
-            try {
-                JCRSessionWrapper currentUserSession = JCRSessionFactory.getInstance().getCurrentUserSession();
-                final JahiaUser jahiaUser = currentUserSession.getUser();
-                username = jahiaUser.getUserKey();
-                if (hasPermission(getAction(requestContext))) {
-                    requestContext.setSecurityContext(new SecurityContext() {
+        String username = "";
+        try {
+            JCRSessionWrapper currentUserSession = JCRSessionFactory.getInstance().getCurrentUserSession();
+            final JahiaUser jahiaUser = currentUserSession.getUser();
+            username = jahiaUser.getUserKey();
+            if (hasPermission(getAction(requestContext))) {
+                requestContext.setSecurityContext(new SecurityContext() {
 
-                        @Override
-                        public String getAuthenticationScheme() {
-                            return httpServletRequest.getScheme();
-                        }
+                    @Override
+                    public String getAuthenticationScheme() {
+                        return httpServletRequest.getScheme();
+                    }
 
-                        @Override
-                        public Principal getUserPrincipal() {
-                            return jahiaUser;
-                        }
+                    @Override
+                    public Principal getUserPrincipal() {
+                        return jahiaUser;
+                    }
 
-                        @Override
-                        public boolean isSecure() {
-                            return httpServletRequest.isSecure();
-                        }
+                    @Override
+                    public boolean isSecure() {
+                        return httpServletRequest.isSecure();
+                    }
 
-                        @Override
-                        public boolean isUserInRole(String role) {
-                            return httpServletRequest.isUserInRole(role);
-                        }
-                    });
+                    @Override
+                    public boolean isUserInRole(String role) {
+                        return httpServletRequest.isUserInRole(role);
+                    }
+                });
 
-                    return;
-                }
-            } catch (RepositoryException e) {
-                log.error("An error occurs while accessing the resource " + httpServletRequest.getRequestURI(), e);
-                requestContext.abortWith(Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .entity(String.format("an error occured %s (see server log for more detail)",
-                                e.getMessage() != null ? e.getMessage() : e))
-                        .build());
+                return;
             }
+        } catch (RepositoryException e) {
+            log.error("An error occurs while accessing the resource " + httpServletRequest.getRequestURI(), e);
+            requestContext.abortWith(Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(String.format("an error occured %s (see server log for more detail)",
+                            e.getMessage() != null ? e.getMessage() : e))
+                    .build());
         }
 
         log.warn("Unauthorized access to the resource {} by user {}", httpServletRequest.getRequestURI(), username);
