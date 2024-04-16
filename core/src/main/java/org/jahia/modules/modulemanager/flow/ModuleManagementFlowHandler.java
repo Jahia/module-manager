@@ -177,7 +177,7 @@ public class ModuleManagementFlowHandler implements Serializable {
                     if (transformer.canHandle(file)) {
                         File fileTemp = File.createTempFile("module-", "." + StringUtils.substringAfterLast(originalFilename, "."));
                         try {
-                            URL transformedURL = transformer.transform(new URL("file:" + file.getPath()));
+                            URL transformedURL = transformer.transform(file.toURI().toURL());
                             FileUtils.copyInputStreamToFile(transformedURL.openConnection().getInputStream(), fileTemp);
                             installBundles(fileTemp, context, originalFilename, forceUpdate, autoStart, ignoreChecks);
                             return true;
