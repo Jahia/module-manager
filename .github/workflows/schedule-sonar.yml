@@ -42,3 +42,5 @@ jobs:
           sonar_token: ${{ secrets.SONAR_TOKEN }}
           nvd_apikey: ${{ secrets.NVD_APIKEY }}
           mvn_settings_filepath: '.github/maven.settings.xml'
+          nexus_username: ${{ secrets.NEXUS_USERNAME }}
+          nexus_password: ${{ secrets.NEXUS_PASSWORD }}
