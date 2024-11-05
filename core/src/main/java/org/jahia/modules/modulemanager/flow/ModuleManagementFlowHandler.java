@@ -142,12 +142,7 @@ public class ModuleManagementFlowHandler implements Serializable {
             handleModule(file, context, file.getName(), ignoreChecks, autoStart, ignoreChecks);
             return true;
         } catch (Exception e) {
-            context.addMessage(new MessageBuilder().source("moduleFile")
-                    .code("serverSettings.manageModules.install.failed")
-                    .arg(e.getMessage())
-                    .error()
-                    .build());
-            logger.error(e.getMessage(), e);
+            handleInstallationFailure(context, e);
         } finally {
             FileUtils.deleteQuietly(file);
         }
@@ -169,12 +164,7 @@ public class ModuleManagementFlowHandler implements Serializable {
             moduleFile.transferTo(file);
             return handleModule(file, context, originalFilename, forceUpdate, autoStart, ignoreChecks);
         } catch (Exception e) {
-            context.addMessage(new MessageBuilder().source("moduleFile")
-                    .code("serverSettings.manageModules.install.failed")
-                    .arg(e.getMessage())
-                    .error()
-                    .build());
-            logger.error(e.getMessage(), e);
+            handleInstallationFailure(context, e);
         } finally {
             FileUtils.deleteQuietly(file);
         }
@@ -182,7 +172,7 @@ public class ModuleManagementFlowHandler implements Serializable {
     }
     
 
-    private boolean handleModule(File file, MessageContext context, String originalFilename, boolean forceUpdate, boolean autoStart, boolean ignoreChecks) throws IOException, BundleException {
+    private boolean handleModule(File file, MessageContext context, String originalFilename, boolean forceUpdate, boolean autoStart, boolean ignoreChecks) {
         try {
             boolean canHandleExtension = FilenameUtils.isExtension(StringUtils.lowerCase(originalFilename), "jar");
             //If it cannot be handled as Jar, look for impl that can handle this extension
@@ -215,17 +205,22 @@ public class ModuleManagementFlowHandler implements Serializable {
             installBundles(file, context, originalFilename, forceUpdate, autoStart, ignoreChecks);
             return true;
         } catch (Exception e) {
-            context.addMessage(new MessageBuilder().source("moduleFile")
-                    .code("serverSettings.manageModules.install.failed")
-                    .arg(e.getMessage())
-                    .error()
-                    .build());
-            logger.error(e.getMessage(), e);
+            handleInstallationFailure(context, e);
         } finally {
             FileUtils.deleteQuietly(file);
         }
         return false;
     }
+
+    private static void handleInstallationFailure(MessageContext context, Exception e) {
+        context.addMessage(new MessageBuilder().source("moduleFile")
+                .code("serverSettings.manageModules.install.failed")
+                .arg(e.getMessage())
+                .error()
+                .build());
+        logger.error(e.getMessage(), e);
+    }
+
     private void installBundles(File file, MessageContext context, String originalFilename, boolean forceUpdate, boolean autoStart, boolean ignoreChecks) throws IOException, BundleException {
 
         JarFile jarFile = new JarFile(file);
@@ -273,7 +268,7 @@ public class ModuleManagementFlowHandler implements Serializable {
 
         // check package name validity
         String jahiaPackageName = manifestAttributes.getValue(Constants.ATTR_NAME_JAHIA_PACKAGE_NAME);
-        if (jahiaPackageName != null && jahiaPackageName.trim().length() == 0) {
+        if (jahiaPackageName != null && jahiaPackageName.trim().isEmpty()) {
             context.addMessage(new MessageBuilder().source("moduleFile")
                     .code("serverSettings.manageModules.install.package.name.error").error().build());
             return;
@@ -391,7 +386,7 @@ public class ModuleManagementFlowHandler implements Serializable {
                 }
 
                 if (autoStart &&
-                        !Boolean.valueOf(SettingsBean.getInstance().getPropertiesFile().getProperty("org.jahia.modules.autoStartOlderVersions"))) {
+                        !Boolean.parseBoolean(SettingsBean.getInstance().getPropertiesFile().getProperty("org.jahia.modules.autoStartOlderVersions"))) {
                     // verify that a newer version is not active already
                     JahiaTemplatesPackage currentActivePackage = templateManagerService.getTemplatePackageRegistry()
                             .lookupById(symbolicName);
@@ -489,7 +484,7 @@ public class ModuleManagementFlowHandler implements Serializable {
     private List<String> getMissingDependenciesFrom(List<String> deps, List<String> providedDependencies) {
         List<String> missingDeps = new ArrayList<String>(deps.size());
         for (String dep : deps) {
-            if (providedDependencies != null && providedDependencies.indexOf(dep) != -1) {
+            if (providedDependencies != null && providedDependencies.contains(dep)) {
                 // we have the dependency
                 continue;
             }
@@ -588,9 +583,7 @@ public class ModuleManagementFlowHandler implements Serializable {
                     transitiveSiteDep.get(transitiveDependency.getId()).add(site.getSiteKey());
                 }
             }
-        } catch (JahiaException e) {
-            logger.error(e.getMessage(), e);
-        } catch (RepositoryException e) {
+        } catch (JahiaException | RepositoryException e) {
             logger.error(e.getMessage(), e);
         }
         context.getRequestScope().put("sites", siteKeys);
@@ -611,11 +604,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         Map<Bundle, ModuleState> moduleStatesByBundle = templateManagerService.getModuleStates();
         for (Bundle bundle : moduleStatesByBundle.keySet()) {
             JahiaTemplatesPackage module = BundleUtils.getModule(bundle);
-            SortedMap<ModuleVersion, JahiaTemplatesPackage> modulesByVersion = result.get(module.getId());
-            if (modulesByVersion == null) {
-                modulesByVersion = new TreeMap<ModuleVersion, JahiaTemplatesPackage>();
-                result.put(module.getId(), modulesByVersion);
-            }
+            SortedMap<ModuleVersion, JahiaTemplatesPackage> modulesByVersion = result.computeIfAbsent(module.getId(), k -> new TreeMap<>());
             modulesByVersion.put(module.getVersion(), module);
         }
         return result;
@@ -740,11 +729,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         OperationConstraintsService opConstraintsService = BundleUtils.getOsgiService(OperationConstraintsService.class, null);
         for (Map.Entry<String, SortedMap<ModuleVersion, JahiaTemplatesPackage>> entry : getAllModuleVersions().entrySet()) {
 
-            Map<ModuleVersion, ModuleVersionState> moduleVersions = states.get(entry.getKey());
-            if (moduleVersions == null) {
-                moduleVersions = new TreeMap<ModuleVersion, ModuleVersionState>();
-                states.put(entry.getKey(), moduleVersions);
-            }
+            Map<ModuleVersion, ModuleVersionState> moduleVersions = states.computeIfAbsent(entry.getKey(), k -> new TreeMap<>());
 
             if (BundleUtils.getContextStartException(entry.getKey()) != null) {
                 errors.put(entry.getKey(), BundleUtils.getContextStartException(entry.getKey()).getLocalizedMessage());
@@ -961,7 +946,7 @@ public class ModuleManagementFlowHandler implements Serializable {
             final Long startedBundleId = (Long) requestContext.getExternalContext().getSessionMap().get(
                     "moduleHasBeenStarted");
             if (startedBundleId != null) {
-                Bundle b = BundleUtils.getBundle(startedBundleId.longValue());
+                Bundle b = BundleUtils.getBundle(startedBundleId);
                 JahiaTemplatesPackage module = BundleUtils.getModule(b);
                 String msgKey = "serverSettings.manageModules.module.started";
                 if (module != null && module.getState().getState() == ModuleState.State.WAITING_TO_BE_IMPORTED) {
@@ -992,10 +977,10 @@ public class ModuleManagementFlowHandler implements Serializable {
 
     public List<Module> getForgeModules() {
         OperationConstraintsService opConstraintsService = BundleUtils.getOsgiService(OperationConstraintsService.class, null);
-        List<Module> installedModule = new ArrayList<Module>();
-        List<Module> newModules = new ArrayList<Module>();
+        List<Module> installedModule = new ArrayList<>();
+        List<Module> newModules = new ArrayList<>();
         for (Module module : forgeService.getModules()) {
-            org.osgi.framework.Version osgiVersion = new org.osgi.framework.Version(JahiaDepends.toOsgiVersion(module.getVersion().toString()));
+            org.osgi.framework.Version osgiVersion = new org.osgi.framework.Version(JahiaDepends.toOsgiVersion(module.getVersion()));
             OperationConstraints ops = opConstraintsService.getConstraintForBundle(module.getId(), osgiVersion);
             module.setInstallable(!templateManagerService.differentModuleWithSameIdExists(module.getId(), module.getGroupId()) && (ops == null || ops.canDeploy(osgiVersion)));
 
@@ -1052,7 +1037,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         }
 
         if (bundle.getState() == Bundle.ACTIVE) {
-            requestContext.getExternalContext().getSessionMap().put("moduleHasBeenStarted", Long.valueOf(bundle.getBundleId()));
+            requestContext.getExternalContext().getSessionMap().put("moduleHasBeenStarted", bundle.getBundleId());
         }
         storeTablesUUID(requestContext);
     }
@@ -1091,7 +1076,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         while (it.hasNext()) {
             typeNames.add(it.nextNodeType().getName());
         }
-        return typeNames.toArray(new String[typeNames.size()]);
+        return typeNames.toArray(new String[0]);
     }
 
     public Map<String, String> listBranchOrTags(String moduleVersion, String scmURI) throws IOException {
@@ -1214,8 +1199,8 @@ public class ModuleManagementFlowHandler implements Serializable {
 
     private static class ModuleInstallationResult {
 
-        private Bundle bundle;
-        private String messageCode;
+        private final Bundle bundle;
+        private final String messageCode;
 
         public ModuleInstallationResult(Bundle bundle, String messageCode) {
             this.bundle = bundle;
