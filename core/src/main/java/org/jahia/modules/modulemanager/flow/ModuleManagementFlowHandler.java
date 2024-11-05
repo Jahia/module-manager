@@ -139,7 +139,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         File file = null;
         try {
             file = forgeService.downloadModuleFromForge(forgeId, url);
-            installBundles(file, context, url, false, autoStart, ignoreChecks);
+            handleModule(file, context, file.getName(), ignoreChecks, autoStart, ignoreChecks);
             return true;
         } catch (Exception e) {
             context.addMessage(new MessageBuilder().source("moduleFile")
@@ -162,14 +162,31 @@ public class ModuleManagementFlowHandler implements Serializable {
         }
 
         String originalFilename = moduleFile.getOriginalFilename();
-        boolean canHandleExtension = FilenameUtils.isExtension(StringUtils.lowerCase(originalFilename), "jar");
+
         File file = null;
         try {
             file = File.createTempFile("module-", "." + StringUtils.substringAfterLast(originalFilename, "."));
             moduleFile.transferTo(file);
+            return handleModule(file, context, originalFilename, forceUpdate, autoStart, ignoreChecks);
+        } catch (Exception e) {
+            context.addMessage(new MessageBuilder().source("moduleFile")
+                    .code("serverSettings.manageModules.install.failed")
+                    .arg(e.getMessage())
+                    .error()
+                    .build());
+            logger.error(e.getMessage(), e);
+        } finally {
+            FileUtils.deleteQuietly(file);
+        }
+        return false;
+    }
+    
 
+    private boolean handleModule(File file, MessageContext context, String originalFilename, boolean forceUpdate, boolean autoStart, boolean ignoreChecks) throws IOException, BundleException {
+        try {
+            boolean canHandleExtension = FilenameUtils.isExtension(StringUtils.lowerCase(originalFilename), "jar");
             //If it cannot be handled as Jar, look for impl that can handle this extension
-            if(!canHandleExtension) {
+            if (!canHandleExtension) {
                 BundleContext bundleContext = FrameworkService.getBundleContext();
                 Collection<ServiceReference<ArtifactUrlTransformer>> serviceReferences = bundleContext.getServiceReferences(ArtifactUrlTransformer.class, null);
                 for (ServiceReference<ArtifactUrlTransformer> serviceReference : serviceReferences) {
@@ -209,7 +226,6 @@ public class ModuleManagementFlowHandler implements Serializable {
         }
         return false;
     }
-
     private void installBundles(File file, MessageContext context, String originalFilename, boolean forceUpdate, boolean autoStart, boolean ignoreChecks) throws IOException, BundleException {
 
         JarFile jarFile = new JarFile(file);
