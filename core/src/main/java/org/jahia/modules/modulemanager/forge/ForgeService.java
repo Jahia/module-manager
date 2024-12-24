@@ -66,6 +66,7 @@ public class ForgeService {
     }
 
     public Set<Forge> getForges() {
+        loadForges();
         return forges;
     }
 
@@ -96,29 +97,27 @@ public class ForgeService {
 
     public void loadForges() {
         try {
-            JCRTemplate.getInstance().doExecuteWithSystemSession(new JCRCallback<Object>() {
-                @Override
-                public Object doInJCR(JCRSessionWrapper session) throws RepositoryException {
-                    if (session.itemExists("/settings/forgesSettings")) {
-                        Node forgesRoot = session.getNode("/settings/forgesSettings");
-                        if (forgesRoot != null) {
-                            NodeIterator ni = forgesRoot.getNodes();
-                            while (ni.hasNext()) {
-                                Node n = ni.nextNode();
-                                if (!n.isNodeType("jnt:forgeServerSettings")) {
-                                    continue;
-                                }
-                                Forge f = new Forge();
-                                f.setId(n.getIdentifier());
-                                f.setUrl(n.getProperty("j:url").getString());
-                                f.setUser(n.getProperty("j:user").getString());
-                                f.setPassword(n.getProperty(JCRUserNode.J_PASSWORD).getString());
-                                forges.add(f);
+            this.forges = JCRTemplate.getInstance().doExecuteWithSystemSession((JCRCallback<Set<Forge>>) session -> {
+                Set<Forge> loadForges = new HashSet<>();
+                if (session.itemExists("/settings/forgesSettings")) {
+                    Node forgesRoot = session.getNode("/settings/forgesSettings");
+                    if (forgesRoot != null) {
+                        NodeIterator ni = forgesRoot.getNodes();
+                        while (ni.hasNext()) {
+                            Node n = ni.nextNode();
+                            if (!n.isNodeType("jnt:forgeServerSettings")) {
+                                continue;
                             }
+                            Forge f = new Forge();
+                            f.setId(n.getIdentifier());
+                            f.setUrl(n.getProperty("j:url").getString());
+                            f.setUser(n.getProperty("j:user").getString());
+                            f.setPassword(n.getProperty(JCRUserNode.J_PASSWORD).getString());
+                            loadForges.add(f);
                         }
                     }
-                    return null;
                 }
+                return loadForges;
             });
 
         } catch (RepositoryException e) {
