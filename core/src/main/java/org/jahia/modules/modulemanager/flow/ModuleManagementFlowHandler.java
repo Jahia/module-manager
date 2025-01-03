@@ -149,6 +149,18 @@ public class ModuleManagementFlowHandler implements Serializable {
         return false;
     }
 
+    public Map<String, Boolean> installAllLatestVersions(MessageContext context) {
+        Map<String, Boolean> result = new HashMap<>();
+        getAvailableUpdates().entrySet().stream().forEach(stringModuleEntry -> {
+            try {
+                result.put(stringModuleEntry.getKey(), installModule(stringModuleEntry.getValue().getForgeId(), stringModuleEntry.getValue().getDownloadUrl(), false, false, context));
+            } catch (Exception e) {
+                logger.error("Error installing module " + stringModuleEntry.getKey(), e);
+            }
+        });
+        return result;
+    }
+
     public boolean uploadModule(MultipartFile moduleFile, MessageContext context, boolean forceUpdate, boolean autoStart, boolean ignoreChecks) {
         if (moduleFile == null) {
             context.addMessage(new MessageBuilder().error().source("moduleFile")
@@ -170,7 +182,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         }
         return false;
     }
-    
+
 
     private boolean handleModule(File file, MessageContext context, String originalFilename, boolean forceUpdate, boolean autoStart, boolean ignoreChecks) {
         try {
@@ -327,8 +339,9 @@ public class ModuleManagementFlowHandler implements Serializable {
 
     /**
      * Add module installation result to the message context
+     *
      * @param installationResult module installation result
-     * @param context message context
+     * @param context            message context
      * @throws BundleException thrown exception
      */
     private void addModuleInstallationMessage(ModuleInstallationResult installationResult, MessageContext context) throws BundleException {
@@ -340,8 +353,8 @@ public class ModuleManagementFlowHandler implements Serializable {
     }
 
     private ModuleInstallationResult installModule(File file, MessageContext context, List<String> providedBundles,
-            Map<Bundle, MessageResolver> collectedResolutionErrors,
-            boolean forceUpdate, boolean autoStart, boolean ignoreChecks) throws IOException, BundleException {
+                                                   Map<Bundle, MessageResolver> collectedResolutionErrors,
+                                                   boolean forceUpdate, boolean autoStart, boolean ignoreChecks) throws IOException, BundleException {
 
         JarFile jarFile = new JarFile(file);
         try {
@@ -1185,7 +1198,7 @@ public class ModuleManagementFlowHandler implements Serializable {
             Collection<String> changedWirings = wiringDiff.stream()
                     .map(ModuleWiring::getCapabilityName)
                     .collect(Collectors.toSet());
-            for (String c: changedWirings) {
+            for (String c : changedWirings) {
                 logger.error("Changed package wiring - BEFORE: {}, AFTER: {}", oldWirings.get(c), newWirings.get(c));
             }
         } else if (oldWirings != null && newWirings != null && logger.isDebugEnabled()) {
