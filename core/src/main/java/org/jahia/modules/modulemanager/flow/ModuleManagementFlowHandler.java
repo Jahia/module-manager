@@ -174,7 +174,8 @@ public class ModuleManagementFlowHandler implements Serializable {
 
     private boolean handleModule(File file, MessageContext context, String originalFilename, boolean forceUpdate, boolean autoStart, boolean ignoreChecks) {
         try {
-            boolean canHandleExtension = FilenameUtils.isExtension(StringUtils.lowerCase(originalFilename), "jar");
+            String fileNameLoweredCase = StringUtils.lowerCase(originalFilename);
+            boolean canHandleExtension = FilenameUtils.isExtension(fileNameLoweredCase, "jar");
             //If it cannot be handled as Jar, look for impl that can handle this extension
             if (!canHandleExtension) {
                 BundleContext bundleContext = FrameworkService.getBundleContext();
@@ -197,8 +198,16 @@ public class ModuleManagementFlowHandler implements Serializable {
 
             //If it is not a jar and none impl can handle this extension
             if (!canHandleExtension) {
-                context.addMessage(new MessageBuilder().error().source("moduleFile")
-                        .code("serverSettings.manageModules.install.wrongFormat").build());
+                MessageBuilder moduleFileMsgBuilder = new MessageBuilder().error().source("moduleFile");
+                // Use a custom error message for tgz files when no Javascript Modules Engine is installed
+                if (FilenameUtils.isExtension(fileNameLoweredCase, "tgz")) {
+                    context.addMessage(moduleFileMsgBuilder
+                            .code("serverSettings.manageModules.install.missingJavascriptEngine").build());
+                } else {
+                    context.addMessage(moduleFileMsgBuilder
+                            .code("serverSettings.manageModules.install.wrongFormat").build());
+                }
+
                 return false;
             }
 
