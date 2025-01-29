@@ -21,8 +21,11 @@
  *
  * ==========================================================================================
  */
-package org.jahia.modules.modulemanager.configuration;
+package org.jahia.modules.modulemanager.configuration.impl;
 
+import org.jahia.modules.modulemanager.configuration.OperationConstraint;
+import org.jahia.modules.modulemanager.configuration.OperationConstraints;
+import org.jahia.modules.modulemanager.configuration.OperationConstraintsService;
 import org.jahia.services.modulemanager.util.PropertiesList;
 import org.jahia.services.modulemanager.util.PropertiesManager;
 import org.jahia.services.modulemanager.util.PropertiesValues;
