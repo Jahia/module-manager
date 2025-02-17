@@ -36,6 +36,7 @@ public class Module implements Serializable, Comparable<Module> {
     private String groupId;
     private String forgeId;
     private String icon;
+    private String status;
     private boolean installable;
 
     public String getId() {
@@ -116,6 +117,14 @@ public class Module implements Serializable, Comparable<Module> {
 
     public void setInstallable(boolean installable) {
         this.installable = installable;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     @Override
