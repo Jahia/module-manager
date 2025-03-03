@@ -286,6 +286,17 @@
                     </div>
                 </div>
             </form:form>
+            <form action="${flowExecutionUrl}" method="POST" onsubmit="workInProgress('${i18nWaiting}');" class="form-inline">
+
+                <div class="form-group is-empty label-floating selectModule text-dark">
+
+                    <button class="btn btn-primary btn-raised"
+                            type="submit" onclick="event.stopPropagation(); return true"
+                            name="_eventId_updateAll">
+                         Update All Modules
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
