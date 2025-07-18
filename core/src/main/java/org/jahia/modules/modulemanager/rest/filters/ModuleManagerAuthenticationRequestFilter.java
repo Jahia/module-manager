@@ -29,6 +29,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
 import org.jahia.osgi.BundleUtils;
+import org.jahia.params.valves.AuthValveContext;
 import org.jahia.services.content.JCRSessionFactory;
 import org.jahia.services.content.JCRSessionWrapper;
 import org.jahia.services.securityfilter.PermissionService;
@@ -55,8 +56,9 @@ public class ModuleManagerAuthenticationRequestFilter implements ContainerReques
         try {
             JCRSessionWrapper currentUserSession = JCRSessionFactory.getInstance().getCurrentUserSession();
             final JahiaUser jahiaUser = currentUserSession.getUser();
+            AuthValveContext ctx = (AuthValveContext) httpServletRequest.getAttribute(AuthValveContext.class.getName());
             username = jahiaUser.getUserKey();
-            if (hasPermission(getAction(requestContext))) {
+            if (hasPermission(getAction(requestContext)) && ctx != null && !ctx.isAuthRetrievedFromSession()) {
                 requestContext.setSecurityContext(new SecurityContext() {
 
                     @Override
