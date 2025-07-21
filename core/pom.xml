@@ -36,7 +36,7 @@
             org.jahia.modules.modulemanager.forge,
             org.jahia.modules.modulemanager.configuration
         </export-package>
-        <jahia-module-signature>MCwCFGRO1618La8z9Xwz7WCEuFCBnLpiAhROR98/mU9DOs0iVtZRE8sUgkNKdQ==</jahia-module-signature>
+        <jahia-module-signature>MCwCFGrKO72IBietBAgu6aKeC9N13hS8AhQnbJd0QpzsuODi2GA3AxS/M/uwIg==</jahia-module-signature>
         <require-capability>osgi.extender;filter:="(osgi.extender=org.jahia.bundles.blueprint.extender.config)"</require-capability>
         <yarn.arguments>build:production</yarn.arguments>
         <sonar.sources>src/javascript,src/main/resources/javascript</sonar.sources>
