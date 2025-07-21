@@ -40,6 +40,7 @@
         <require-capability>osgi.extender;filter:="(osgi.extender=org.jahia.bundles.blueprint.extender.config)"</require-capability>
         <yarn.arguments>build:production</yarn.arguments>
         <sonar.sources>src/javascript,src/main/resources/javascript</sonar.sources>
+        <jahia.plugin.version>6.10</jahia.plugin.version>
     </properties>
 
     <repositories>
@@ -144,7 +145,7 @@
             <plugin>
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
-                <version>1.8.0</version>
+                <version>1.15.0</version>
                 <executions>
                     <execution>
                         <id>npm install node and yarn</id>
@@ -153,8 +154,8 @@
                             <goal>install-node-and-yarn</goal>
                         </goals>
                         <configuration>
-                            <nodeVersion>v16.20.2</nodeVersion>
-                            <yarnVersion>v1.22.11</yarnVersion>
+                            <nodeVersion>v18.20.4</nodeVersion>
+                            <yarnVersion>v1.22.22</yarnVersion>
                         </configuration>
                     </execution>
                     <execution>
