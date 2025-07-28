@@ -15,13 +15,6 @@
  */
 package org.jahia.test.services.modulemanager;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-
-import javax.jcr.RepositoryException;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang.StringUtils;
 import org.jahia.bin.Jahia;
 import org.jahia.osgi.BundleUtils;
@@ -38,6 +31,12 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
+
+import javax.jcr.RepositoryException;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
 
 public class ModuleManagementRestApiTest extends JahiaTestCase {
 
@@ -154,9 +153,9 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
     @Test
     public void shouldStoreAllPersistentBundleStates() throws RepositoryException, JSONException, IOException {
 
-        PostResult response = post(getBaseServerURL() + Jahia.getContextPath() + "/modules/api/bundles/_storeAllLocalPersistentStates");
+        PostResult response = post(getBaseServerURL() + Jahia.getContextPath() + "/modules/api/bundles/_storeAllLocalPersistentStates", getHeadersWithBasicAuth());
 
-        Assert.assertEquals(200, response.getStatusCode());
+        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatusCode());
         JSONArray bubdleInfosApi = new JSONArray(response.getResponseBody());
 
         HashMap<String, JSONObject> bundleInfoByLocationApi = new HashMap<>(bubdleInfosApi.length());
@@ -212,7 +211,7 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
     }
 
     private void verifyModuleInfoRetrievalError(String bundleSelector, int expectedResponseCode) {
-        getAsText(getUrl(bundleSelector), expectedResponseCode);
+        getAsText(getUrl(bundleSelector), getHeadersWithBasicAuth(), expectedResponseCode, null);
     }
 
     private static void verifyModuleInfo(JSONObject moduleInfo) throws JSONException {
@@ -230,7 +229,7 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
     }
 
     private JSONObject getBundleInfo(String bundleSelector) throws JSONException {
-        return new JSONObject(getAsText(getUrl(bundleSelector)));
+        return new JSONObject(getAsText(getUrl(bundleSelector), getHeadersWithBasicAuth(), HttpServletResponse.SC_OK, null));
     }
 
     private static String getUrl(String bundleSelector) {
