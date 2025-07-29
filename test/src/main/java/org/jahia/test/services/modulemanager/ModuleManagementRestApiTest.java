@@ -15,13 +15,17 @@
  */
 package org.jahia.test.services.modulemanager;
 
+import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
+import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpHeaders;
+import org.apache.xerces.impl.dv.util.Base64;
 import org.jahia.bin.Jahia;
 import org.jahia.osgi.BundleUtils;
 import org.jahia.osgi.FrameworkService;
 import org.jahia.services.content.JCRTemplate;
 import org.jahia.services.modulemanager.persistence.jcr.BundleInfoJcrHelper;
-import org.jahia.test.JahiaBasicAuthTestCase;
+import org.jahia.test.JahiaTestCase;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -31,15 +35,21 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jcr.RepositoryException;
+import javax.jcr.SimpleCredentials;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
-public class ModuleManagementRestApiTest extends JahiaBasicAuthTestCase {
+public class ModuleManagementRestApiTest extends JahiaTestCase {
 
+    private static final Logger logger = LoggerFactory.getLogger(ModuleManagementRestApiTest.class);
     private static final String JAHIA_MODULES_GROUP = "org.jahia.modules";
     private static final String MODULE_MANAGER_GROUP = JAHIA_MODULES_GROUP;
     private static final String MODULE_MANAGER_NAME = "module-manager";
@@ -89,16 +99,16 @@ public class ModuleManagementRestApiTest extends JahiaBasicAuthTestCase {
     @Test
     public void shouldRetrieveMultipleModuleInfosByKey() throws JSONException {
         verifyModuleInfosRetrieval(
-            getModuleManagerKey(MODULE_MANAGER_NAME),
-            getModuleManagerKey(MODULE_MANAGER_TEST_NAME)
+                getModuleManagerKey(MODULE_MANAGER_NAME),
+                getModuleManagerKey(MODULE_MANAGER_TEST_NAME)
         );
     }
 
     @Test
     public void shouldRetrieveMultipleModuleInfosByFullKey() throws JSONException {
         verifyModuleInfosRetrieval(
-            getModuleManagerKey(MODULE_MANAGER_FULL_NAME),
-            getModuleManagerKey(MODULE_MANAGER_TEST_FULL_NAME)
+                getModuleManagerKey(MODULE_MANAGER_FULL_NAME),
+                getModuleManagerKey(MODULE_MANAGER_TEST_FULL_NAME)
         );
     }
 
@@ -153,7 +163,7 @@ public class ModuleManagementRestApiTest extends JahiaBasicAuthTestCase {
     @Test
     public void shouldStoreAllPersistentBundleStates() throws RepositoryException, JSONException, IOException {
 
-        PostResult response = postWithBasicAuth(getBaseServerURL() + Jahia.getContextPath() + "/modules/api/bundles/_storeAllLocalPersistentStates");
+        PostResponse response = postWithBasicAuth(getBaseServerURL() + Jahia.getContextPath() + "/modules/api/bundles/_storeAllLocalPersistentStates");
 
         Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatusCode());
         JSONArray bubdleInfosApi = new JSONArray(response.getResponseBody());
@@ -175,7 +185,7 @@ public class ModuleManagementRestApiTest extends JahiaBasicAuthTestCase {
         }
 
         String bundleInfosJson = JCRTemplate.getInstance().doExecuteWithSystemSession(
-            session -> session.getNode(BundleInfoJcrHelper.PATH_MODULE_MANAGEMENT).getPropertyAsString(BundleInfoJcrHelper.PROP_BUNDLES_PERSISTENT_STATE)
+                session -> session.getNode(BundleInfoJcrHelper.PATH_MODULE_MANAGEMENT).getPropertyAsString(BundleInfoJcrHelper.PROP_BUNDLES_PERSISTENT_STATE)
         );
         JSONArray bundleInfosJcr = new JSONArray(bundleInfosJson);
         Assert.assertEquals(bundleInfoByLocationApi.size(), bundleInfosJcr.length());
@@ -265,5 +275,86 @@ public class ModuleManagementRestApiTest extends JahiaBasicAuthTestCase {
             throw new IllegalStateException("No " + symbolicName + " bundle installed");
         }
         return symbolicName + "/" + foundBundle.getVersion();
+    }
+
+
+    /**
+     * Copy of {@link JahiaTestCase#post(String, String[]...)} but with a basic authorization header.
+     *
+     * @param url    the URL
+     * @param params optional request parameters
+     * @return a new {@link org.jahia.test.JahiaTestCase.PostResult}
+     * @throws IOException if an error occurs
+     */
+    protected PostResponse postWithBasicAuth(String url, String[]... params) throws IOException {
+        PostMethod method = new PostMethod(url);
+
+        for (String[] param : params) {
+            method.addParameter(param[0], param[1]);
+        }
+        // add a basic auth header
+        Map.Entry<String, String> basicAuthHeader = getBasicAuthHeader();
+        method.addRequestHeader(basicAuthHeader.getKey(), basicAuthHeader.getValue());
+
+        method.getParams().setParameter("http.method.retry-handler", new DefaultHttpMethodRetryHandler(3, false));
+        int statusCode;
+        String statusLine;
+        String responseBody;
+
+        try {
+            statusCode = this.getHttpClient().executeMethod(method);
+            statusLine = method.getStatusLine().toString();
+            if (statusCode != 200) {
+                logger.warn("Method failed: {}", statusLine);
+            }
+
+            responseBody = method.getResponseBodyAsString();
+        } finally {
+            method.releaseConnection();
+        }
+
+        return new PostResponse(statusCode, responseBody);
+    }
+
+    /**
+     * Returns a map only containing a basic authorization header.
+     * This is a shortcut when only the basic auth header is needed.
+     *
+     * @return a map with a basic authorization header
+     */
+    private static Map<String, String> getHeadersWithBasicAuth() {
+        Map<String, String> headers = new HashMap<>();
+        headers.entrySet().add(getBasicAuthHeader());
+        return headers;
+    }
+
+    /**
+     * Returns an entry, with its name and value, of a basic authorization header.
+     *
+     * @return a map entry a basic auth header
+     */
+    private static Map.Entry<String, String> getBasicAuthHeader() {
+        SimpleCredentials credentials = getRootUserCredentials();
+        return new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, "Basic " + Base64.encode((credentials.getUserID() + ":" + String.valueOf(credentials.getPassword())).getBytes()));
+    }
+
+    private static class PostResponse {
+        private final int statusCode;
+        private final String responseBody;
+
+        PostResponse(int statusCode, String responseBody) {
+            super();
+            this.statusCode = statusCode;
+            this.responseBody = responseBody;
+        }
+
+        public int getStatusCode() {
+            return statusCode;
+        }
+
+
+        public String getResponseBody() {
+            return responseBody;
+        }
     }
 }
