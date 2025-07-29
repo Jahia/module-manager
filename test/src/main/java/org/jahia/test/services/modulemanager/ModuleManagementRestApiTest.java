@@ -15,10 +15,16 @@
  */
 package org.jahia.test.services.modulemanager;
 
-import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
-import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpHeaders;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.xerces.impl.dv.util.Base64;
 import org.jahia.bin.Jahia;
 import org.jahia.osgi.BundleUtils;
@@ -43,8 +49,10 @@ import javax.jcr.SimpleCredentials;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class ModuleManagementRestApiTest extends JahiaTestCase {
@@ -286,35 +294,38 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
      * @return a new {@link org.jahia.test.JahiaTestCase.PostResult}
      * @throws IOException if an error occurs
      */
-    protected PostResponse postWithBasicAuth(String url, String[]... params) throws IOException {
-        PostMethod method = new PostMethod(url);
+    private PostResponse postWithBasicAuth(String url, String[]... params) throws IOException {
+        HttpPost method = new HttpPost(url);
+        method.addHeader("Origin", getBaseServerURL());
 
-        for (String[] param : params) {
-            method.addParameter(param[0], param[1]);
-        }
         // add a basic auth header
         Map.Entry<String, String> basicAuthHeader = getBasicAuthHeader();
-        method.addRequestHeader(basicAuthHeader.getKey(), basicAuthHeader.getValue());
+        method.addHeader(basicAuthHeader.getKey(), basicAuthHeader.getValue());
 
-        method.getParams().setParameter("http.method.retry-handler", new DefaultHttpMethodRetryHandler(3, false));
+        List<NameValuePair> nvps = new ArrayList<>();
+        for (String[] param : params) {
+            nvps.add(new BasicNameValuePair(param[0], param[1]));
+        }
+        method.setEntity(new UrlEncodedFormEntity(nvps));
+
         int statusCode;
-        String statusLine;
         String responseBody;
 
-        try {
-            statusCode = this.getHttpClient().executeMethod(method);
-            statusLine = method.getStatusLine().toString();
-            if (statusCode != 200) {
-                logger.warn("Method failed: {}", statusLine);
+        try (CloseableHttpResponse response = getHttpClient().execute(method)) {
+            statusCode = response.getCode();
+            if (response.getCode() != HttpStatus.SC_OK) {
+                logger.warn("Method failed: {} {}", response.getCode(), response.getReasonPhrase());
             }
 
-            responseBody = method.getResponseBodyAsString();
-        } finally {
-            method.releaseConnection();
+            // Read the response body.
+            responseBody = EntityUtils.toString(response.getEntity());
+        } catch (ParseException e) {
+            throw new IOException(e);
         }
 
         return new PostResponse(statusCode, responseBody);
     }
+
 
     /**
      * Returns a map only containing a basic authorization header.
@@ -323,8 +334,9 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
      * @return a map with a basic authorization header
      */
     private static Map<String, String> getHeadersWithBasicAuth() {
+        Map.Entry<String, String> basicAuthHeaderEntry = getBasicAuthHeader();
         Map<String, String> headers = new HashMap<>();
-        headers.entrySet().add(getBasicAuthHeader());
+        headers.put(basicAuthHeaderEntry.getKey(), basicAuthHeaderEntry.getValue());
         return headers;
     }
 
