@@ -21,7 +21,7 @@ import org.jahia.osgi.BundleUtils;
 import org.jahia.osgi.FrameworkService;
 import org.jahia.services.content.JCRTemplate;
 import org.jahia.services.modulemanager.persistence.jcr.BundleInfoJcrHelper;
-import org.jahia.test.JahiaTestCase;
+import org.jahia.test.JahiaBasicAuthTestCase;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -38,7 +38,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 
-public class ModuleManagementRestApiTest extends JahiaTestCase {
+public class ModuleManagementRestApiTest extends JahiaBasicAuthTestCase {
 
     private static final String JAHIA_MODULES_GROUP = "org.jahia.modules";
     private static final String MODULE_MANAGER_GROUP = JAHIA_MODULES_GROUP;
@@ -153,7 +153,7 @@ public class ModuleManagementRestApiTest extends JahiaTestCase {
     @Test
     public void shouldStoreAllPersistentBundleStates() throws RepositoryException, JSONException, IOException {
 
-        PostResult response = post(getBaseServerURL() + Jahia.getContextPath() + "/modules/api/bundles/_storeAllLocalPersistentStates", getHeadersWithBasicAuth());
+        PostResult response = postWithBasicAuth(getBaseServerURL() + Jahia.getContextPath() + "/modules/api/bundles/_storeAllLocalPersistentStates");
 
         Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatusCode());
         JSONArray bubdleInfosApi = new JSONArray(response.getResponseBody());
