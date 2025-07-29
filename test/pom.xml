@@ -54,7 +54,7 @@
         <dependency>
             <groupId>org.jahia.test</groupId>
             <artifactId>jahia-test-module</artifactId>
-            <version>8.0.3.0</version>
+            <version>8.2.0.0</version> <!-- matches ${project.parent.parent.version} -->
             <scope>provided</scope>
         </dependency>
         <dependency>
