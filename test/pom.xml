@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.jahia.modules</groupId>
         <artifactId>module-manager-parent</artifactId>
-        <version>2.13.0-SNAPSHOT</version>
+        <version>2.13.0</version>
     </parent>
     <artifactId>module-manager-test</artifactId>
     <groupId>org.jahia.test</groupId>
@@ -60,7 +60,7 @@
         <dependency>
             <groupId>org.jahia.modules</groupId>
             <artifactId>module-manager</artifactId>
-            <version>2.13.0-SNAPSHOT</version>
+            <version>2.13.0</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
