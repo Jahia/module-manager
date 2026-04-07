@@ -8,6 +8,7 @@ describe('Correct Forge URL', () => {
         cy.visit('/jahia/administration/manageModules');
         cy.visit('/cms/adminframe/default/en/settings.manageModules.html');
         cy.get('#available-modules-tab').click();
+        cy.get('#availableModuleTabs i.material-icons').click();
         cy.get('#siteSettings input.form-control').clear();
         cy.get('#siteSettings input.form-control').type('jcontent');
         cy.get('#siteSettings b').should('have.text', 'jContent');
