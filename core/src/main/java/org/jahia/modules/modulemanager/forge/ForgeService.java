@@ -49,13 +49,14 @@ public class ForgeService {
 
     private static final Logger logger = LoggerFactory.getLogger(ForgeService.class);
     private final List<Module> modules = new ArrayList<Module>();
+    private final  long loadModulesDelay;
     private HttpClientService httpClientService;
-    private long loadModulesDelay;
     private long lastModulesLoad = new Date().getTime();
     private boolean flushModules = true;
     private ForgeConfigFactory forgeConfigFactory;
 
     public ForgeService() {
+        loadModulesDelay = SettingsBean.getInstance().getLong("jahia.settings.forgeModulesUpdateDelay",86400000L);
     }
 
     public Collection<ForgeConfig> getForgeConfigs() {
@@ -186,10 +187,6 @@ public class ForgeService {
     @Reference
     public void setHttpClientService(HttpClientService httpClientService) {
         this.httpClientService = httpClientService;
-    }
-
-    public void setLoadModulesDelay(long loadModulesDelay) {
-        this.loadModulesDelay = loadModulesDelay;
     }
 
     @Reference(service = ForgeConfigFactory.class)
