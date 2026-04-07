@@ -1,29 +1,24 @@
-describe('Tests', () => {
+import {DocumentNode} from 'graphql'
+
+describe('Incorrect Forge URL', () => {
+    let setIncorrectForgeUrl: DocumentNode
+    setIncorrectForgeUrl = require('graphql-tag/loader!../fixtures/graphql/mutation/setIncorrectForgeUrl.graphql')
+    
     before(() => {
-        cy.login()
+        cy.login();
+        cy.apollo({
+            mutation: setIncorrectForgeUrl
+        });
     })
 
-    it('Correct Forge URL - Check the presence of a "core" module', () => {
+    it('Check the absence of a "core" module', () => {
         cy.login();
         cy.visit('/jahia/administration/manageModules');
         cy.visit('/cms/adminframe/default/en/settings.manageModules.html');
         cy.get('#available-modules-tab').click();
+        cy.get('#availableModuleTabs i.material-icons').click();
         cy.get('#siteSettings input.form-control').clear();
-        cy.get('#siteSettings input.form-control').type('jcontent');
-        cy.get('#siteSettings b').should('have.text', 'jContent');
-    })
-
-    it('Correct Forge URL - check the download of a Jahia module', () => {
-        cy.login();
-        cy.visit('/jahia/administration/manageModules');
-        cy.visit('/cms/adminframe/default/en/settings.manageModules.html');
-        cy.get('#available-modules-tab').click();
-        cy.get('#siteSettings input.form-control').type('addstuff');
-        cy.contains('AddStuff').should('be.visible') ;
-        cy.get('#siteSettings [name="_eventId_installForgeModule"] i.material-icons').click();
-        cy.get('#installed-modules-tab').click();
-        cy.get('#siteSettings input.form-control').click();
-        cy.get('#siteSettings input.form-control').type('addstuff');
-        cy.contains('addStuff').should('be.visible');
+        cy.get('#siteSettings input.form-control').type('jontent');
+        cy.contains('jContent').should('not.exist');
     })
 })
