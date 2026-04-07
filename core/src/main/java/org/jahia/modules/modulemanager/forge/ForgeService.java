@@ -15,7 +15,6 @@
  */
 package org.jahia.modules.modulemanager.forge;
 
-import org.apache.commons.codec.net.URLCodec;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -24,25 +23,19 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.xerces.impl.dv.util.Base64;
 import org.jahia.bin.Jahia;
 import org.jahia.commons.Version;
-import org.jahia.services.content.*;
-import org.jahia.services.content.decorator.JCRUserNode;
 import org.jahia.services.notification.HttpClientService;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.web.util.UriUtils;
 
-import javax.jcr.Node;
-import javax.jcr.NodeIterator;
-import javax.jcr.PathNotFoundException;
-import javax.jcr.RepositoryException;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -50,123 +43,26 @@ import java.util.*;
  * Service to manage Forges
  */
 
+@Component(service = {ForgeService.class}, immediate = true)
 public class ForgeService {
 
     private static final Logger logger = LoggerFactory.getLogger(ForgeService.class);
-
+    private final List<Module> modules = new ArrayList<Module>();
     private HttpClientService httpClientService;
-    private Set<Forge> forges = new HashSet<Forge>();
-    private List<Module> modules = new ArrayList<Module>();
     private long loadModulesDelay;
     private long lastModulesLoad = new Date().getTime();
     private boolean flushModules = true;
+    private ForgeConfigFactory forgeConfigFactory;
 
     public ForgeService() {
-        loadForges();
     }
 
-    public Set<Forge> getForges() {
-        loadForges();
-        return forges;
+    public Collection<ForgeConfig> getForgeConfigs() {
+        return forgeConfigFactory.getConfigs();
     }
 
     public List<Module> getModules() {
         return modules;
-    }
-
-    public void addForge(Forge forge) {
-        for (Forge f : forges) {
-            if (StringUtils.equals(forge.getId(), f.getId())) {
-                f.setUser(forge.getUser());
-                f.setUrl(forge.getUrl());
-                f.setPassword(forge.getPassword());
-                return;
-            }
-        }
-        forges.add(forge);
-    }
-
-    public void removeForge(Forge forge) {
-        for (Forge f : forges) {
-            if (StringUtils.equals(forge.getId(), f.getId())) {
-                forges.remove(f);
-                return;
-            }
-        }
-    }
-
-    public void loadForges() {
-        try {
-            this.forges = JCRTemplate.getInstance().doExecuteWithSystemSession((JCRCallback<Set<Forge>>) session -> {
-                Set<Forge> loadForges = new HashSet<>();
-                if (session.itemExists("/settings/forgesSettings")) {
-                    Node forgesRoot = session.getNode("/settings/forgesSettings");
-                    if (forgesRoot != null) {
-                        NodeIterator ni = forgesRoot.getNodes();
-                        while (ni.hasNext()) {
-                            Node n = ni.nextNode();
-                            if (!n.isNodeType("jnt:forgeServerSettings")) {
-                                continue;
-                            }
-                            Forge f = new Forge();
-                            f.setId(n.getIdentifier());
-                            f.setUrl(n.getProperty("j:url").getString());
-                            f.setUser(n.getProperty("j:user").getString());
-                            f.setPassword(n.getProperty(JCRUserNode.J_PASSWORD).getString());
-                            loadForges.add(f);
-                        }
-                    }
-                }
-                return loadForges;
-            });
-
-        } catch (RepositoryException e) {
-            logger.error(e.getMessage(),e);
-        }
-    }
-
-    public void saveForges() {
-        try {
-            JCRTemplate.getInstance().doExecuteWithSystemSession(new JCRCallback<Object>() {
-                @Override
-                public Object doInJCR(JCRSessionWrapper session) throws RepositoryException {
-
-                    Node forgesRoot;
-
-                    // delete all previous nodes
-                    try {
-                        forgesRoot = session.getNode("/settings/forgesSettings");
-                        forgesRoot.remove();
-                    } catch (PathNotFoundException e) {
-                        // do nothing
-                    }
-
-                    if (!session.getNode("/").hasNode("settings")) {
-                        session.getNode("/").addNode("settings", "jnt:globalSettings");
-                        session.save();
-                    }
-                    if (!session.getNode("/settings").hasNode("forgesSettings")) {
-                        JCRNodeWrapper forgesNode = session.getNode("/settings").addNode("forgesSettings", "jnt:forgesServerSettings");
-                        forgesNode.setAclInheritanceBreak(true);
-                        session.save();
-                    }
-
-                    forgesRoot = session.getNode("/settings/forgesSettings");
-                    // write all forges
-                    for (Forge forge : forges) {
-                        Node forgeNode = forgesRoot.addNode(JCRContentUtils.generateNodeName(forge.getUrl()), "jnt:forgeServerSettings");
-                        forgeNode.setProperty("j:url", forge.getUrl());
-                        forgeNode.setProperty("j:user", forge.getUser());
-                        forgeNode.setProperty(JCRUserNode.J_PASSWORD, forge.getPassword());
-                        forge.setId(forgeNode.getIdentifier());
-                    }
-                    session.save();
-                    return null;
-                }
-            });
-        } catch (RepositoryException e) {
-            logger.error(e.getMessage(),e);
-        }
     }
 
     public Module findModule(String name, String groupId) {
@@ -178,23 +74,23 @@ public class ForgeService {
         return null;
     }
 
-
     public List<Module> loadModules() {
-        if(flushModules || (lastModulesLoad + loadModulesDelay) < new Date().getTime()){
+        if (flushModules || (lastModulesLoad + loadModulesDelay) < new Date().getTime()) {
             modules.clear();
-            for (Forge forge : forges) {
-                String url = forge.getUrl() + "/contents/modules-repository.moduleList.json";
-                Map<String, String> headers = new HashMap<String, String>();
-                if (!StringUtils.isEmpty(forge.getUser())) {
-                    headers.put("Authorization", "Basic " + Base64.encode((forge.getUser() + ":" + forge.getPassword()).getBytes()));
+            for (ForgeConfig forgeConfig : getForgeConfigs()) {
+                final String url = forgeConfig.getUrl() + "/contents/modules-repository.moduleList.json";
+                final Map<String, String> headers = new HashMap<String, String>();
+                final String user = forgeConfig.getUser();
+                final String password = forgeConfig.getPassword();
+                if (!StringUtils.isNotEmpty(user) && !StringUtils.isNotEmpty(password)) {
+                    headers.put("Authorization", "Basic " + Base64.encode((user + ":" + password).getBytes(StandardCharsets.UTF_8)));
                 }
                 headers.put("accept", "application/json");
 
-                String jsonModuleList = httpClientService.executeGet(url, headers);
+                final String jsonModuleList = httpClientService.executeGet(url, headers);
                 try {
-                    JSONArray modulesRoot = new JSONArray(jsonModuleList);
-
-                    JSONArray moduleList = modulesRoot.getJSONObject(0).getJSONArray("modules");
+                    final JSONArray modulesRoot = new JSONArray(jsonModuleList);
+                    final JSONArray moduleList = modulesRoot.getJSONObject(0).getJSONArray("modules");
                     for (int i = 0; i < moduleList.length(); i++) {
                         boolean add = true;
 
@@ -207,22 +103,20 @@ public class ForgeService {
                         }
                         if (add) {
                             final JSONArray moduleVersions = moduleObject.getJSONArray("versions");
-
-                            SortedMap<Version, JSONObject> sortedVersions = new TreeMap<Version, JSONObject>();
-
+                            final SortedMap<Version, JSONObject> sortedVersions = new TreeMap<Version, JSONObject>();
                             final Version jahiaVersion = new Version(Jahia.VERSION);
 
                             for (int j = 0; j < moduleVersions.length(); j++) {
-                                JSONObject object = moduleVersions.getJSONObject(j);
-                                Version version = new Version(object.getString("version"));
-                                Version requiredVersion = new Version(StringUtils.substringAfter(object.getString("requiredVersion"), "version-"));
+                                final JSONObject object = moduleVersions.getJSONObject(j);
+                                final Version version = new Version(object.getString("version"));
+                                final Version requiredVersion = new Version(StringUtils.substringAfter(object.getString("requiredVersion"), "version-"));
                                 if (requiredVersion.compareTo(jahiaVersion) <= 0 && requiredVersion.getMajorVersion() == jahiaVersion.getMajorVersion()) {
                                     sortedVersions.put(version, object);
                                 }
                             }
                             if (!sortedVersions.isEmpty()) {
-                                Module module = new Module();
-                                JSONObject versionObject = sortedVersions.get(sortedVersions.lastKey());
+                                final Module module = new Module();
+                                final JSONObject versionObject = sortedVersions.get(sortedVersions.lastKey());
                                 module.setRemoteUrl(moduleObject.getString("remoteUrl"));
                                 module.setRemotePath(moduleObject.getString("path"));
                                 if (moduleObject.has("icon")) {
@@ -233,58 +127,67 @@ public class ForgeService {
                                 module.setId(moduleObject.getString("name"));
                                 module.setGroupId(moduleObject.getString("groupId"));
                                 module.setDownloadUrl(versionObject.getString("downloadUrl"));
-                                module.setForgeId(forge.getId());
+                                module.setForgeId(forgeConfig.getPid());
                                 modules.add(module);
                             }
                         }
                     }
-                } catch (JSONException e) {
-                    logger.error("unable to parse JSON return string for " + url);
-                } catch (Exception e) {
-                    logger.error("unable to get store information" + e.getMessage());
+                } catch (JSONException ex) {
+                    logger.error("Unable to parse JSON return string for {}", url, ex);
+                } catch (Exception ex) {
+                    logger.error("Unable to get store information", ex);
                 }
             }
             Collections.sort(modules);
             lastModulesLoad = new Date().getTime();
             flushModules = false;
         }
-
         return modules;
     }
 
-    public long getLastUpdateTime(){
+    public long getLastUpdateTime() {
         return lastModulesLoad;
     }
 
-    public void flushModules(){
+    public void flushModules() {
         flushModules = true;
     }
 
     public File downloadModuleFromForge(String forgeId, String url) {
-        for (Forge forge : forges) {
-            if (forgeId.equals(forge.getId())) {
-                HttpGet httpMethod = new HttpGet(UriComponentsBuilder.fromHttpUrl(url).build(false).toUri());
-                httpMethod.addHeader("Authorization", "Basic " + Base64.encode((forge.getUser() + ":" + forge.getPassword()).getBytes()));
-                CloseableHttpClient httpClient = httpClientService.getHttpClient(url);
+        for (ForgeConfig forgeConfig : getForgeConfigs()) {
+            if (forgeId.equals(forgeConfig.getPid())) {
+                final HttpGet httpMethod = new HttpGet(UriComponentsBuilder.fromHttpUrl(url).build(false).toUri());
+                final String user = forgeConfig.getUser();
+                final String password = forgeConfig.getPassword();
+                if (!StringUtils.isNotEmpty(user) && !StringUtils.isNotEmpty(password)) {
+                    httpMethod.addHeader("Authorization", "Basic " + Base64.encode((user + ":" + password).getBytes(StandardCharsets.UTF_8)));
+                }
+                final CloseableHttpClient httpClient = httpClientService.getHttpClient(url);
                 try (CloseableHttpResponse httpResponse = httpClient.execute(httpMethod)) {
                     if (httpResponse.getCode() == HttpServletResponse.SC_OK) {
-                        File f = File.createTempFile("module", "." + StringUtils.substringAfterLast(url, "."));
+                        final File f = File.createTempFile("module", "." + StringUtils.substringAfterLast(url, "."));
                         FileUtils.copyInputStreamToFile(httpResponse.getEntity().getContent(), f);
                         return f;
                     }
-                } catch (IOException e) {
-                    logger.error(e.getMessage(),e);  //To change body of catch statement use File | Settings | File Templates.
+                } catch (IOException ex) {
+                    logger.error("Impossible to download module {}", url, ex);
                 }
             }
         }
         return null;
     }
 
+    @Reference
     public void setHttpClientService(HttpClientService httpClientService) {
         this.httpClientService = httpClientService;
     }
 
     public void setLoadModulesDelay(long loadModulesDelay) {
         this.loadModulesDelay = loadModulesDelay;
+    }
+
+    @Reference(service = ForgeConfigFactory.class)
+    public void setForgeConfigFactory(ForgeConfigFactory forgeConfigFactory) {
+        this.forgeConfigFactory = forgeConfigFactory;
     }
 }
