@@ -24,6 +24,7 @@ import org.apache.xerces.impl.dv.util.Base64;
 import org.jahia.bin.Jahia;
 import org.jahia.commons.Version;
 import org.jahia.services.notification.HttpClientService;
+import org.jahia.settings.SettingsBean;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -55,6 +56,7 @@ public class ForgeService {
     private ForgeConfigFactory forgeConfigFactory;
 
     public ForgeService() {
+        SettingsBean.getInstance().getLong("jahia.settings.forgeModulesUpdateDelay",86400000L);
     }
 
     public Collection<ForgeConfig> getForgeConfigs() {
@@ -75,10 +77,13 @@ public class ForgeService {
     }
 
     public List<Module> loadModules() {
-        if (flushModules || (lastModulesLoad + loadModulesDelay) < new Date().getTime()) {
+        boolean expired = (lastModulesLoad + loadModulesDelay) < new Date().getTime();
+        logger.debug("Start to load modules, flushModules: {}, expired: {}", flushModules, expired);
+        if (flushModules || expired) {
             modules.clear();
             for (ForgeConfig forgeConfig : getForgeConfigs()) {
                 final String url = forgeConfig.getUrl() + "/contents/modules-repository.moduleList.json";
+                logger.debug("Start retrieving module list from {}", url);
                 final Map<String, String> headers = new HashMap<String, String>();
                 final String user = forgeConfig.getUser();
                 final String password = forgeConfig.getPassword();
@@ -137,11 +142,13 @@ public class ForgeService {
                 } catch (Exception ex) {
                     logger.error("Unable to get store information", ex);
                 }
+                logger.debug("End retrieving module list from {}", url);
             }
             Collections.sort(modules);
             lastModulesLoad = new Date().getTime();
             flushModules = false;
         }
+        logger.debug("End to load modules");
         return modules;
     }
 
