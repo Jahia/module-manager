@@ -2,8 +2,10 @@ import {DocumentNode} from 'graphql'
 
 describe('Incorrect Forge URL', () => {
     let setIncorrectForgeUrl: DocumentNode
+    let setCorrectForgeUrl: DocumentNode
     setIncorrectForgeUrl = require('graphql-tag/loader!../fixtures/graphql/mutation/setIncorrectForgeUrl.graphql')
-    
+    setCorrectForgeUrl = require('graphql-tag/loader!../fixtures/graphql/mutation/setCorrectForgeUrl.graphql')
+
     before(() => {
         cy.login();
         cy.apollo({
@@ -20,5 +22,12 @@ describe('Incorrect Forge URL', () => {
         cy.get('#siteSettings input.form-control').clear();
         cy.get('#siteSettings input.form-control').type('jontent');
         cy.contains('jContent').should('not.exist');
+    })
+
+    after(() => {
+        cy.login();
+        cy.apollo({
+            mutation: setCorrectForgeUrl
+        });
     })
 })
