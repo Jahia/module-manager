@@ -27,6 +27,7 @@ public class ForgeConfig {
 
     public static ForgeConfig build(String pid, Dictionary<String, ?> properties) {
         final ForgeConfig forgeConfig = new ForgeConfig();
+        forgeConfig.setPid(pid);
         if (properties != null) {
             final Map<String, String> filteredProperties = ConfigUtil.getMap(properties);
             forgeConfig.setUrl(filteredProperties.getOrDefault("url", null));
