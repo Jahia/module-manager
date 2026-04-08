@@ -16,7 +16,7 @@ describe('Two Forge URLs', () => {
             locale: 'en',
         });
         publishAndWaitJobEnding('/sites/' + siteKey);
-        cy.apollo({
+        cy.apolloClient({username: 'root', password: Cypress.env('SUPER_USER_PASSWORD')}).apollo({
             mutation: addForgeUrl
         });
     })

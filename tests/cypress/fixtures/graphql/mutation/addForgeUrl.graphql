@@ -1,4 +1,4 @@
-mutation addForgeUrl {
+mutation addForgeUrl($username: String!, $password: String) {
   admin {
     jahia {
       configuration(
@@ -7,8 +7,8 @@ mutation addForgeUrl {
         updateOnly: false
       ) {
         url: value(name: "url", value: "http://jahia:8080")
-        user: value(name: "root", value: "root")
-        password: value(name: "password", value: "root1234")
+        user: value(name: "root", value: $username)
+        password: value(name: "password", value: $password)
       }
     }
   }
