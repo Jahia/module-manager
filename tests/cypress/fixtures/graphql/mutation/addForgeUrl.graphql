@@ -1,0 +1,15 @@
+mutation addForgeUrl {
+  admin {
+    jahia {
+      configuration(
+        pid: "org.jahia.modules.modulemanager.forge.configuration"
+        identifier: "second"
+        updateOnly: false
+      ) {
+        url: value(name: "url", value: "http://jahia:8080")
+        user: value(name: "root", value: "root")
+        password: value(name: "password", value: "root1234")
+      }
+    }
+  }
+}

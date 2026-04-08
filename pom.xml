@@ -55,6 +55,7 @@
     <modules>
         <module>core</module>
         <module>test</module>
+        <module>test-modules/forge-mockup</module>
     </modules>
 
 </project>

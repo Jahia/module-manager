@@ -1,2 +1,3 @@
 - addMavenRepository: 'https://devtools.jahia.com/nexus/content/groups/public/@snapshots@noreleases@id=JahiaPublicSnapshots'
 - include: 'provisioning.yml'
+
