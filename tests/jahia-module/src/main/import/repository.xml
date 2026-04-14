@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <content xmlns:j="http://www.jahia.org/jahia/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0">
+   <settings jcr:primaryType="jnt:globalSettings">
+      <forgesSettings jcr:mixinTypes="jmix:accessControlled" jcr:primaryType="jnt:forgesServerSettings">
+         <j:acl j:inherit="false" jcr:primaryType="jnt:acl"/>
+         <httpstorejahiacomensitesprivate j:password="" j:url="https://store.jahia.com/en/sites/private-app-store"
+                                          j:user="" jcr:primaryType="jnt:forgeServerSettings"/>
+         <httpcustomstore j:password="" j:url="https://store.jahia.org/en/sites/private-app-store" j:user=""
+                          jcr:primaryType="jnt:forgeServerSettings"/>
+      </forgesSettings>
+   </settings>
    <modules jcr:primaryType="jnt:modules">
       <forge-mockup j:dependencies="default"
                     j:installedModules="forge-mockup"
