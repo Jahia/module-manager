@@ -106,9 +106,6 @@ public class ModuleManagementFlowHandler implements Serializable {
     private transient JahiaSitesService sitesService;
 
     @Autowired
-    private transient ForgeService forgeService;
-
-    @Autowired
     private transient ModuleManager moduleManager;
 
     @Autowired
@@ -138,6 +135,7 @@ public class ModuleManagementFlowHandler implements Serializable {
     public boolean installModule(String forgeId, String url, boolean autoStart, boolean ignoreChecks, MessageContext context) {
         File file = null;
         try {
+            final ForgeService forgeService = BundleUtils.getOsgiService(ForgeService.class, null);
             file = forgeService.downloadModuleFromForge(forgeId, url);
             handleModule(file, context, file.getName(), ignoreChecks, autoStart, ignoreChecks);
             return true;
@@ -699,6 +697,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         OperationConstraintsService opConstraintsService = BundleUtils.getOsgiService(OperationConstraintsService.class, null);
         Map<String, Module> availableUpdate = new HashMap<String, Module>();
         Map<String, SortedMap<ModuleVersion, JahiaTemplatesPackage>> moduleStates = getAllModuleVersions();
+        final ForgeService forgeService = BundleUtils.getOsgiService(ForgeService.class, null);
         for (String key : moduleStates.keySet()) {
             SortedMap<ModuleVersion, JahiaTemplatesPackage> moduleVersions = moduleStates.get(key);
             Module forgeModule = forgeService.findModule(key, moduleVersions.get(moduleVersions.firstKey()).getGroupId());
@@ -927,6 +926,7 @@ public class ModuleManagementFlowHandler implements Serializable {
     }
 
     public Date getLastModulesUpdateTime() {
+        final ForgeService forgeService = BundleUtils.getOsgiService(ForgeService.class, null);
         return new Date(forgeService.getLastUpdateTime());
     }
 
@@ -951,6 +951,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         }
 
         if (!isStudio(renderContext)) {
+            final ForgeService forgeService = BundleUtils.getOsgiService(ForgeService.class, null);
             forgeService.loadModules();
             final Long startedBundleId = (Long) requestContext.getExternalContext().getSessionMap().get(
                     "moduleHasBeenStarted");
@@ -980,6 +981,7 @@ public class ModuleManagementFlowHandler implements Serializable {
     }
 
     public void reloadModules() {
+        final ForgeService forgeService = BundleUtils.getOsgiService(ForgeService.class, null);
         forgeService.flushModules();
         forgeService.loadModules();
     }
@@ -988,6 +990,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         OperationConstraintsService opConstraintsService = BundleUtils.getOsgiService(OperationConstraintsService.class, null);
         List<Module> installedModule = new ArrayList<>();
         List<Module> newModules = new ArrayList<>();
+        final ForgeService forgeService = BundleUtils.getOsgiService(ForgeService.class, null);
         for (Module module : forgeService.getModules()) {
             org.osgi.framework.Version osgiVersion = new org.osgi.framework.Version(JahiaDepends.toOsgiVersion(module.getVersion()));
             OperationConstraints ops = opConstraintsService.getConstraintForBundle(module.getId(), osgiVersion);

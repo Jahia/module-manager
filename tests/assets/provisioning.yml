@@ -1,0 +1,3 @@
+- karafCommand: "log:log 'START - provisioning'"
+- karafCommand: "log:log 'END - provisioning'"
+

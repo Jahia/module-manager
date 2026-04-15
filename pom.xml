@@ -55,6 +55,7 @@
     <modules>
         <module>core</module>
         <module>test</module>
+        <module>tests/jahia-module</module>
     </modules>
 
 </project>
