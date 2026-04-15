@@ -1,17 +1,17 @@
-import {DocumentNode} from 'graphql'
+import {DocumentNode} from 'graphql';
 
 describe('Incorrect Forge URL', () => {
-    let setIncorrectForgeUrl: DocumentNode
-    let setCorrectForgeUrl: DocumentNode
-    setIncorrectForgeUrl = require('graphql-tag/loader!../fixtures/graphql/mutation/setIncorrectForgeUrl.graphql')
-    setCorrectForgeUrl = require('graphql-tag/loader!../fixtures/graphql/mutation/setCorrectForgeUrl.graphql')
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const setIncorrectForgeUrl: DocumentNode = require('graphql-tag/loader!../fixtures/graphql/mutation/setIncorrectForgeUrl.graphql');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const setCorrectForgeUrl: DocumentNode = require('graphql-tag/loader!../fixtures/graphql/mutation/setCorrectForgeUrl.graphql');
 
     before(() => {
         cy.login();
         cy.apollo({
             mutation: setIncorrectForgeUrl
         });
-    })
+    });
 
     it('Check the absence of a "core" module', () => {
         cy.login();
@@ -22,12 +22,12 @@ describe('Incorrect Forge URL', () => {
         cy.get('#siteSettings input.form-control').clear();
         cy.get('#siteSettings input.form-control').type('jontent');
         cy.contains('jContent').should('not.exist');
-    })
+    });
 
     after(() => {
         cy.login();
         cy.apollo({
             mutation: setCorrectForgeUrl
         });
-    })
-})
+    });
+});

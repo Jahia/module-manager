@@ -1,38 +1,37 @@
-import {DocumentNode} from 'graphql'
+import {DocumentNode} from 'graphql';
 
 describe('Patch check', () => {
-    let getForgeUrl: DocumentNode
-    let getNodeTypeByName: DocumentNode
-    getForgeUrl = require('graphql-tag/loader!../fixtures/graphql/query/getForgeUrl.graphql')
-    getNodeTypeByName = require('graphql-tag/loader!../fixtures/graphql/query/getNodeTypeByName.graphql')
-
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const getForgeUrl: DocumentNode = require('graphql-tag/loader!../fixtures/graphql/query/getForgeUrl.graphql');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const getNodeTypeByName: DocumentNode = require('graphql-tag/loader!../fixtures/graphql/query/getNodeTypeByName.graphql');
     it('Check the migration of the forge settings to configuration files', () => {
         cy.login();
-        cy.executeGroovy('checkTempFolderMarker.groovy').then((result: any) => {
+        cy.executeGroovy('checkTempFolderMarker.groovy').then(result => {
             // .installed if the marker file is there, otherwise an exception is thrown and the result would be .failed
-            if(result === ".installed"){
-                console.log("Migration has been done")
+            if (result === '.installed') {
+                console.log('Migration has been done');
                 cy.apollo({
                     query: getForgeUrl,
                     variables: {
-                        "identifier": "default"
+                        identifier: 'default'
                     }
-                }).should((response: any) => {
+                }).should(response => {
                     expect(response.data.admin.jahia.configuration.value).to.equal('https://store.jahia.com/en/sites/private-app-store');
-                })
+                });
                 cy.apollo({
                     query: getForgeUrl,
                     variables: {
-                        "identifier": "httpcustomstore"
+                        identifier: 'httpcustomstore'
                     }
-                }).should((response: any) => {
+                }).should(response => {
                     expect(response.data.admin.jahia.configuration.value).to.equal('https://store.jahia.org/en/sites/private-app-store');
-                })
-            }else{
-                console.log("Migration has not been done")
+                });
+            } else {
+                console.log('Migration has not been done');
             }
         });
-    })
+    });
 
     it('Check that the legacy nodetypes are not present anymore', () => {
         cy.login();
@@ -40,7 +39,7 @@ describe('Patch check', () => {
             errorPolicy: 'all',
             query: getNodeTypeByName,
             variables: {
-                "name": "jnt:forgeServerSettings"
+                name: 'jnt:forgeServerSettings'
             }
         }).should(response => {
             expect(response.errors[0].message).to.contain('javax.jcr.nodetype.NoSuchNodeTypeException: Unknown type : jnt:forgeServerSettings');
@@ -49,7 +48,7 @@ describe('Patch check', () => {
             errorPolicy: 'all',
             query: getNodeTypeByName,
             variables: {
-                "name": "jnt:forgesServerSettings"
+                name: 'jnt:forgesServerSettings'
             }
         }).should(response => {
             expect(response.errors[0].message).to.contain('javax.jcr.nodetype.NoSuchNodeTypeException: Unknown type : jnt:forgesServerSettings');
@@ -58,10 +57,10 @@ describe('Patch check', () => {
             errorPolicy: 'all',
             query: getNodeTypeByName,
             variables: {
-                "name": "jnt:serverSettingsManageForges"
+                name: 'jnt:serverSettingsManageForges'
             }
         }).should(response => {
             expect(response.errors[0].message).to.contain('javax.jcr.nodetype.NoSuchNodeTypeException: Unknown type : jnt:serverSettingsManageForges');
         });
-    })
-})
+    });
+});

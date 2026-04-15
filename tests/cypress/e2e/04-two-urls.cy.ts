@@ -1,11 +1,10 @@
-import {DocumentNode} from 'graphql'
-import {createSite, publishAndWaitJobEnding} from "@jahia/cypress";
+import {DocumentNode} from 'graphql';
+import {createSite, publishAndWaitJobEnding} from '@jahia/cypress';
 
 describe('Two Forge URLs', () => {
-
-    let addForgeUrl: DocumentNode
-    addForgeUrl = require('graphql-tag/loader!../fixtures/graphql/mutation/addForgeUrl.graphql')
-    const siteKey = 'mySite'
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const addForgeUrl: DocumentNode = require('graphql-tag/loader!../fixtures/graphql/mutation/addForgeUrl.graphql');
+    const siteKey = 'mySite';
 
     before(() => {
         cy.login();
@@ -13,17 +12,17 @@ describe('Two Forge URLs', () => {
             languages: 'en',
             templateSet: 'forge-mockup',
             serverName: 'jahia',
-            locale: 'en',
+            locale: 'en'
         });
         publishAndWaitJobEnding('/sites/' + siteKey);
         cy.apollo({
             mutation: addForgeUrl,
             variables: {
-                username: `root`,
+                username: 'root',
                 password: Cypress.env('SUPER_USER_PASSWORD')
             }
         });
-    })
+    });
 
     it('Check the presence of a mockup module', () => {
         cy.login();
@@ -34,5 +33,5 @@ describe('Two Forge URLs', () => {
         cy.get('#siteSettings input.form-control').click();
         cy.get('#siteSettings input.form-control').type('mockup');
         cy.contains('module-mockup').should('be.visible');
-    })
-})
+    });
+});
