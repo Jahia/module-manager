@@ -5,9 +5,10 @@ import org.jahia.services.content.nodetypes.ExtendedNodeType
 import org.jahia.services.content.nodetypes.NodeTypeRegistry
 import org.jahia.services.modulemanager.spi.Config
 import org.jahia.services.modulemanager.spi.ConfigService
-
 import javax.jcr.RepositoryException
 import javax.jcr.query.Query
+import java.nio.file.FileSystems
+import java.nio.file.Files
 
 def removedNodeTypes = [
         [module: "system-jahia", nodeTypes: [
@@ -64,6 +65,7 @@ removedNodeTypes.each { map ->
 
 private void deleteNodes(Iterator<ExtendedNodeType> it, boolean delete) {
     def configService = BundleUtils.getOsgiService(ConfigService.class, null)
+    boolean migrated = false
     while (it.hasNext()) {
         ExtendedNodeType nodeType = it.next()
         String nodeTypeName = nodeType.getName()
@@ -84,7 +86,7 @@ private void deleteNodes(Iterator<ExtendedNodeType> it, boolean delete) {
                 while (nodes.hasNext()) {
                     javax.jcr.Node node = nodes.next()
                     if (nodeTypeName == "jnt:forgeServerSettings" && configService != null) {
-                        migrateForgeSettings(node, configService)
+                        migrated = migrated || migrateForgeSettings(node, configService)
                     }
                     if (nodeType.isMixin() && !node.getPrimaryNodeType().isNodeType(nodeTypeName)) {
                         if (delete) {
@@ -110,6 +112,11 @@ private void deleteNodes(Iterator<ExtendedNodeType> it, boolean delete) {
             log.info(e.getMessage())
         }
     }
+
+    // Create an empty directory to know if configurations have been migrated, needed for Cypress tests
+    if (migrated) {
+        def tempDirectory = Files.createFile(FileSystems.getDefault().getPath(System.getProperty("java.io.tmpdir"), "forge_nodes_migrated.txt"))
+    }
 }
 
 private void deleteNodeTypes(Iterator<ExtendedNodeType> it, boolean unregister) {
@@ -129,15 +136,15 @@ private void deleteNodeTypes(Iterator<ExtendedNodeType> it, boolean unregister) 
     }
 }
 
-private void migrateForgeSettings(javax.jcr.Node node, ConfigService configService) {
+private boolean migrateForgeSettings(javax.jcr.Node node, ConfigService configService) {
     if (!node.hasProperty("j:url")) {
         log.info("No JCR forge settings to convert")
-        return
+        return false
     }
     String url = node.getProperty("j:url").getString()
     if (url.contains("store.jahia.com")) {
         log.info("Not converting JCR forge settings ${node.getPath()} to Karaf cfg file")
-        return
+        return false
     }
     Config config = configService.getConfig("org.jahia.modules.modulemanager.forge.configuration", node.getName())
     Map<String, String> properties = config.getRawProperties()
@@ -150,4 +157,5 @@ private void migrateForgeSettings(javax.jcr.Node node, ConfigService configServi
     }
     configService.storeConfig(config)
     log.info("Converting JCR forge settings ${node.getPath()} to Karaf cfg file")
+    return true
 }

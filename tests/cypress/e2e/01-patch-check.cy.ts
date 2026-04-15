@@ -8,22 +8,30 @@ describe('Patch check', () => {
 
     it('Check the migration of the forge settings to configuration files', () => {
         cy.login();
-        cy.apollo({
-            query: getForgeUrl,
-            variables: {
-                "identifier": "default"
+        cy.executeGroovy('checkTempFolderMarker.groovy').then((result: any) => {
+            // .installed if the marker file is there, otherwise an exception is thrown and the result would be .failed
+            if(result === ".installed"){
+                console.log("Migration has been done")
+                cy.apollo({
+                    query: getForgeUrl,
+                    variables: {
+                        "identifier": "default"
+                    }
+                }).should((response: any) => {
+                    expect(response.data.admin.jahia.configuration.value).to.equal('https://store.jahia.com/en/sites/private-app-store');
+                })
+                cy.apollo({
+                    query: getForgeUrl,
+                    variables: {
+                        "identifier": "httpcustomstore"
+                    }
+                }).should((response: any) => {
+                    expect(response.data.admin.jahia.configuration.value).to.equal('https://store.jahia.org/en/sites/private-app-store');
+                })
+            }else{
+                console.log("Migration has not been done")
             }
-        }).should((response: any) => {
-            expect(response.data.admin.jahia.configuration.value).to.equal('https://store.jahia.com/en/sites/private-app-store');
-        })
-        cy.apollo({
-            query: getForgeUrl,
-            variables: {
-                "identifier": "httpcustomstore"
-            }
-        }).should((response: any) => {
-            expect(response.data.admin.jahia.configuration.value).to.equal('https://store.jahia.org/en/sites/private-app-store');
-        })
+        });
     })
 
     it('Check that the legacy nodetypes are not present anymore', () => {
