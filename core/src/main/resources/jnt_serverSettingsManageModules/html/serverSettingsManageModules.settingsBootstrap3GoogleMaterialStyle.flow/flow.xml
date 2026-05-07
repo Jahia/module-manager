@@ -57,6 +57,9 @@
         <transition on="installModuleOnly" to="view">
             <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, false, false, messageContext)"/>
         </transition>
+        <transition on="updateAll" to="view">
+            <evaluate expression="flowHandler.installAllLatestVersions(messageContext)"/>
+        </transition>
         <transition on="reloadModules" to="view">
             <evaluate expression="flowHandler.reloadModules()"/>
         </transition>
