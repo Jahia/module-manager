@@ -8,7 +8,7 @@
 ## Deployment
 
  * Supports standard configuration deployment options
-   * Through provisioning (see [Provisioning - Install/edit configuration](https://github.com/Jahia/jahia/tree/master/bundles/provisioning#install--edit-configuration))
+   * Through provisioning (see [Provisioning - Install/edit configuration](https://github.com/Jahia/jahia/tree/main/bundles/provisioning#install--edit-configuration))
    * Manual deploy in `karaf/etc` folder
 
 ## Format
