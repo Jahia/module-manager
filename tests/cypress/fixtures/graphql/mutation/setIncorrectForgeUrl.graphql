@@ -1,0 +1,13 @@
+mutation incorrectForgeUrl {
+  admin {
+    jahia {
+      configuration(
+        pid: "org.jahia.modules.modulemanager.forge.configuration"
+        identifier: "default"
+        updateOnly: true
+      ) {
+        value(name: "url", value: "https://storeXXX.jahia.com/en/sites/private-app-store")
+      }
+    }
+  }
+}

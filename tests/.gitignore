@@ -1,0 +1,11 @@
+.env
+.nyc_output/
+artifacts/
+results/
+build-dependencies
+coverage
+cypress/videos
+instrumented/
+node_modules/
+run-artifacts
+.yarn/
