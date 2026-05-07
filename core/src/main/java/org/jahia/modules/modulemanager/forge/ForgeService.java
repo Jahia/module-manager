@@ -66,7 +66,6 @@ public class ForgeService {
     }
 
     public Set<Forge> getForges() {
-        loadForges();
         return forges;
     }
 
@@ -97,27 +96,29 @@ public class ForgeService {
 
     public void loadForges() {
         try {
-            this.forges = JCRTemplate.getInstance().doExecuteWithSystemSession((JCRCallback<Set<Forge>>) session -> {
-                Set<Forge> loadForges = new HashSet<>();
-                if (session.itemExists("/settings/forgesSettings")) {
-                    Node forgesRoot = session.getNode("/settings/forgesSettings");
-                    if (forgesRoot != null) {
-                        NodeIterator ni = forgesRoot.getNodes();
-                        while (ni.hasNext()) {
-                            Node n = ni.nextNode();
-                            if (!n.isNodeType("jnt:forgeServerSettings")) {
-                                continue;
+            JCRTemplate.getInstance().doExecuteWithSystemSession(new JCRCallback<Object>() {
+                @Override
+                public Object doInJCR(JCRSessionWrapper session) throws RepositoryException {
+                    if (session.itemExists("/settings/forgesSettings")) {
+                        Node forgesRoot = session.getNode("/settings/forgesSettings");
+                        if (forgesRoot != null) {
+                            NodeIterator ni = forgesRoot.getNodes();
+                            while (ni.hasNext()) {
+                                Node n = ni.nextNode();
+                                if (!n.isNodeType("jnt:forgeServerSettings")) {
+                                    continue;
+                                }
+                                Forge f = new Forge();
+                                f.setId(n.getIdentifier());
+                                f.setUrl(n.getProperty("j:url").getString());
+                                f.setUser(n.getProperty("j:user").getString());
+                                f.setPassword(n.getProperty(JCRUserNode.J_PASSWORD).getString());
+                                forges.add(f);
                             }
-                            Forge f = new Forge();
-                            f.setId(n.getIdentifier());
-                            f.setUrl(n.getProperty("j:url").getString());
-                            f.setUser(n.getProperty("j:user").getString());
-                            f.setPassword(n.getProperty(JCRUserNode.J_PASSWORD).getString());
-                            loadForges.add(f);
                         }
                     }
+                    return null;
                 }
-                return loadForges;
             });
 
         } catch (RepositoryException e) {
@@ -233,15 +234,20 @@ public class ForgeService {
                                 module.setId(moduleObject.getString("name"));
                                 module.setGroupId(moduleObject.getString("groupId"));
                                 module.setDownloadUrl(versionObject.getString("downloadUrl"));
+                                if (moduleObject.has("status")) {
+                                    module.setStatus(moduleObject.getString("status"));
+                                }else {
+                                    module.setStatus("unknown");
+                                }
                                 module.setForgeId(forge.getId());
                                 modules.add(module);
                             }
                         }
                     }
                 } catch (JSONException e) {
-                    logger.error("unable to parse JSON return string for " + url);
+                    logger.error("unable to parse JSON return string for " + url, e);
                 } catch (Exception e) {
-                    logger.error("unable to get store information" + e.getMessage());
+                    logger.error("unable to get store information" + e.getMessage(), e);
                 }
             }
             Collections.sort(modules);
