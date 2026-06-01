@@ -92,7 +92,7 @@ private void deleteNodes(Iterator<ExtendedNodeType> it, boolean delete) {
         try {
             JCRTemplate.getInstance().doExecuteWithSystemSessionAsUser(null, "default", null, callback)
         } catch (Exception e) {
-            log.info(e.getMessage())
+            log.error(e.getMessage())
         }
     }
 
