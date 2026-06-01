@@ -89,7 +89,7 @@ public class ForgeService {
                 final Map<String, String> headers = new HashMap<String, String>();
                 final String user = forgeConfig.getUser();
                 final String password = forgeConfig.getPassword();
-                if (!StringUtils.isNotEmpty(user) && !StringUtils.isNotEmpty(password)) {
+                if (StringUtils.isNotEmpty(user) && StringUtils.isNotEmpty(password)) {
                     headers.put(HttpHeaders.AUTHORIZATION, "Basic " + Base64.encode((user + ":" + password).getBytes(StandardCharsets.UTF_8)));
                 }
                 headers.put(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON);
@@ -168,7 +168,7 @@ public class ForgeService {
                 final HttpGet httpMethod = new HttpGet(UriComponentsBuilder.fromHttpUrl(url).build(false).toUri());
                 final String user = forgeConfig.getUser();
                 final String password = forgeConfig.getPassword();
-                if (!StringUtils.isNotEmpty(user) && !StringUtils.isNotEmpty(password)) {
+                if (StringUtils.isNotEmpty(user) && StringUtils.isNotEmpty(password)) {
                     httpMethod.addHeader(HttpHeaders.AUTHORIZATION, "Basic " + Base64.encode((user + ":" + password).getBytes(StandardCharsets.UTF_8)));
                 }
                 final CloseableHttpClient httpClient = httpClientService.getHttpClient(url);
