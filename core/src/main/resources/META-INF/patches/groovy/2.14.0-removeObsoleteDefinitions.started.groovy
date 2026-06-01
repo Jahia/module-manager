@@ -87,7 +87,9 @@ private void deleteNodes(Iterator<ExtendedNodeType> it, boolean delete) {
                     }
                 }
                 log.info("Called remove for node: $nodeTypeName for workspace: ${session.getWorkspace().getName()} (effective: $delete)")
-                session.save()
+                if (delete) {
+                    session.save()
+                }
                 return null
             }
         }
