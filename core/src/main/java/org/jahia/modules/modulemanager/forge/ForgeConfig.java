@@ -72,7 +72,7 @@ public class ForgeConfig {
     public void validate(HttpClientService httpClientService) {
         // try basic http connexion
         final HttpGet httpMethod = new HttpGet(url + "/contents/modules-repository.moduleList.json");
-        if (!StringUtils.isNotEmpty(user) && !StringUtils.isNotEmpty(password)) {
+        if (StringUtils.isNotEmpty(user) && StringUtils.isNotEmpty(password)) {
             httpMethod.addHeader("Authorization", "Basic " + Base64.encode((user + ":" + password).getBytes()));
         }
         final CloseableHttpClient httpClient = httpClientService.getHttpClient(url);
