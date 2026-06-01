@@ -68,23 +68,4 @@ public class ForgeConfig {
     public void setPassword(String password) {
         this.password = password;
     }
-
-    public void validate(HttpClientService httpClientService) {
-        // try basic http connexion
-        final HttpGet httpMethod = new HttpGet(url + "/contents/modules-repository.moduleList.json");
-        if (StringUtils.isNotEmpty(user) && StringUtils.isNotEmpty(password)) {
-            httpMethod.addHeader("Authorization", "Basic " + Base64.getEncoder().encode((user + ":" + password).getBytes(StandardCharsets.UTF_8)));
-        }
-        final CloseableHttpClient httpClient = httpClientService.getHttpClient(url);
-        try (CloseableHttpResponse httpResponse = httpClient.execute(httpMethod)) {
-            if (httpResponse.getCode() == 200) {
-                logger.debug("Success reaching forge URL {}", url);
-            } else {
-                logger.warn("Failure reaching forge URL {}, status code {}", url, httpResponse.getCode());
-            }
-        } catch (Exception ex) {
-            logger.error("Failure reaching forge URL {}", url, ex);
-        }
-    }
-
 }
