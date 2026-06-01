@@ -2,6 +2,7 @@ package org.jahia.modules.modulemanager.forge;
 
 import org.jahia.bin.Jahia;
 import org.osgi.framework.Constants;
+import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
 import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
@@ -34,7 +35,7 @@ public class ForgeConfigFactory implements ManagedServiceFactory {
     }
 
     @Override
-    public void updated(String pid, Dictionary<String, ?> properties) {
+    public void updated(String pid, Dictionary<String, ?> properties) throws ConfigurationException {
         logger.info("Updating Jahia Forge configuration for pid: {}, config size: {}", pid, properties.size());
         final ForgeConfig config = ForgeConfig.build(pid, properties);
         configs.put(pid, config);
