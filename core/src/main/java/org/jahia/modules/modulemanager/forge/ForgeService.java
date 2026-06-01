@@ -177,6 +177,8 @@ public class ForgeService {
                         final File f = File.createTempFile("module", "." + StringUtils.substringAfterLast(url, "."));
                         FileUtils.copyInputStreamToFile(httpResponse.getEntity().getContent(), f);
                         return f;
+                    } else {
+                        logger.error("Impossible to download module {}, status code {}", url, httpResponse.getCode());
                     }
                 } catch (IOException ex) {
                     logger.error("Impossible to download module {}", url, ex);
