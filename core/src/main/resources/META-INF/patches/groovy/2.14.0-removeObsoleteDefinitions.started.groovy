@@ -99,7 +99,10 @@ private void deleteNodes(Iterator<ExtendedNodeType> it, boolean delete) {
 
     // Create an empty directory to know if configurations have been migrated, needed for Cypress tests
     if (migrated) {
-        def tempDirectory = Files.createFile(FileSystems.getDefault().getPath(System.getProperty("java.io.tmpdir"), "forge_nodes_migrated.txt"))
+        def path = FileSystems.getDefault().getPath(System.getProperty("java.io.tmpdir"), "forge_nodes_migrated.txt")
+        if (!Files.exists(path)) {
+            Files.createFile(path)
+        }
     }
 }
 
