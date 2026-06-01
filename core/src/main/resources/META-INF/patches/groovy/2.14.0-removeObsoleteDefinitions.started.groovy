@@ -50,7 +50,7 @@ removedNodeTypes.each { map ->
 
 private void deleteNodes(Iterator<ExtendedNodeType> it, boolean delete) {
     def configService = BundleUtils.getOsgiService(ConfigService.class, null)
-    boolean migrated = false
+    boolean migrated = true
     while (it.hasNext()) {
         ExtendedNodeType nodeType = it.next()
         String nodeTypeName = nodeType.getName()
@@ -71,7 +71,7 @@ private void deleteNodes(Iterator<ExtendedNodeType> it, boolean delete) {
                 while (nodes.hasNext()) {
                     javax.jcr.Node node = nodes.next()
                     if (nodeTypeName == "jnt:forgeServerSettings" && configService != null) {
-                        migrated = migrated || migrateForgeSettings(node, configService)
+                        migrated = migrated && migrateForgeSettings(node, configService)
                     }
 
                     if (delete) {
