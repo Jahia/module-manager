@@ -1,4 +1,4 @@
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 import org.jahia.osgi.BundleUtils
 import org.jahia.services.content.*
 import org.jahia.services.content.nodetypes.ExtendedNodeType
