@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component(
         service = {ForgeConfigFactory.class, ManagedServiceFactory.class},
@@ -23,7 +23,7 @@ import java.util.Map;
 )
 public class ForgeConfigFactory implements ManagedServiceFactory {
     private static final Logger logger = LoggerFactory.getLogger(ForgeConfigFactory.class);
-    private final Map<String, ForgeConfig> configs = new HashMap<>();
+    private final Map<String, ForgeConfig> configs = new ConcurrentHashMap<>();
 
     public ForgeConfigFactory() {
         logger.debug("Creating Jahia Forge Config Factory");
