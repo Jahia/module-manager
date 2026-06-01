@@ -4,13 +4,13 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
-import org.apache.xerces.impl.dv.util.Base64;
 import org.jahia.modules.modulemanager.util.ConfigUtil;
 import org.jahia.services.notification.HttpClientService;
-import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Dictionary;
 import java.util.Map;
 
@@ -73,7 +73,7 @@ public class ForgeConfig {
         // try basic http connexion
         final HttpGet httpMethod = new HttpGet(url + "/contents/modules-repository.moduleList.json");
         if (StringUtils.isNotEmpty(user) && StringUtils.isNotEmpty(password)) {
-            httpMethod.addHeader("Authorization", "Basic " + Base64.encode((user + ":" + password).getBytes()));
+            httpMethod.addHeader("Authorization", "Basic " + Base64.getEncoder().encode((user + ":" + password).getBytes(StandardCharsets.UTF_8)));
         }
         final CloseableHttpClient httpClient = httpClientService.getHttpClient(url);
         try (CloseableHttpResponse httpResponse = httpClient.execute(httpMethod)) {
