@@ -6,6 +6,7 @@ import org.jahia.services.content.nodetypes.NodeTypeRegistry
 import org.jahia.services.modulemanager.spi.Config
 import org.jahia.services.modulemanager.spi.ConfigService
 import javax.jcr.RepositoryException
+import javax.jcr.nodetype.NoSuchNodeTypeException
 import javax.jcr.query.Query
 import java.nio.file.FileSystems
 import java.nio.file.Files
@@ -32,7 +33,7 @@ removedNodeTypes.each { map ->
         List<ExtendedNodeType> nodeTypes = map.nodeTypes.collectMany { typeEntry ->
             try {
                 [registry.getNodeType(typeEntry.name as String)]
-            } catch (Exception ignored) {
+            } catch (NoSuchNodeTypeException ignored) {
                 []
             }
         }
