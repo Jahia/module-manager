@@ -77,7 +77,11 @@ public class ForgeConfig {
         }
         final CloseableHttpClient httpClient = httpClientService.getHttpClient(url);
         try (CloseableHttpResponse httpResponse = httpClient.execute(httpMethod)) {
-            logger.debug("Success reaching forge URL {}", url);
+            if (httpResponse.getCode() == 200) {
+                logger.debug("Success reaching forge URL {}", url);
+            } else {
+                logger.warn("Failure reaching forge URL {}, status code {}", url, httpResponse.getCode());
+            }
         } catch (Exception ex) {
             logger.error("Failure reaching forge URL {}", url, ex);
         }
