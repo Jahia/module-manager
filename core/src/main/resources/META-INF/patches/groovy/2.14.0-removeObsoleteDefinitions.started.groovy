@@ -10,6 +10,7 @@ import javax.jcr.nodetype.NoSuchNodeTypeException
 import javax.jcr.query.Query
 import java.nio.file.FileSystems
 import java.nio.file.Files
+import java.util.concurrent.atomic.AtomicBoolean
 
 def removedNodeTypes = [
         [module: "system-jahia", nodeTypes: [
@@ -51,7 +52,10 @@ removedNodeTypes.each { map ->
 
 private void deleteNodes(Iterator<ExtendedNodeType> it, boolean delete) {
     def configService = BundleUtils.getOsgiService(ConfigService.class, null)
-    boolean migrated = true
+    // Shared mutable holder: the migration flag is updated from inside an anonymous inner
+    // class (JCRCallback) below. Reassigning a captured local from an anonymous inner class
+    // is not reliably propagated in Groovy, so we mutate a holder by reference instead.
+    AtomicBoolean migrated = new AtomicBoolean(true)
     while (it.hasNext()) {
         ExtendedNodeType nodeType = it.next()
         String nodeTypeName = nodeType.getName()
@@ -72,7 +76,7 @@ private void deleteNodes(Iterator<ExtendedNodeType> it, boolean delete) {
                 while (nodes.hasNext()) {
                     javax.jcr.Node node = nodes.next()
                     if (nodeTypeName == "jnt:forgeServerSettings" && configService != null) {
-                        migrated = migrated && migrateForgeSettings(node, configService)
+                        migrated.set(migrated.get() && migrateForgeSettings(node, configService))
                     }
 
                     if (delete) {
@@ -98,7 +102,7 @@ private void deleteNodes(Iterator<ExtendedNodeType> it, boolean delete) {
     }
 
     // Create an empty directory to know if configurations have been migrated, needed for Cypress tests
-    if (migrated) {
+    if (migrated.get()) {
         def path = FileSystems.getDefault().getPath(System.getProperty("java.io.tmpdir"), "forge_nodes_migrated.txt")
         if (!Files.exists(path)) {
             Files.createFile(path)
