@@ -42,21 +42,6 @@ removedNodeTypes.each { map ->
             deleteNodes(nodeTypes.iterator(), delete)
         }
 
-        // In second, unregister the nodetypes depending on the definitions hierarchy
-        nodeTypes = map.nodeTypes.sort { it.order ?: 0 }.collectMany { typeEntry ->
-            try {
-                [registry.getNodeType(typeEntry.name as String)]
-            } catch (Exception ignored) {
-                []
-            }
-        }
-
-        if (!nodeTypes.isEmpty()) {
-            log.info("Removing nodeTypes [${nodeTypes.join(',')}] from module $moduleName")
-            deleteNodeTypes(nodeTypes.iterator(), unregister)
-            JCRStoreService.getInstance().deployDefinitions(moduleName)
-        }
-
     } catch (Exception e) {
         log.error(e.getMessage(), e)
     }
@@ -116,23 +101,6 @@ private void deleteNodes(Iterator<ExtendedNodeType> it, boolean delete) {
     // Create an empty directory to know if configurations have been migrated, needed for Cypress tests
     if (migrated) {
         def tempDirectory = Files.createFile(FileSystems.getDefault().getPath(System.getProperty("java.io.tmpdir"), "forge_nodes_migrated.txt"))
-    }
-}
-
-private void deleteNodeTypes(Iterator<ExtendedNodeType> it, boolean unregister) {
-    NodeTypeRegistry registry = NodeTypeRegistry.getInstance()
-
-    while (it.hasNext()) {
-        ExtendedNodeType nodeType = it.next()
-        String nodeTypeName = nodeType.getName()
-        try {
-            log.info("Called remove for nodeType: $nodeTypeName for workspace (effective: $unregister)")
-            if (unregister) {
-                registry.unregisterNodeType(nodeTypeName)
-            }
-        } catch (Exception e) {
-            log.info(e.getMessage())
-        }
     }
 }
 
