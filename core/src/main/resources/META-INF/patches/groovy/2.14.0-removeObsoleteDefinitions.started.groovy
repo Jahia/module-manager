@@ -73,15 +73,11 @@ private void deleteNodes(Iterator<ExtendedNodeType> it, boolean delete) {
                     if (nodeTypeName == "jnt:forgeServerSettings" && configService != null) {
                         migrated = migrated || migrateForgeSettings(node, configService)
                     }
-                    if (nodeType.isMixin() && !node.getPrimaryNodeType().isNodeType(nodeTypeName)) {
-                        if (delete) {
-                            node.removeMixin(nodeTypeName)
-                        }
-                    } else {
-                        if (delete) {
-                            node.remove()
-                        }
+
+                    if (delete) {
+                        node.remove()
                     }
+
                     if ((++count % 100) == 0) {
                         session.save()
                     }
