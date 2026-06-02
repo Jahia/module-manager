@@ -1,7 +1,0 @@
-query getNodeTypeByName($name: String!) {
-  jcr {
-    nodeTypeByName(name: $name){
-      name
-    }
-  }
-}

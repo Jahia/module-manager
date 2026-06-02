@@ -3,8 +3,6 @@ import {DocumentNode} from 'graphql';
 describe('Patch check', () => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const getForgeUrl: DocumentNode = require('graphql-tag/loader!../fixtures/graphql/query/getForgeUrl.graphql');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const getNodeTypeByName: DocumentNode = require('graphql-tag/loader!../fixtures/graphql/query/getNodeTypeByName.graphql');
     it('Check the migration of the forge settings to configuration files', () => {
         cy.login();
         cy.executeGroovy('checkTempFolderMarker.groovy').then(result => {

@@ -4,11 +4,11 @@ import {createSite, publishAndWaitJobEnding, deleteSite} from '@jahia/cypress';
 describe('Two Forge URLs with one private', () => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const addForgeUrl: DocumentNode = require('graphql-tag/loader!../fixtures/graphql/mutation/addForgeUrl.graphql');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const revokeUser: DocumentNode = require('graphql-tag/loader!../fixtures/graphql/mutation/revokeUser.graphql');
     const siteKey = 'mySite';
-    const sitePath = `/sites/` + siteKey;
-    const principal = "u:guest";
-
+    const sitePath = '/sites/' + siteKey;
+    const principal = 'u:guest';
 
     before(() => {
         cy.login();
@@ -46,14 +46,14 @@ describe('Two Forge URLs with one private', () => {
         // Check that the site holding the forge mockup is private
         cy.logout();
         cy.request({
-            url: `http://jahia:8080`,
+            url: 'http://jahia:8080',
             failOnStatusCode: false
-        }).its('status').should('eq', 401)
+        }).its('status').should('eq', 401);
         // Check that the json file is not seen as quest
         cy.request({
-            url: `http://jahia:8080/contents/modules-repository.moduleList.json`,
+            url: 'http://jahia:8080/contents/modules-repository.moduleList.json',
             failOnStatusCode: false
-        }).its('status').should('eq', 404)
+        }).its('status').should('eq', 404);
 
         cy.login();
         cy.visit('/jahia/administration/manageModules');
