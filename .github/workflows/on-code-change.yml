@@ -8,56 +8,13 @@ on:
     types: [opened, reopened, synchronize]
 
 jobs:
-  update-signature:
-    name: Update module signature
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: jahia/jahia-modules-action/update-signature@v2
-        with:
-          nexus_username: ${{ secrets.NEXUS_USERNAME }}
-          nexus_password: ${{ secrets.NEXUS_PASSWORD }}
-
-  static-analysis:
-    name: Static Analysis (linting, vulns)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Jahia/jahia-modules-action/static-analysis@v2
-        with:
-          node_version: 12
-          auditci_level: critical
-
-  build:
-    name: Build Module
-    needs: update-signature
-    runs-on: ubuntu-latest
-    env:
-      NEXUS_INTERNAL_URL: https://devtools.jahia.com/nexus/content/groups/internal/
-    container:
-      image: ghcr.io/jahia/jahia-docker-mvn-cache:11-jdk-noble-mvn-loaded
-      credentials:
-        username: ${{ secrets.GH_PACKAGES_USERNAME }}
-        password: ${{ secrets.GH_PACKAGES_TOKEN }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: jahia/jahia-modules-action/build@v2
-        with:
-          nexus_username: ${{ secrets.NEXUS_USERNAME }}
-          nexus_password: ${{ secrets.NEXUS_PASSWORD }}
-
-  sonar-analysis:
-    name: Sonar Analysis
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: jahia/jahia-modules-action/sonar-analysis@v2
-        with:
-          primary_release_branch: main
-          github_pr_id: ${{github.event.number}}
-          sonar_url: ${{ secrets.SONAR_URL }}
-          sonar_token: ${{ secrets.SONAR_TOKEN }}
-          nexus_username: ${{ secrets.NEXUS_USERNAME }}
-          nexus_password: ${{ secrets.NEXUS_PASSWORD }}
-
+  on-code-change:
+    uses: Jahia/jahia-modules-action/.github/workflows/reusable-on-code-change.yml@v2
+    secrets: inherit
+    with:
+      module_id: module-manager
+      module_branch: ${{ github.ref }}
+      update_signature_execute: true
+      static_analysis_auditci_level: critical
+      static_analysis_node_version: 12
+      sonar_analysis_primary_release_branch: main
