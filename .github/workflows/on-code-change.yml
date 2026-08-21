@@ -13,8 +13,5 @@ jobs:
     secrets: inherit
     with:
       module_id: module-manager
-      module_branch: ${{ github.ref }}
       update_signature_execute: true
-      static_analysis_auditci_level: critical
       static_analysis_node_version: 12
-      sonar_analysis_primary_release_branch: main
