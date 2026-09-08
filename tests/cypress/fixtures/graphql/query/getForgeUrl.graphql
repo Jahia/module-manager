@@ -1,0 +1,12 @@
+query getForgeUrls($identifier: String!) {
+  admin {
+    jahia {
+      configuration(
+        pid: "org.jahia.modules.modulemanager.forge.configuration"
+        identifier: $identifier
+      ) {
+        value(name: "url")
+      }
+    }
+  }
+}

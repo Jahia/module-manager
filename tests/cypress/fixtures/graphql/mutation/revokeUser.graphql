@@ -1,0 +1,16 @@
+mutation revokeUser($pathOrId: String!, $name: String!, $principal: String!) {
+  jcr(workspace: EDIT) {
+    mutateNode(pathOrId: $pathOrId) {
+      mutateProperty(name: "j:inherit") {
+        setValue(value: "true", type: BOOLEAN)
+      }
+      addChild(
+        name: $name
+        primaryNodeType: "jnt:ace"
+        properties: [{name: "j:aceType", language: "en", value: "DENY"}, {name: "j:principal", language: "en", value: $principal}, {name: "j:protected", language: "en", type: BOOLEAN, value: "false"}, {name: "j:roles", values: ["reader"]}]
+      ) {
+        uuid
+      }
+    }
+  }
+}
