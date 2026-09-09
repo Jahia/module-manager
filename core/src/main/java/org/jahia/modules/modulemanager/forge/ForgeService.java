@@ -183,6 +183,11 @@ public class ForgeService {
         if(flushModules || (lastModulesLoad + loadModulesDelay) < new Date().getTime()){
             modules.clear();
             for (Forge forge : forges) {
+                if (!ForgeUrlValidator.isAllowed(forge.getUrl())) {
+                    // a forge persisted with a non-routable or malformed URL is not one we fetch from
+                    logger.warn("Skipping forge whose configured URL is not a valid routable http(s) URL: {}", forge.getUrl());
+                    continue;
+                }
                 String url = forge.getUrl() + "/contents/modules-repository.moduleList.json";
                 Map<String, String> headers = new HashMap<String, String>();
                 if (!StringUtils.isEmpty(forge.getUser())) {

@@ -81,6 +81,16 @@ public class Forge implements Serializable {
 
     public void validateView(ValidationContext context) {
         if (!StringUtils.equals((String) context.getUserValue("actionType"),"delete")) {
+            if (!ForgeUrlValidator.isAllowed(url)) {
+                // the store fetches only from a routable http(s) endpoint; anything else is a
+                // configuration error, reported without contacting the URL
+                context.getMessageContext().addMessage(new MessageBuilder()
+                        .error()
+                        .source("testUrl")
+                        .code("serverSettings.manageForges.error.httpError").arg("invalid or non-routable URL")
+                        .build());
+                return;
+            }
             // try basic http connexion
             HttpGet httpMethod = new HttpGet(url + "/contents/modules-repository.moduleList.json");
             httpMethod.addHeader("Authorization", "Basic " + Base64.encode((user + ":" + password).getBytes()));
