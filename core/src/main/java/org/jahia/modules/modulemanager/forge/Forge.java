@@ -33,6 +33,7 @@ public class Forge implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(Forge.class);
 
     private static final long serialVersionUID = 2031426003900898977L;
+    private static final String TEST_URL_SOURCE = "testUrl";
     String url;
     String user;
     String password;
@@ -86,7 +87,7 @@ public class Forge implements Serializable {
                 // configuration error, reported without contacting the URL
                 context.getMessageContext().addMessage(new MessageBuilder()
                         .error()
-                        .source("testUrl")
+                        .source(TEST_URL_SOURCE)
                         .code("serverSettings.manageForges.error.httpError").arg("invalid or non-routable URL")
                         .build());
                 return;
@@ -99,14 +100,14 @@ public class Forge implements Serializable {
                 if (httpResponse.getCode() != 200) {
                     context.getMessageContext().addMessage(new MessageBuilder()
                             .error()
-                            .source("testUrl")
+                            .source(TEST_URL_SOURCE)
                             .code("serverSettings.manageForges.error.cannotVerify").arg(httpResponse.getCode())
                             .build());
                 }
             } catch (Exception e) {
                 context.getMessageContext().addMessage(new MessageBuilder()
                         .error()
-                        .source("testUrl")
+                        .source(TEST_URL_SOURCE)
                         .code("serverSettings.manageForges.error.httpError").arg(e.getMessage())
                         .build());
                 logger.error(e.getMessage(), e);
