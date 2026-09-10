@@ -183,6 +183,11 @@ public class ForgeService {
         if(flushModules || (lastModulesLoad + loadModulesDelay) < new Date().getTime()){
             modules.clear();
             for (Forge forge : forges) {
+                if (!ForgeUrlValidator.isAllowed(forge.getUrl())) {
+                    // a forge persisted with a non-routable or malformed URL is not one we fetch from
+                    logger.warn("Skipping forge whose configured URL is not a valid routable http(s) URL: {}", forge.getUrl());
+                    continue;
+                }
                 String url = forge.getUrl() + "/contents/modules-repository.moduleList.json";
                 Map<String, String> headers = new HashMap<String, String>();
                 if (!StringUtils.isEmpty(forge.getUser())) {
@@ -191,58 +196,7 @@ public class ForgeService {
                 headers.put("accept", "application/json");
 
                 String jsonModuleList = httpClientService.executeGet(url, headers);
-                try {
-                    JSONArray modulesRoot = new JSONArray(jsonModuleList);
-
-                    JSONArray moduleList = modulesRoot.getJSONObject(0).getJSONArray("modules");
-                    for (int i = 0; i < moduleList.length(); i++) {
-                        boolean add = true;
-
-                        final JSONObject moduleObject = moduleList.getJSONObject(i);
-                        for (Module m : modules) {
-                            if (StringUtils.equals(m.getId(), moduleObject.getString("name")) && StringUtils.equals(m.getGroupId(), moduleObject.getString("groupId"))) {
-                                add = false;
-                                break;
-                            }
-                        }
-                        if (add) {
-                            final JSONArray moduleVersions = moduleObject.getJSONArray("versions");
-
-                            SortedMap<Version, JSONObject> sortedVersions = new TreeMap<Version, JSONObject>();
-
-                            final Version jahiaVersion = new Version(Jahia.VERSION);
-
-                            for (int j = 0; j < moduleVersions.length(); j++) {
-                                JSONObject object = moduleVersions.getJSONObject(j);
-                                Version version = new Version(object.getString("version"));
-                                Version requiredVersion = new Version(StringUtils.substringAfter(object.getString("requiredVersion"), "version-"));
-                                if (requiredVersion.compareTo(jahiaVersion) <= 0 && requiredVersion.getMajorVersion() == jahiaVersion.getMajorVersion()) {
-                                    sortedVersions.put(version, object);
-                                }
-                            }
-                            if (!sortedVersions.isEmpty()) {
-                                Module module = new Module();
-                                JSONObject versionObject = sortedVersions.get(sortedVersions.lastKey());
-                                module.setRemoteUrl(moduleObject.getString("remoteUrl"));
-                                module.setRemotePath(moduleObject.getString("path"));
-                                if (moduleObject.has("icon")) {
-                                    module.setIcon(moduleObject.getString("icon"));
-                                }
-                                module.setVersion(versionObject.getString("version"));
-                                module.setName(moduleObject.getString("title"));
-                                module.setId(moduleObject.getString("name"));
-                                module.setGroupId(moduleObject.getString("groupId"));
-                                module.setDownloadUrl(versionObject.getString("downloadUrl"));
-                                module.setForgeId(forge.getId());
-                                modules.add(module);
-                            }
-                        }
-                    }
-                } catch (JSONException e) {
-                    logger.error("unable to parse JSON return string for " + url);
-                } catch (Exception e) {
-                    logger.error("unable to get store information" + e.getMessage());
-                }
+                addModules(forge, url, jsonModuleList);
             }
             Collections.sort(modules);
             lastModulesLoad = new Date().getTime();
@@ -250,6 +204,69 @@ public class ForgeService {
         }
 
         return modules;
+    }
+
+    /**
+     * Adds to {@link #modules} every module of a forge's module list that no earlier forge provides
+     * and that has a version the running Jahia can install.
+     *
+     * @param forge          the forge the list was fetched from
+     * @param url            the module-list URL, named in the error log
+     * @param jsonModuleList the module list as the forge returned it
+     */
+    private void addModules(Forge forge, String url, String jsonModuleList) {
+        try {
+            JSONArray modulesRoot = new JSONArray(jsonModuleList);
+            JSONArray moduleList = modulesRoot.getJSONObject(0).getJSONArray("modules");
+            for (int i = 0; i < moduleList.length(); i++) {
+                addModule(forge, moduleList.getJSONObject(i));
+            }
+        } catch (JSONException e) {
+            logger.error("unable to parse JSON return string for {}", url, e);
+        } catch (Exception e) {
+            logger.error("unable to get store information from {}", url, e);
+        }
+    }
+
+    private void addModule(Forge forge, JSONObject moduleObject) {
+        if (findModule(moduleObject.getString("name"), moduleObject.getString("groupId")) != null) {
+            return;
+        }
+        JSONObject versionObject = latestCompatibleVersion(moduleObject.getJSONArray("versions"));
+        if (versionObject == null) {
+            return;
+        }
+        Module module = new Module();
+        module.setRemoteUrl(moduleObject.getString("remoteUrl"));
+        module.setRemotePath(moduleObject.getString("path"));
+        if (moduleObject.has("icon")) {
+            module.setIcon(moduleObject.getString("icon"));
+        }
+        module.setVersion(versionObject.getString("version"));
+        module.setName(moduleObject.getString("title"));
+        module.setId(moduleObject.getString("name"));
+        module.setGroupId(moduleObject.getString("groupId"));
+        module.setDownloadUrl(versionObject.getString("downloadUrl"));
+        module.setForgeId(forge.getId());
+        modules.add(module);
+    }
+
+    /**
+     * @return the entry of {@code moduleVersions} with the highest version among those whose required
+     * Jahia version the running one satisfies (same major, not newer), or null when there is none
+     */
+    private static JSONObject latestCompatibleVersion(JSONArray moduleVersions) {
+        final Version jahiaVersion = new Version(Jahia.VERSION);
+        SortedMap<Version, JSONObject> sortedVersions = new TreeMap<>();
+        for (int j = 0; j < moduleVersions.length(); j++) {
+            JSONObject object = moduleVersions.getJSONObject(j);
+            Version version = new Version(object.getString("version"));
+            Version requiredVersion = new Version(StringUtils.substringAfter(object.getString("requiredVersion"), "version-"));
+            if (requiredVersion.compareTo(jahiaVersion) <= 0 && requiredVersion.getMajorVersion() == jahiaVersion.getMajorVersion()) {
+                sortedVersions.put(version, object);
+            }
+        }
+        return sortedVersions.isEmpty() ? null : sortedVersions.get(sortedVersions.lastKey());
     }
 
     public long getLastUpdateTime(){
