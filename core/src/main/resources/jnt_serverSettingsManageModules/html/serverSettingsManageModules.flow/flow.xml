@@ -33,7 +33,7 @@
         </on-render>
 
         <transition on="downloadSources" to="downloadSources">
-            <evaluate expression="flowHandler.validateScmInfo(requestParameters.scmUri, requestParameters.branchOrTag, requestParameters.version, flowScope)"/>
+            <evaluate expression="flowHandler.validateScmInfo(requestParameters.scmUri, requestParameters.branchOrTag, requestParameters.version, flowScope, externalContext.requestMap.renderContext)"/>
         </transition>
         <transition on="viewDownloadForm" to="viewDownloadForm"/>
         <transition on="duplicateModuleForm" to="duplicateModuleForm"/>
@@ -43,13 +43,13 @@
         <transition on="undeployModule" to="undeployModule"/>
         <transition on="updateModule" to="updateModule"/>
         <transition on="upload" to="view">
-            <evaluate expression="flowHandler.uploadModule(moduleFile.moduleFile, messageContext, requestParameters.moduleForceUpdate != null, requestParameters.moduleAutoStart != null, requestParameters.moduleValidateDefinitions == null)"/>
+            <evaluate expression="flowHandler.uploadModule(moduleFile.moduleFile, messageContext, requestParameters.moduleForceUpdate != null, requestParameters.moduleAutoStart != null, requestParameters.moduleValidateDefinitions == null, externalContext.requestMap.renderContext)"/>
         </transition>
         <transition on="installModule" to="view">
-            <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, requestParameters.moduleAutoStart != null, requestParameters.moduleValidateDefinitions == null, messageContext)"/>
+            <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, requestParameters.moduleAutoStart != null, requestParameters.moduleValidateDefinitions == null, messageContext, externalContext.requestMap.renderContext)"/>
         </transition>
         <transition on="reloadModules" to="view">
-            <evaluate expression="flowHandler.reloadModules()"/>
+            <evaluate expression="flowHandler.reloadModules(externalContext.requestMap.renderContext)"/>
         </transition>
         <transition on="viewDetails" to="detailedView"/>
         <transition on="viewAvailableModules" to="forgeView"/>
@@ -71,7 +71,7 @@
             <evaluate expression="requestParameters.scmUri?:flowScope.scmUri" result="flowScope.scmUri"/>
             <evaluate expression="requestParameters.module?:flowScope.module" result="flowScope.module"/>
             <evaluate expression="requestParameters.version?:flowScope.version" result="flowScope.version"/>
-            <evaluate expression="flowScope.branchTagInfos ?: flowHandler.listBranchOrTags(flowScope.version, flowScope.scmUri)" result="flowScope.branchTagInfos"/>
+            <evaluate expression="flowScope.branchTagInfos ?: flowHandler.listBranchOrTags(flowScope.version, flowScope.scmUri, externalContext.requestMap.renderContext)" result="flowScope.branchTagInfos"/>
             <evaluate expression="flowScope.branchTagInfos == null ? flowScope.branchOrTag : flowHandler.guessBranchOrTag(flowScope.version, flowScope.scmUri, flowScope.branchTagInfos, flowScope.branchOrTag)" result="flowScope.branchOrTag"/>
         </on-entry>
         <transition on="downloadSources" to="downloadSources"/>
@@ -90,7 +90,7 @@
         <transition on="startModule" to="startModule"/>
         <transition on="stopModule" to="stopModule"/>
         <transition on="downloadSources" to="downloadSources">
-            <evaluate expression="flowHandler.validateScmInfo(requestParameters.scmUri, requestParameters.branchOrTag, requestParameters.version, flowScope)"/>
+            <evaluate expression="flowHandler.validateScmInfo(requestParameters.scmUri, requestParameters.branchOrTag, requestParameters.version, flowScope, externalContext.requestMap.renderContext)"/>
         </transition>
         <transition on="viewDownloadForm" to="viewDownloadForm"/>
         <transition on="duplicateModuleForm" to="duplicateModuleForm"/>
@@ -112,7 +112,7 @@
             <evaluate expression="requestParameters.version?:flowScope.version" result="flowScope.version"/>
             <evaluate expression="requestParameters.branchOrTag?:flowScope.branchOrTag" result="flowScope.branchOrTag"/>
         </on-entry>
-        <evaluate expression="flowHandler.checkoutModule(flowScope, jcrSessionFactory.currentUserSession)"/>
+        <evaluate expression="flowHandler.checkoutModule(flowScope, jcrSessionFactory.currentUserSession, externalContext.requestMap.renderContext)"/>
         <transition on-exception="java.lang.Exception" to="viewDownloadForm">
             <evaluate expression="flowHandler.handleError(rootCauseException, flowScope, messageContext)"/>
             <evaluate expression="flowHandler.logError(rootCauseException)"/>
@@ -128,9 +128,9 @@
             <evaluate expression="requestParameters.module?:flowScope.module" result="flowScope.module"/>
             <evaluate expression="requestParameters.version?:flowScope.version" result="flowScope.version"/>
             <evaluate expression="requestParameters.branchOrTag?:flowScope.branchOrTag" result="flowScope.branchOrTag"/>
-            <evaluate expression="flowHandler.validateScmInfo(flowScope.scmUri, flowScope.branchOrTag, flowScope.version, flowScope)"/>
+            <evaluate expression="flowHandler.validateScmInfo(flowScope.scmUri, flowScope.branchOrTag, flowScope.version, flowScope, externalContext.requestMap.renderContext)"/>
         </on-entry>
-        <evaluate expression="flowHandler.checkoutTempModule(flowScope)" result="flowScope.tempSources"/>
+        <evaluate expression="flowHandler.checkoutTempModule(flowScope, externalContext.requestMap.renderContext)" result="flowScope.tempSources"/>
         <transition on-exception="java.lang.Exception" to="duplicateModuleForm">
             <evaluate expression="flowHandler.handleError(rootCauseException, flowScope, messageContext)"/>
             <evaluate expression="flowHandler.logError(rootCauseException)"/>
@@ -151,7 +151,7 @@
             <evaluate expression="requestParameters.version?:flowScope.version" result="flowScope.version"/>
             <evaluate expression="settingsBean.getModulesSourcesDiskPath()" result="flowScope.dstPath"/>
             <evaluate expression="flowHandler.getModuleNodetypes(flowScope.moduleId)" result="flowScope.moduleNodetypes"/>
-            <evaluate expression="flowScope.branchTagInfos ?: (flowScope.srcPath != null || flowScope.newScmUri != null ? null : flowHandler.listBranchOrTags(flowScope.version, flowScope.scmUri))" result="flowScope.branchTagInfos"/>
+            <evaluate expression="flowScope.branchTagInfos ?: (flowScope.srcPath != null || flowScope.newScmUri != null ? null : flowHandler.listBranchOrTags(flowScope.version, flowScope.scmUri, externalContext.requestMap.renderContext))" result="flowScope.branchTagInfos"/>
             <evaluate expression="flowScope.branchTagInfos == null ? flowScope.branchOrTag : flowHandler.guessBranchOrTag(flowScope.version, flowScope.scmUri, flowScope.branchTagInfos, flowScope.branchOrTag)" result="flowScope.branchOrTag"/>
             <evaluate expression="messageContext.hasErrorMessages()" result="flowScope.hasError"/>
         </on-entry>
@@ -166,7 +166,7 @@
 
     <action-state id="startModule">
         <evaluate
-                expression="flowHandler.startModule(requestParameters.module,requestParameters.version,flowRequestContext)"/>
+                expression="flowHandler.startModule(requestParameters.module,requestParameters.version,flowRequestContext,externalContext.requestMap.renderContext)"/>
         <transition to="end"/>
         <transition on-exception="java.lang.Exception" to="view">
             <evaluate expression="flowHandler.handleError(rootCauseException, flowScope, messageContext)"/>
@@ -175,7 +175,7 @@
     </action-state>
 
     <action-state id="stopModule">
-        <evaluate expression="flowHandler.stopModule(requestParameters.module,flowRequestContext)"/>
+        <evaluate expression="flowHandler.stopModule(requestParameters.module,flowRequestContext,externalContext.requestMap.renderContext)"/>
         <transition to="end"/>
         <transition on-exception="java.lang.Exception" to="view">
             <evaluate expression="flowHandler.handleError(rootCauseException, flowScope, messageContext)"/>
@@ -184,7 +184,7 @@
     </action-state>
 
     <action-state id="undeployModule">
-        <evaluate expression="flowHandler.uninstallModule(requestParameters.module,requestParameters.version,flowRequestContext)"/>
+        <evaluate expression="flowHandler.uninstallModule(requestParameters.module,requestParameters.version,externalContext.requestMap.renderContext)"/>
         <transition to="view"/>
         <transition on-exception="java.lang.Exception" to="view">
             <evaluate expression="flowHandler.handleError(rootCauseException, flowScope, messageContext)"/>
@@ -193,7 +193,7 @@
     </action-state>
 
     <action-state id="updateModule">
-        <evaluate expression="flowHandler.updateModule(requestParameters.module,requestParameters.version)"/>
+        <evaluate expression="flowHandler.updateModule(requestParameters.module,requestParameters.version,externalContext.requestMap.renderContext)"/>
         <transition to="view"/>
         <transition on-exception="java.lang.Exception" to="view">
             <evaluate expression="flowHandler.handleError(rootCauseException, flowScope, messageContext)"/>
@@ -202,7 +202,7 @@
     </action-state>
 
     <action-state id="refreshModule">
-        <evaluate expression="flowHandler.refreshModule(requestParameters.module,requestParameters.version)"/>
+        <evaluate expression="flowHandler.refreshModule(requestParameters.module,requestParameters.version,externalContext.requestMap.renderContext)"/>
         <transition to="detailedView"/>
         <transition on-exception="java.lang.Exception" to="detailedView">
             <evaluate expression="flowHandler.handleError(rootCauseException, flowScope, messageContext)"/>
@@ -212,7 +212,7 @@
 
     <action-state id="enableOnSite">
         <evaluate
-                expression="JahiaTemplateManagerService.installModule(requestParameters.module,requestParameters.version,requestParameters.enableOn,null)"/>
+                expression="flowHandler.enableOnSite(requestParameters.module,requestParameters.version,requestParameters.enableOn,externalContext.requestMap.renderContext)"/>
         <transition on-exception="java.lang.Exception" to="detailedView">
             <set name="flashScope.error" value="'serverSettings.manageModules.module.enable.error'"/>
             <evaluate expression="flowHandler.logError(rootCauseException)"/>
@@ -222,7 +222,7 @@
 
     <action-state id="disableFromSite">
         <evaluate
-                expression="JahiaTemplateManagerService.uninstallModule(requestParameters.module,requestParameters.disableFrom,null,requestParameters.purge)"/>
+                expression="flowHandler.disableFromSite(requestParameters.module,requestParameters.disableFrom,requestParameters.purge,externalContext.requestMap.renderContext)"/>
         <transition on-exception="java.lang.Exception" to="detailedView">
             <set name="flashScope.error" value="'serverSettings.manageModules.module.disable.error'"/>
             <evaluate expression="flowHandler.logError(rootCauseException)"/>
@@ -232,7 +232,7 @@
 
     <action-state id="disableFromAllSites">
         <evaluate
-                expression="JahiaTemplateManagerService.uninstallModulesFromAllSites(requestParameters.module,null,requestParameters.purge)"/>
+                expression="flowHandler.disableFromAllSites(requestParameters.module,requestParameters.purge,externalContext.requestMap.renderContext)"/>
         <transition on-exception="java.lang.Exception" to="detailedView">
             <set name="flashScope.error" value="'serverSettings.manageModules.module.undeploy.error'"/>
             <evaluate expression="flowHandler.logError(rootCauseException)"/>
@@ -249,11 +249,11 @@
 
         <transition on="installForgeModule" to="forgeView">
             <!-- In this case the moduleAutoStart is a hidden input field and not a checkbox, so we additionally check if it is true or false -->
-            <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, requestParameters.moduleAutoStart != null &amp;&amp; requestParameters.moduleAutoStart == 'true', false, messageContext)"/>
+            <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, requestParameters.moduleAutoStart != null &amp;&amp; requestParameters.moduleAutoStart == 'true', false, messageContext, externalContext.requestMap.renderContext)"/>
         </transition>
 
         <transition on="reloadModules" to="forgeView">
-            <evaluate expression="flowHandler.reloadModules()"/>
+            <evaluate expression="flowHandler.reloadModules(externalContext.requestMap.renderContext)"/>
         </transition>
 
         <transition on="viewInstalledModules" to="view"/>
