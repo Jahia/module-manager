@@ -95,16 +95,16 @@ public class ModuleManagementFlowHandler implements Serializable {
     public static final Version jahiaVersion = new Version(Jahia.VERSION);
 
     /**
-     * The containers this is a screen of, as {@code j:applyOn} names them on the hosting content templates:
-     * the server settings ({@code src/main/import/repository.xml}) and a module node (the module template of
-     * {@code templates-system}). They are the realm the screen administers.
+     * The containers this is a screen of, as {@code j:applyOn} names them on the hosting content templates.
+     * The server settings templates are in {@code src/main/import/repository.xml}, and the module template is
+     * in {@code templates-system}.
      */
     private static final List<String> REALM_NODE_TYPES = Arrays.asList("jnt:globalSettings", "jnt:module");
 
     /**
-     * Permission the caller must hold in that realm, mirroring {@code j:requiredPermissionNames} on those
-     * same templates and the permission {@code DuplicateModuleAction} requires, so the requirement is stated
-     * once.
+     * The permission the caller must hold in that realm. The hosting templates declare the same name in
+     * {@code j:requiredPermissionNames}, and {@code mod-module-manager.xml} gives it to
+     * {@code DuplicateModuleAction}. Change the four places together.
      */
     static final String REQUIRED_PERMISSION = "adminTemplates";
 
@@ -152,13 +152,12 @@ public class ModuleManagementFlowHandler implements Serializable {
     /**
      * Whether the render this call serves carries the authority for this screen.
      * <p>
-     * Both halves are asked of the render's main resource: it says which realm the render is in, and it is
-     * the node the requirement is carried by, being bound to the caller's own session. Fails closed on each
-     * step.
+     * The main resource of the render says which realm the render is in, and the caller must hold the
+     * permission on that same node. The method answers {@code false} when it cannot read either half.
      *
      * @param renderContext the context of the render this call serves
      * @return {@code true} when the render is of one of {@link #REALM_NODE_TYPES} and the caller holds
-     *         {@link #REQUIRED_PERMISSION} on it
+     *         {@link #REQUIRED_PERMISSION} on that node
      */
     boolean isAdministrationGranted(RenderContext renderContext) {
         Resource mainResource = renderContext != null ? renderContext.getMainResource() : null;
@@ -170,10 +169,7 @@ public class ModuleManagementFlowHandler implements Serializable {
 
         try {
             if (!isInRealm(contextNode)) {
-                if (logger.isWarnEnabled()) {
-                    logger.warn("Refusing module administration: {} is none of {}", contextNode.getPath(),
-                            REALM_NODE_TYPES);
-                }
+                logger.warn("Refusing module administration: {} is none of {}", contextNode.getPath(), REALM_NODE_TYPES);
                 return false;
             }
         } catch (RepositoryException e) {
@@ -185,11 +181,9 @@ public class ModuleManagementFlowHandler implements Serializable {
             return true;
         }
 
-        if (logger.isWarnEnabled()) {
-            logger.warn("Refusing module administration: {} does not hold {} on {}",
-                    renderContext.getUser() != null ? renderContext.getUser().getName() : "the current user",
-                    REQUIRED_PERMISSION, contextNode.getPath());
-        }
+        logger.warn("Refusing module administration: {} does not hold {} on {}",
+                renderContext.getUser() != null ? renderContext.getUser().getName() : "the current user",
+                REQUIRED_PERMISSION, contextNode.getPath());
         return false;
     }
 
@@ -203,13 +197,22 @@ public class ModuleManagementFlowHandler implements Serializable {
     }
 
     /**
-     * Establishes the authority of {@link #isAdministrationGranted(RenderContext)} for an action, and ends
-     * the action with the screen's message when it is not held.
+     * Asks {@link #isAdministrationGranted(RenderContext)} for an action, and ends the action with the
+     * message of the screen when the authority is not held.
      */
     private void requireAdministration(RenderContext renderContext) {
         if (!isAdministrationGranted(renderContext)) {
             throw new ModuleManagementException(getI18nMessage(NOT_PERMITTED_KEY));
         }
+    }
+
+    /**
+     * Ends an installation with the message of the screen, for an action that reports through its
+     * {@link MessageContext} and returns whether it installed anything.
+     */
+    private static boolean refuse(MessageContext context) {
+        context.addMessage(new MessageBuilder().error().code(NOT_PERMITTED_KEY).build());
+        return false;
     }
 
     public ModuleFile initModuleFile() {
@@ -219,8 +222,7 @@ public class ModuleManagementFlowHandler implements Serializable {
     public boolean installModule(String forgeId, String url, boolean autoStart, boolean ignoreChecks, MessageContext context,
             RenderContext renderContext) {
         if (!isAdministrationGranted(renderContext)) {
-            context.addMessage(new MessageBuilder().error().code(NOT_PERMITTED_KEY).build());
-            return false;
+            return refuse(context);
         }
 
         File file = null;
@@ -239,8 +241,7 @@ public class ModuleManagementFlowHandler implements Serializable {
     public boolean uploadModule(MultipartFile moduleFile, MessageContext context, boolean forceUpdate, boolean autoStart,
             boolean ignoreChecks, RenderContext renderContext) {
         if (!isAdministrationGranted(renderContext)) {
-            context.addMessage(new MessageBuilder().error().code(NOT_PERMITTED_KEY).build());
-            return false;
+            return refuse(context);
         }
 
         if (moduleFile == null) {
@@ -1074,7 +1075,9 @@ public class ModuleManagementFlowHandler implements Serializable {
         }
     }
 
-    public void reloadModules() {
+    public void reloadModules(RenderContext renderContext) {
+        requireAdministration(renderContext);
+
         forgeService.flushModules();
         forgeService.loadModules();
     }
@@ -1148,8 +1151,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         storeTablesUUID(requestContext);
     }
 
-    public void stopModule(String moduleId, RequestContext requestContext, RenderContext renderContext)
-            throws RepositoryException, BundleException {
+    public void stopModule(String moduleId, RequestContext requestContext, RenderContext renderContext) {
         requireAdministration(renderContext);
 
         JahiaTemplatesPackage module = templatePackageRegistry.lookupById(moduleId);
@@ -1188,7 +1190,10 @@ public class ModuleManagementFlowHandler implements Serializable {
         return typeNames.toArray(new String[0]);
     }
 
-    public Map<String, String> listBranchOrTags(String moduleVersion, String scmURI) throws IOException {
+    public Map<String, String> listBranchOrTags(String moduleVersion, String scmURI, RenderContext renderContext)
+            throws IOException {
+        requireAdministration(renderContext);
+
         if (moduleVersion.endsWith("-SNAPSHOT")) {
             return templateManagerService.listBranches(scmURI);
         } else {
@@ -1201,10 +1206,13 @@ public class ModuleManagementFlowHandler implements Serializable {
         return branchOrTag != null ? branchOrTag : defaultBranchOrTag;
     }
 
-    public void validateScmInfo(String scmUri, String branchOrTag, String moduleVersion, MutableAttributeMap<Object> flowScope) throws IOException {
+    public void validateScmInfo(String scmUri, String branchOrTag, String moduleVersion, MutableAttributeMap<Object> flowScope,
+            RenderContext renderContext) throws IOException {
+        requireAdministration(renderContext);
+
         if ((StringUtils.startsWith(scmUri, "scm:git:") && StringUtils.isBlank(branchOrTag))
                 || (StringUtils.startsWith(scmUri, "scm:svn:") && StringUtils.contains(scmUri, "/trunk/"))) {
-            Map<String, String> branchTagInfos = listBranchOrTags(moduleVersion, scmUri);
+            Map<String, String> branchTagInfos = listBranchOrTags(moduleVersion, scmUri, renderContext);
             flowScope.put("branchTagInfos", branchTagInfos);
             branchOrTag = guessBranchOrTag(moduleVersion, scmUri, branchTagInfos, null);
             flowScope.put("branchOrTag", branchOrTag);
@@ -1212,8 +1220,7 @@ public class ModuleManagementFlowHandler implements Serializable {
     }
 
     public JCRNodeWrapper checkoutModule(MutableAttributeMap<Object> flowScope, JCRSessionWrapper session,
-            RenderContext renderContext) throws RepositoryException, XmlPullParserException, DocumentException, IOException,
-            BundleException {
+            RenderContext renderContext) throws RepositoryException, IOException, BundleException {
         requireAdministration(renderContext);
 
         String scmUri = (String) flowScope.get("scmUri");
@@ -1223,7 +1230,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         try {
             return templateManagerService.checkoutModule(null, scmUri, branchOrTag, module, version, session);
         } catch (SourceControlException e) {
-            Map<String, String> branchTagInfos = listBranchOrTags(version, scmUri);
+            Map<String, String> branchTagInfos = listBranchOrTags(version, scmUri, renderContext);
             String newBranchOrTag = guessBranchOrTag(version, scmUri, branchTagInfos, branchOrTag);
             String newScmUri = branchTagInfos.get(newBranchOrTag);
             if (newScmUri != null && newBranchOrTag != null && (!newBranchOrTag.equals(branchOrTag) || newScmUri.equals(scmUri))) {
@@ -1247,7 +1254,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         try {
             return templateManagerService.checkoutTempModule(scmUri, branchOrTag, module, version);
         } catch (SourceControlException e) {
-            Map<String, String> branchTagInfos = listBranchOrTags(version, scmUri);
+            Map<String, String> branchTagInfos = listBranchOrTags(version, scmUri, renderContext);
             String newBranchOrTag = guessBranchOrTag(version, scmUri, branchTagInfos, branchOrTag);
             String newScmUri = branchTagInfos.get(newBranchOrTag);
             if (newScmUri != null && newBranchOrTag != null && (!newBranchOrTag.equals(branchOrTag) || newScmUri.equals(scmUri))) {
@@ -1266,7 +1273,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         }
     }
 
-    public void updateModule(String id, String version, RenderContext renderContext) throws RepositoryException {
+    public void updateModule(String id, String version, RenderContext renderContext) {
         requireAdministration(renderContext);
 
         Bundle bundle = BundleUtils.getBundle(id, version);
@@ -1279,7 +1286,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         }
     }
 
-    public void refreshModule(String id, String version, RenderContext renderContext) throws RepositoryException {
+    public void refreshModule(String id, String version, RenderContext renderContext) {
         requireAdministration(renderContext);
 
         Bundle bundle = BundleUtils.getBundle(id, version);
@@ -1313,8 +1320,7 @@ public class ModuleManagementFlowHandler implements Serializable {
         }
     }
 
-    public void uninstallModule(String moduleId, String moduleVersion, RequestContext requestContext,
-            RenderContext renderContext) throws RepositoryException, BundleException {
+    public void uninstallModule(String moduleId, String moduleVersion, RenderContext renderContext) {
         requireAdministration(renderContext);
 
         moduleManager.uninstall(BundleInfo.fromModuleInfo(moduleId, moduleVersion).getKey(), null);

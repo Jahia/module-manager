@@ -25,11 +25,10 @@ import static org.mockito.Mockito.when;
  * The authority {@link ModuleManagementFlowHandler} establishes for the screen it drives, and the studio
  * decision it takes from the render.
  * <p>
- * The authority is read off the render's main resource: the render is of one of the containers the hosting
- * templates apply on, and the caller holds the permission those templates declare on that node. Each half is
- * asserted in both directions, what it grants AND what it refuses, so a check wired to answer one value
- * unconditionally could not satisfy this class. The last cases take a public entry point rather than the
- * check alone, which is what shows the decision reaching a caller.
+ * The authority is read off the main resource of the render. The render is of one of the containers the
+ * hosting templates apply on, and the caller holds the permission those templates declare on that node.
+ * Each half is asserted in both directions. The last cases take a public entry point, which shows the
+ * decision reaching a caller.
  */
 public class ModuleManagementFlowHandlerAuthorityTest {
 

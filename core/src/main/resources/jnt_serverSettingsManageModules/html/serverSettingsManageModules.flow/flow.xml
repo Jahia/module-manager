@@ -33,7 +33,7 @@
         </on-render>
 
         <transition on="downloadSources" to="downloadSources">
-            <evaluate expression="flowHandler.validateScmInfo(requestParameters.scmUri, requestParameters.branchOrTag, requestParameters.version, flowScope)"/>
+            <evaluate expression="flowHandler.validateScmInfo(requestParameters.scmUri, requestParameters.branchOrTag, requestParameters.version, flowScope, externalContext.requestMap.renderContext)"/>
         </transition>
         <transition on="viewDownloadForm" to="viewDownloadForm"/>
         <transition on="duplicateModuleForm" to="duplicateModuleForm"/>
@@ -49,7 +49,7 @@
             <evaluate expression="flowHandler.installModule(requestParameters.forgeId, requestParameters.moduleUrl, requestParameters.moduleAutoStart != null, requestParameters.moduleValidateDefinitions == null, messageContext, externalContext.requestMap.renderContext)"/>
         </transition>
         <transition on="reloadModules" to="view">
-            <evaluate expression="flowHandler.reloadModules()"/>
+            <evaluate expression="flowHandler.reloadModules(externalContext.requestMap.renderContext)"/>
         </transition>
         <transition on="viewDetails" to="detailedView"/>
         <transition on="viewAvailableModules" to="forgeView"/>
@@ -71,7 +71,7 @@
             <evaluate expression="requestParameters.scmUri?:flowScope.scmUri" result="flowScope.scmUri"/>
             <evaluate expression="requestParameters.module?:flowScope.module" result="flowScope.module"/>
             <evaluate expression="requestParameters.version?:flowScope.version" result="flowScope.version"/>
-            <evaluate expression="flowScope.branchTagInfos ?: flowHandler.listBranchOrTags(flowScope.version, flowScope.scmUri)" result="flowScope.branchTagInfos"/>
+            <evaluate expression="flowScope.branchTagInfos ?: flowHandler.listBranchOrTags(flowScope.version, flowScope.scmUri, externalContext.requestMap.renderContext)" result="flowScope.branchTagInfos"/>
             <evaluate expression="flowScope.branchTagInfos == null ? flowScope.branchOrTag : flowHandler.guessBranchOrTag(flowScope.version, flowScope.scmUri, flowScope.branchTagInfos, flowScope.branchOrTag)" result="flowScope.branchOrTag"/>
         </on-entry>
         <transition on="downloadSources" to="downloadSources"/>
@@ -90,7 +90,7 @@
         <transition on="startModule" to="startModule"/>
         <transition on="stopModule" to="stopModule"/>
         <transition on="downloadSources" to="downloadSources">
-            <evaluate expression="flowHandler.validateScmInfo(requestParameters.scmUri, requestParameters.branchOrTag, requestParameters.version, flowScope)"/>
+            <evaluate expression="flowHandler.validateScmInfo(requestParameters.scmUri, requestParameters.branchOrTag, requestParameters.version, flowScope, externalContext.requestMap.renderContext)"/>
         </transition>
         <transition on="viewDownloadForm" to="viewDownloadForm"/>
         <transition on="duplicateModuleForm" to="duplicateModuleForm"/>
@@ -128,7 +128,7 @@
             <evaluate expression="requestParameters.module?:flowScope.module" result="flowScope.module"/>
             <evaluate expression="requestParameters.version?:flowScope.version" result="flowScope.version"/>
             <evaluate expression="requestParameters.branchOrTag?:flowScope.branchOrTag" result="flowScope.branchOrTag"/>
-            <evaluate expression="flowHandler.validateScmInfo(flowScope.scmUri, flowScope.branchOrTag, flowScope.version, flowScope)"/>
+            <evaluate expression="flowHandler.validateScmInfo(flowScope.scmUri, flowScope.branchOrTag, flowScope.version, flowScope, externalContext.requestMap.renderContext)"/>
         </on-entry>
         <evaluate expression="flowHandler.checkoutTempModule(flowScope, externalContext.requestMap.renderContext)" result="flowScope.tempSources"/>
         <transition on-exception="java.lang.Exception" to="duplicateModuleForm">
@@ -151,7 +151,7 @@
             <evaluate expression="requestParameters.version?:flowScope.version" result="flowScope.version"/>
             <evaluate expression="settingsBean.getModulesSourcesDiskPath()" result="flowScope.dstPath"/>
             <evaluate expression="flowHandler.getModuleNodetypes(flowScope.moduleId)" result="flowScope.moduleNodetypes"/>
-            <evaluate expression="flowScope.branchTagInfos ?: (flowScope.srcPath != null || flowScope.newScmUri != null ? null : flowHandler.listBranchOrTags(flowScope.version, flowScope.scmUri))" result="flowScope.branchTagInfos"/>
+            <evaluate expression="flowScope.branchTagInfos ?: (flowScope.srcPath != null || flowScope.newScmUri != null ? null : flowHandler.listBranchOrTags(flowScope.version, flowScope.scmUri, externalContext.requestMap.renderContext))" result="flowScope.branchTagInfos"/>
             <evaluate expression="flowScope.branchTagInfos == null ? flowScope.branchOrTag : flowHandler.guessBranchOrTag(flowScope.version, flowScope.scmUri, flowScope.branchTagInfos, flowScope.branchOrTag)" result="flowScope.branchOrTag"/>
             <evaluate expression="messageContext.hasErrorMessages()" result="flowScope.hasError"/>
         </on-entry>
@@ -184,7 +184,7 @@
     </action-state>
 
     <action-state id="undeployModule">
-        <evaluate expression="flowHandler.uninstallModule(requestParameters.module,requestParameters.version,flowRequestContext,externalContext.requestMap.renderContext)"/>
+        <evaluate expression="flowHandler.uninstallModule(requestParameters.module,requestParameters.version,externalContext.requestMap.renderContext)"/>
         <transition to="view"/>
         <transition on-exception="java.lang.Exception" to="view">
             <evaluate expression="flowHandler.handleError(rootCauseException, flowScope, messageContext)"/>
@@ -253,7 +253,7 @@
         </transition>
 
         <transition on="reloadModules" to="forgeView">
-            <evaluate expression="flowHandler.reloadModules()"/>
+            <evaluate expression="flowHandler.reloadModules(externalContext.requestMap.renderContext)"/>
         </transition>
 
         <transition on="viewInstalledModules" to="view"/>
