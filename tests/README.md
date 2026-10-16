@@ -33,8 +33,3 @@ before and after each spec, including what a failed run left behind.
 
 The Modules screen checks "Start the module after upload" in development mode only, so a spec sets
 that box itself and runs the same way in both operating modes.
-
-## Tags
-
-A spec migrated from the legacy Selenium suite (`Jahia/selenium`) tags each of its tests with the tags
-of its row in the migration tracking issue. A spec written here first carries no tag.
