@@ -44,7 +44,7 @@ describe('Update of the version of a module used by a site', () => {
         cy.login()
     })
 
-    it('FT-004: shows the version of a module uploaded and enabled on a site in the modules of the site', () => {
+    it('shows the version of a module uploaded and enabled on a site in the modules of the site', () => {
         context.tag('module-manager', 'upload', 'enable-on-site', 'version', 'testrail-case-2071208')
         fixtureJar(version1).then((jar) => {
             ManageModulesPage.visit().upload(jar, { autoStart: true, validateDefinitions: true })
@@ -54,7 +54,7 @@ describe('Update of the version of a module used by a site', () => {
         SiteModulesPage.visit(siteKey).expectVersion(moduleId, version1.version)
     })
 
-    it('FT-005: refuses the upload of a version that brings a major change in the definitions', () => {
+    it('refuses the upload of a version that brings a major change in the definitions', () => {
         context.tag('module-manager', 'upload', 'definition-check', 'refused', 'testrail-case-2071208')
         fixtureJar(version2).then((jar) => {
             ManageModulesPage.visit()
@@ -67,7 +67,7 @@ describe('Update of the version of a module used by a site', () => {
         modules.versionChip(moduleId, version2.version).should('not.exist')
     })
 
-    it('FT-006: makes the site run the new version once uploaded without the definition check and started', () => {
+    it('makes the site run the new version once uploaded without the definition check and started', () => {
         context.tag(
             'module-manager',
             'upload',

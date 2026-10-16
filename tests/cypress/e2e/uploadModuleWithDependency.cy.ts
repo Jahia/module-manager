@@ -33,7 +33,7 @@ describe('Upload of a module with a dependency', () => {
         cy.login()
     })
 
-    it('FT-001: lists the missing dependency of a module uploaded without it', () => {
+    it('lists the missing dependency of a module uploaded without it', () => {
         context.tag('module-manager', 'upload', 'dependency', 'unresolved', 'testrail-case-3183463')
         upload(dependent)
 
@@ -43,7 +43,7 @@ describe('Upload of a module with a dependency', () => {
         modules.moduleRow(dependent.id).find('[data-sel-role^="status-"]').should('exist')
     })
 
-    it('FT-002: keeps the module unresolved when the wrong version of the dependency is uploaded', () => {
+    it('keeps the module unresolved when the wrong version of the dependency is uploaded', () => {
         context.tag('module-manager', 'upload', 'dependency', 'wrong-version', 'testrail-case-3183463')
         upload(dependency('1.0.0'))
 
@@ -54,7 +54,7 @@ describe('Upload of a module with a dependency', () => {
         modules.moduleRow(dependent.id).find('[data-sel-role^="status-"]').should('exist')
     })
 
-    it('FT-003: starts the module when the required version of the dependency is uploaded', () => {
+    it('starts the module when the required version of the dependency is uploaded', () => {
         context.tag('module-manager', 'upload', 'dependency', 'resolved', 'started', 'testrail-case-3183463')
         upload(dependency('2.0.0'))
 
