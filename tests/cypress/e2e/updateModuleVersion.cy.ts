@@ -8,7 +8,7 @@ import { fixtureJar, removeFixtureModules, uniqueToken } from '../support/fixtur
  * installed.
  */
 describe('Update of the version of a module used by a site', () => {
-    const siteKey = `mmversion${uniqueToken()}`
+    const siteKey = `moduleVersionUpdate${uniqueToken()}`
     const moduleId = 'versioningtestmodule'
     // Version 2.0.0 changes the type of a property, which is a major change of the definitions.
     const version1 = { jar: 'versioningtestmodule-1.0.0-SNAPSHOT.jar', version: '1.0.0-SNAPSHOT' }
