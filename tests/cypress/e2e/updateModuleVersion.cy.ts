@@ -30,7 +30,7 @@ describe('Update of the version of a module used by a site', () => {
     })
 
     it('shows the version of a module uploaded and enabled on a site in the modules of the site', () => {
-        context.tag('module-manager', 'upload', 'enable-on-site', 'version', 'testrail-case-2071208')
+        context.tag('module-manager', 'upload', 'enable-on-site', 'version')
         ManageModulesPage.visit().upload(fixtureJar(version1.jar), { autoStart: true, validateDefinitions: true })
         ManageModulesPage.visit().openDetails(moduleId).enableOnSite(siteKey)
 
@@ -38,7 +38,7 @@ describe('Update of the version of a module used by a site', () => {
     })
 
     it('refuses the upload of a version that brings a major change in the definitions', () => {
-        context.tag('module-manager', 'upload', 'definition-check', 'refused', 'testrail-case-2071208')
+        context.tag('module-manager', 'upload', 'definition-check', 'refused')
         ManageModulesPage.visit()
             .upload(fixtureJar(version2.jar), { autoStart: false, validateDefinitions: true })
             .expectUploadError('Module upload failed: Major change in definition')
@@ -49,14 +49,7 @@ describe('Update of the version of a module used by a site', () => {
     })
 
     it('makes the site run the new version once uploaded without the definition check and started', () => {
-        context.tag(
-            'module-manager',
-            'upload',
-            'definition-check',
-            'disabled',
-            'version-upgrade',
-            'testrail-case-2071208',
-        )
+        context.tag('module-manager', 'upload', 'definition-check', 'disabled', 'version-upgrade')
         // Without auto start in both operating modes, so the test always starts the version itself,
         // the way the legacy test did outside development mode.
         ManageModulesPage.visit().upload(fixtureJar(version2.jar), { autoStart: false, validateDefinitions: false })

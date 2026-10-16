@@ -37,6 +37,4 @@ that box itself and runs the same way in both operating modes.
 ## Tags
 
 A spec migrated from the legacy Selenium suite (`Jahia/selenium`) tags each of its tests with the tags
-of its row in the migration tracking issue, including `testrail-case-<n>`, which `jahia-reporter`
-syncs to the TestRail case that the test replaces. A spec written here first replaces no TestRail
-case, so it carries no tag.
+of its row in the migration tracking issue. A spec written here first carries no tag.
