@@ -32,9 +32,5 @@ module.exports = (on, config) => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     require('cypress-terminal-report/src/installLogsPrinter')(on, optionsPrinter)
 
-    // Builds the jars of the fixture modules the specs upload (see plugins/moduleJar.js).
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    on('task', require('./moduleJar'))
-
     return config
 }

@@ -32,11 +32,8 @@ export class ManageModulesPage extends BasePage {
         return this
     }
 
-    upload(
-        jar: { contents: Buffer; fileName: string; mimeType: string },
-        { autoStart, validateDefinitions }: UploadOptions,
-    ) {
-        manageModulesFrame().find('#moduleFileUpload').selectFile(jar, { force: true })
+    upload(jarPath: string, { autoStart, validateDefinitions }: UploadOptions) {
+        manageModulesFrame().find('#moduleFileUpload').selectFile(jarPath, { force: true })
         // The change handler of the file input reveals the options and the upload button.
         manageModulesFrame().find('#btnUpload').should('be.visible')
         const setBox = (id: string, checked: boolean) =>

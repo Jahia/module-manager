@@ -19,17 +19,20 @@ the container that `Dockerfile` describes.
 
 ## Fixture modules
 
-The specs upload modules that they build at run time: `cypress/plugins/moduleJar.js` writes the jar of
-a minimal module (a manifest, and a `definitions.cnd` when a spec needs one), and
-`cypress/support/fixtureModules.ts` hands it to `selectFile`. So no binary lives in the repository, and
-each run gets module ids of its own.
+The specs upload the jars under `cypress/fixtures/assets/moduleManagement/`:
 
-- Every fixture module belongs to the group `org.example.modulemanager`. Jahia refuses an unsigned
-  module of the `org.jahia.modules` group, and the cleanup script
-  `cypress/fixtures/groovy/removeFixtureModules.groovy` uninstalls every module of the fixture group,
-  including what a failed run left behind.
-- The Modules screen checks "Start the module after upload" in development mode only, so a spec sets
-  that box itself and runs the same way in both operating modes.
+- `qa-module-with-dependency` 3.1.0-SNAPSHOT, which depends on `dummy1` version 2, and `dummy1` in
+  versions 1.0.0 and 2.0.0.
+- `versioningtestmodule` in versions 1.0.0-SNAPSHOT and 2.0.0-SNAPSHOT. Version 2.0.0 changes the
+  type of a property from `string` to `long`, which the definition check refuses as a major change.
+  Its group is `org.jahia.test`: the jar is not signed, and Jahia refuses an unsigned module of the
+  `org.jahia.modules` group.
+
+`cypress/fixtures/groovy/removeFixtureModules.groovy` uninstalls every version of these modules
+before and after each spec, including what a failed run left behind.
+
+The Modules screen checks "Start the module after upload" in development mode only, so a spec sets
+that box itself and runs the same way in both operating modes.
 
 ## Tags
 
