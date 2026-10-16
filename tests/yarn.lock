@@ -90,14 +90,15 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz#b520529ec21d8e5945a1851dfd1c32e94e39ff45"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
 
-"@jahia/cypress@^8.2.1":
-  version "8.2.1"
-  resolved "https://registry.yarnpkg.com/@jahia/cypress/-/cypress-8.2.1.tgz#69b76fd7e9f97048867657e4ae8195d48cc24145"
-  integrity sha512-TRDy7LRePjYcnK5pZ61z+C7fspHqQDqMrEFUcsekBHT75nwKfanMU2wy5eMcTbkcvZfwnKpCncg7vOxCfOlfrw==
+"@jahia/cypress@^8.7.0":
+  version "8.7.0"
+  resolved "https://registry.yarnpkg.com/@jahia/cypress/-/cypress-8.7.0.tgz#218736e1a45030baeb2425b230e336433907ce5d"
+  integrity sha512-f0iEHWhpml0fxBJa/0AqoQmOA14ui4ph7/3BForWiz9G1xAVAJnBgvCo50yDE9Whh4wUDx/dZSSso1BPAGZpZQ==
   dependencies:
     "@apollo/client" "^3.4.9"
     "@faker-js/faker" "^10.3.0"
     compare-versions "^6.1.1"
+    cypress-mailpit "^1.4.0"
     cypress-real-events "^1.11.0"
     graphql "^15.5.0"
     graphql-tag "^2.11.0"
@@ -983,6 +984,11 @@ crypt@0.0.2:
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/crypt/-/crypt-0.0.2.tgz#88d7ff7ec0dfb86f713dc87bbb42d044d3e6c41b"
   integrity sha512-mCxBlsHFYh9C+HVpiEacem8FEBnMXgU9gy4zmNC+SXAZNB/1idgp/aulFJ4FgCi7GPEVbfyng092GqL2k2rmow==
+
+cypress-mailpit@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/cypress-mailpit/-/cypress-mailpit-1.4.0.tgz#eaf5a42014181cff6b6da1f8e999794e89a8cb05"
+  integrity sha512-Ee7DuY+Fsj95ST2aNuspdkbpdSd5jKj2ESwYTKLpRicDTWTXk2XwpBzILG+SDCFZyToDVeYXlaYWwA4cUyKSuQ==
 
 cypress-multi-reporters@^1.6.0:
   version "1.6.0"
