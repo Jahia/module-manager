@@ -15,3 +15,4 @@ jobs:
       module_id: module-manager
       update_signature_execute: true
       static_analysis_node_version: 12
+      integration_tests_provisioning_manifest: provisioning-manifest-build.yml

@@ -1,0 +1,7 @@
+cypress/videos
+node_modules
+run-artifacts
+.env
+artifacts
+build-dependencies
+results
