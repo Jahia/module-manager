@@ -1,4 +1,3 @@
-import { context } from '@jahia/cypress'
 import { ManageModulesPage } from '../page-object/ManageModulesPage'
 import { fixtureJar, removeFixtureModules } from '../support/fixtureModules'
 
@@ -27,7 +26,6 @@ describe('Upload of a module with a dependency', () => {
     })
 
     it('lists the missing dependency of a module uploaded without it', () => {
-        context.tag('module-manager', 'upload', 'dependency', 'unresolved')
         upload('qa-module-with-dependency-3.1.0-SNAPSHOT.jar')
 
         const modules = ManageModulesPage.visit().search(dependent)
@@ -37,7 +35,6 @@ describe('Upload of a module with a dependency', () => {
     })
 
     it('keeps the module unresolved when the wrong version of the dependency is uploaded', () => {
-        context.tag('module-manager', 'upload', 'dependency', 'wrong-version')
         upload('dummy1-1.0.0.jar')
 
         const modules = ManageModulesPage.visit().search(dependent)
@@ -48,7 +45,6 @@ describe('Upload of a module with a dependency', () => {
     })
 
     it('starts the module when the required version of the dependency is uploaded', () => {
-        context.tag('module-manager', 'upload', 'dependency', 'resolved', 'started')
         upload('dummy1-2.0.0.jar')
 
         const modules = ManageModulesPage.visit().search(dependent)
