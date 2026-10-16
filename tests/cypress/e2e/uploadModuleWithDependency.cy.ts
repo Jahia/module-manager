@@ -3,9 +3,6 @@ import { ManageModulesPage } from '../page-object/ManageModulesPage'
 import { FixtureModule, fixtureJar, removeFixtureModules, uniqueToken } from '../support/fixtureModules'
 
 /**
- * Migrated from the legacy Selenium suite: ModulesManagementTest.uploadModuleWithDependency
- * (Jahia/selenium ModulesManagementTest.java:77-102). Tracking issue: Jahia/selenium#1629, FT-001 to FT-003.
- *
  * The tests are the ordered steps of one journey: each one uploads a module, and the next one starts
  * from what the previous upload installed.
  */

@@ -4,9 +4,6 @@ import { SiteModulesPage } from '../page-object/SiteModulesPage'
 import { FixtureModule, fixtureJar, removeFixtureModules, uniqueToken } from '../support/fixtureModules'
 
 /**
- * Migrated from the legacy Selenium suite: ModulesManagementTest.updateModuleVersion
- * (Jahia/selenium ModulesManagementTest.java:104-136). Tracking issue: Jahia/selenium#1629, FT-004 to FT-006.
- *
  * The tests are the ordered steps of one journey: each one acts on the module that the previous one
  * installed.
  */
