@@ -13,8 +13,8 @@ describe('Upload of a module with a dependency', () => {
     const upload = (fileName: string) =>
         ManageModulesPage.visit().upload(fixtureJar(fileName), { autoStart: true, validateDefinitions: true })
 
-    // A module waiting for its dependency stays an installed bundle that OSGi has not resolved.
-    const unresolved = '[data-sel-role="status-installed"]'
+    // A module waiting for its dependency has no active version, so the screen shows it inactive.
+    const unresolved = '[data-sel-role="status-inactive"]'
 
     before(() => {
         removeFixtureModules()
