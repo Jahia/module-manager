@@ -49,6 +49,11 @@ export class ManageModulesPage extends BasePage {
         return this
     }
 
+    expectUploadSuccess() {
+        manageModulesFrame().find('form#moduleFile .alert-success').should('exist')
+        return this
+    }
+
     expectUploadError(text: string) {
         manageModulesFrame().find('form#moduleFile .alert-danger').should('contain.text', text)
         return this

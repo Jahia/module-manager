@@ -9,5 +9,8 @@ export const fixtureJar = (fileName: string) => `cypress/fixtures/assets/moduleM
 /** Lowercase letters only, to make a name unique to the run. */
 export const uniqueToken = () => jfaker.string.alpha({ length: 8, casing: 'lower' })
 
+/** `executeGroovy` only logs a failed script, so the cleanup asserts the result to fail where it breaks. */
 export const removeFixtureModules = () =>
-    cy.executeGroovy('groovy/removeFixtureModules.groovy', { MODULE_IDS: FIXTURE_MODULE_IDS.join(',') })
+    cy
+        .executeGroovy('groovy/removeFixtureModules.groovy', { MODULE_IDS: FIXTURE_MODULE_IDS.join(',') })
+        .then(result => expect(String(result)).not.to.contain('.failed'))

@@ -30,7 +30,9 @@ describe('Update of the version of a module used by a site', () => {
     })
 
     it('shows the version of a module uploaded and enabled on a site in the modules of the site', () => {
-        ManageModulesPage.visit().upload(fixtureJar(version1.jar), { autoStart: true, validateDefinitions: true })
+        ManageModulesPage.visit()
+            .upload(fixtureJar(version1.jar), { autoStart: true, validateDefinitions: true })
+            .expectUploadSuccess()
         ManageModulesPage.visit().openDetails(moduleId).enableOnSite(siteKey)
 
         SiteModulesPage.visit(siteKey).expectVersion(moduleId, version1.version)
@@ -49,7 +51,9 @@ describe('Update of the version of a module used by a site', () => {
     it('makes the site run the new version once uploaded without the definition check and started', () => {
         // Without auto start in both operating modes, so the test always starts the version itself,
         // the way the legacy test did outside development mode.
-        ManageModulesPage.visit().upload(fixtureJar(version2.jar), { autoStart: false, validateDefinitions: false })
+        ManageModulesPage.visit()
+            .upload(fixtureJar(version2.jar), { autoStart: false, validateDefinitions: false })
+            .expectUploadSuccess()
         ManageModulesPage.visit().search(moduleId).startVersion(moduleId, version2.version)
 
         SiteModulesPage.visit(siteKey).expectVersion(moduleId, version2.version)
