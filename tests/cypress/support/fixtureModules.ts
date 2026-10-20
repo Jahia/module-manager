@@ -13,4 +13,4 @@ export const uniqueToken = () => jfaker.string.alpha({ length: 8, casing: 'lower
 export const removeFixtureModules = () =>
     cy
         .executeGroovy('groovy/removeFixtureModules.groovy', { MODULE_IDS: FIXTURE_MODULE_IDS.join(',') })
-        .then(result => expect(String(result)).not.to.contain('.failed'))
+        .then((result) =>expect(String(result)).not.to.contain('.failed'))
