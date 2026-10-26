@@ -101,7 +101,7 @@
     </c:forEach>
 </c:if>
 <div id="detailActiveVersion">
-    <h2><fmt:message key="serverSettings.manageModules"/> - ${activeVersion.name}&nbsp;${activeVersion.version}</h2>
+    <h2><fmt:message key="serverSettings.manageModules"/> - ${fn:escapeXml(activeVersion.name)}&nbsp;${fn:escapeXml(activeVersion.version)}</h2>
     <p>
         ${fn:escapeXml(bundleInfo['Bundle-Description'])}
     </p>
@@ -155,16 +155,16 @@
         <tbody>
         <tr>
             <td>
-                ${activeVersion.id}
+                ${fn:escapeXml(activeVersion.id)}
             </td>
             <td>
-                ${activeVersion.groupId}
+                ${fn:escapeXml(activeVersion.groupId)}
             </td>
             <td>
                 <fmt:message key="serverSettings.manageModules.module.state.${fn:toLowerCase(activeVersion.state.state)}"/>
             </td>
             <td>
-                ${activeVersion.moduleType}
+                ${fn:escapeXml(activeVersion.moduleType)}
             </td>
             <td>
                 ${fn:escapeXml(activeVersion.provider)}
@@ -197,9 +197,9 @@
                                     <c:when test="${hasStartedVersion}">
                                         <form style="margin: 0;" action="${flowExecutionUrl}" method="POST">
                                             <input type="hidden" name="module" value="${activeVersion.id}"/>
-                                            <input type="hidden" name="scmUri" value="${activeVersion.scmURI}"/>
-                                            <input type="hidden" name="version" value="${activeVersion.version}"/>
-                                            <input type="hidden" name="branchOrTag" value="${activeVersion.scmTag}"/>
+                                            <input type="hidden" name="scmUri" value="${fn:escapeXml(activeVersion.scmURI)}"/>
+                                            <input type="hidden" name="version" value="${fn:escapeXml(activeVersion.version)}"/>
+                                            <input type="hidden" name="branchOrTag" value="${fn:escapeXml(activeVersion.scmTag)}"/>
                                             <button class="btn btn-block button-download" type="submit" name="_eventId_downloadSources" onclick="">
                                                 <i class="icon-download"></i>
                                                 &nbsp;${i18nDownloadSources}
@@ -235,10 +235,10 @@
                         </c:when>
                         <c:when test="${not empty activeVersion.sourcesFolder and not isMandatoryDependency}">
                             <form style="margin: 0;" action="${flowExecutionUrl}" method="POST" onsubmit="workInProgress('${i18nWaiting}');">
-                                <input type="hidden" name="moduleName" value="${activeVersion.name}"/>
+                                <input type="hidden" name="moduleName" value="${fn:escapeXml(activeVersion.name)}"/>
                                 <input type="hidden" name="moduleId" value="${activeVersion.id}"/>
-                                <input type="hidden" name="groupId" value="${activeVersion.groupId}"/>
-                                <input type="hidden" name="version" value="${activeVersion.version}"/>
+                                <input type="hidden" name="groupId" value="${fn:escapeXml(activeVersion.groupId)}"/>
+                                <input type="hidden" name="version" value="${fn:escapeXml(activeVersion.version)}"/>
                                 <input type="hidden" name="srcPath" value="${activeVersion.sourcesFolder.path}"/>
                                 <button class="btn btn-block button-download" type="submit" name="_eventId_duplicateModuleForm">
                                     <i class="icon-share"></i>
@@ -249,12 +249,12 @@
                         <c:when test="${not empty activeVersion.scmURI and sourcesDownloadable}">
                             <c:if test="${functions:contains(sourceControls, fn:substringBefore(fn:substringAfter(activeVersion.scmURI, ':'),':')) and hasStartedVersion}">
                                 <form style="margin: 0;" action="${flowExecutionUrl}" method="POST">
-                                    <input type="hidden" name="moduleName" value="${activeVersion.name}"/>
+                                    <input type="hidden" name="moduleName" value="${fn:escapeXml(activeVersion.name)}"/>
                                     <input type="hidden" name="moduleId" value="${activeVersion.id}"/>
-                                    <input type="hidden" name="groupId" value="${activeVersion.groupId}"/>
-                                    <input type="hidden" name="version" value="${activeVersion.version}"/>
-                                    <input type="hidden" name="scmUri" value="${activeVersion.scmURI}"/>
-                                    <input type="hidden" name="branchOrTag" value="${activeVersion.scmTag}"/>
+                                    <input type="hidden" name="groupId" value="${fn:escapeXml(activeVersion.groupId)}"/>
+                                    <input type="hidden" name="version" value="${fn:escapeXml(activeVersion.version)}"/>
+                                    <input type="hidden" name="scmUri" value="${fn:escapeXml(activeVersion.scmURI)}"/>
+                                    <input type="hidden" name="branchOrTag" value="${fn:escapeXml(activeVersion.scmTag)}"/>
                                     <button class="btn btn-block button-download" type="submit" name="_eventId_downloadTempSources">
                                         <i class="icon-share"></i>
                                         &nbsp;<fmt:message key='serverSettings.manageModules.duplicateModule'/>
@@ -288,7 +288,7 @@
         <tbody>
         <c:forEach items="${otherVersions}" var="version">
             <tr>
-                <td>${version.key}</td>
+                <td>${fn:escapeXml(version.key)}</td>
                 <td>
                     <fmt:message key="serverSettings.manageModules.module.state.${fn:toLowerCase(version.value.state.state)}"/>
                 </td>
@@ -319,7 +319,7 @@
     <c:forEach items="${sites}" var="site" varStatus="status">
         <c:if test="${site eq 'systemsite' or activeVersion.moduleType ne 'system'}">
         <tr>
-            <td>${site}</td>
+            <td>${fn:escapeXml(site)}</td>
             <td>
                 <c:choose>
                     <c:when test="${not empty sitesDirect[activeVersion.id] and functions:contains(sitesDirect[activeVersion.id],site)}">
@@ -362,7 +362,7 @@
                         <c:otherwise>
                             <form style="margin: 0;" action="${flowExecutionUrl}" method="POST">
                                 <input type="hidden" name="module" value="${activeVersion.id}"/>
-                                <input type="hidden" name="version" value="${activeVersion.version}"/>
+                                <input type="hidden" name="version" value="${fn:escapeXml(activeVersion.version)}"/>
                                 <input type="hidden" name="enableOn" value="/sites/${site}"/>
                                 <c:if test="${site ne 'systemsite' or not moduleStates[activeVersion.id][activeVersion.version].systemDependency}">
                                 <fmt:message var="label"
@@ -446,7 +446,7 @@
         <tbody>
         <c:forEach items="${activeVersion.dependencies}" var="dependency">
             <tr>
-                <td><span style="font: bold">${dependency.name}</span></td>
+                <td><span style="font: bold">${fn:escapeXml(dependency.name)}</span></td>
                 <td>
                     <c:if test="${isStudio and not empty dependency.sourcesFolder}">
                         <c:set var="urlDependencyDetails" value="${url.base}/modules/${dependency.id}.html"/>
@@ -483,7 +483,7 @@
 
         <c:forEach items="${dependantModules}" var="dependency">
             <tr>
-                <td><span style="font: bold">${dependency.name}</span></td>
+                <td><span style="font: bold">${fn:escapeXml(dependency.name)}</span></td>
                 <td>
                     <c:if test="${isStudio}">
                         <c:choose>

@@ -69,6 +69,11 @@ export class ManageModulesPage extends BasePage {
         return manageModulesFrame().find(`tr[data-sel-role="module-row-${moduleId}"]`)
     }
 
+    /** The name of a module, as the first cell of its row shows it. */
+    moduleName(moduleId: string) {
+        return this.moduleRow(moduleId).find('td').first().find('b')
+    }
+
     /** The chip of one version of a module, which carries the actions of that version. */
     versionChip(moduleId: string, version: string) {
         return manageModulesFrame().find(`form[data-sel-module="${moduleId}"][data-sel-version="${version}"]`)
@@ -89,6 +94,22 @@ export class ManageModulesPage extends BasePage {
 }
 
 export class ModuleDetailsPage extends BasePage {
+    title() {
+        return manageModulesFrame().find('.page-header h2')
+    }
+
+    /** The values of the information card, in the order the card shows them. */
+    infoValues() {
+        return manageModulesFrame()
+            .find('.moduleInfoCard .infoItem > div')
+            .then(($values) => Cypress._.map($values, (value) => value.textContent.trim()))
+    }
+
+    /** The table of the versions of the module, the first table of the details. */
+    versionsTable() {
+        return manageModulesFrame().find('.material-table table').first()
+    }
+
     enableOnSite(siteKey: string) {
         manageModulesFrame().find(`label[data-sel-role="siteEnabler-${siteKey}"] input`).check({ force: true })
         // Once enabled, the toggle of the site becomes the form that disables the module.
