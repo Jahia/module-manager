@@ -185,7 +185,7 @@
                         </c:when>
                         <c:when test="${not empty sourcesFound}">
                             <fmt:message key='serverSettings.manageModules.module.source.notAvailable' >
-                                <fmt:param value="${sourcesFound}" />
+                                <fmt:param value="${fn:escapeXml(sourcesFound)}" />
                             </fmt:message>
                         </c:when>
                         <c:when test="${not sourcesDownloadable}">

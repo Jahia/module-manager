@@ -3,7 +3,7 @@
 <div class="${showInChip ? 'chip actions ' : 'no-chip actions '} ${!isActiveVersion ? 'inactive' : 'active'}-version">
     <c:if test="${not empty moduleState.unresolvedDependencies}">
         <c:set var="unresolvedDependencies" value="${functions:join(moduleState.unresolvedDependencies, ', ')}"/>
-        <p class="text-danger"><fmt:message key='serverSettings.manageModules.module.depends'/>: ${functions:join(moduleState.unresolvedDependencies, ', ')}</p>
+        <p class="text-danger"><fmt:message key='serverSettings.manageModules.module.depends'/>: ${fn:escapeXml(functions:join(moduleState.unresolvedDependencies, ', '))}</p>
     </c:if>
     <c:set var="actionsAllowed" value="${moduleState.canBeStarted || moduleState.canBeStopped || moduleState.canBeUninstalled}"/>
     <c:set var="moduleLabel">

@@ -98,11 +98,19 @@ export class ModuleDetailsPage extends BasePage {
         return manageModulesFrame().find('.page-header h2')
     }
 
-    /** The values of the information card, in the order the card shows them. */
+    /** The value cells of the information card, in the order the card shows them. */
     infoValues() {
-        return manageModulesFrame()
-            .find('.moduleInfoCard .infoItem > div')
-            .then(($values) => Cypress._.map($values, (value) => value.textContent.trim()))
+        return manageModulesFrame().find('.moduleInfoCard .infoItem > div')
+    }
+
+    /** The chips of the modules this module depends on, and of the modules that depend on it. */
+    moduleChips() {
+        return manageModulesFrame().find('.moduleChip span')
+    }
+
+    /** The wiring lists of the versions, which name the modules wired to each version. */
+    wiringLists() {
+        return manageModulesFrame().find('.wiringInfo ul')
     }
 
     /** The table of the versions of the module, the first table of the details. */

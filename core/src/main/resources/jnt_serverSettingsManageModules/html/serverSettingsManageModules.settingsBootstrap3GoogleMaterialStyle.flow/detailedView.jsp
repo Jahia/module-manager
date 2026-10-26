@@ -204,7 +204,7 @@
                                     </c:when>
                                     <c:when test="${not empty sourcesFound}">
                                         <fmt:message key='serverSettings.manageModules.module.source.notAvailable'>
-                                            <fmt:param value="${sourcesFound}"/>
+                                            <fmt:param value="${fn:escapeXml(sourcesFound)}"/>
                                         </fmt:message>
                                     </c:when>
                                     <c:when test="${not sourcesDownloadable}">
@@ -488,7 +488,7 @@
                                             <td>${optDep.jahiaTemplatesPackage.state}</td>
                                         </c:when>
                                         <c:otherwise>
-                                            <td>${optDep.moduleId}</td>
+                                            <td>${fn:escapeXml(optDep.moduleId)}</td>
                                             <td><fmt:message key="serverSettings.manageModules.module.notinstalled"/></td>
                                         </c:otherwise>
                                     </c:choose>

@@ -28,7 +28,10 @@ The specs upload the jars under `cypress/fixtures/assets/moduleManagement/`:
   Its group is `org.jahia.test`: the jar is not signed, and Jahia refuses an unsigned module of the
   `org.jahia.modules` group.
 - `labelstestmodule` 1.0.0, a jar that holds only a manifest. Its name, version, group, type, vendor
-  and description hold `&`, `<`, `>`, double quotes and an accent, which the screen shows as written.
+  and description hold some of `&`, `<`, `>`, double quotes and an accent, which the screen shows as
+  written.
+- `labelsdependentmodule` 1.0.0, a manifest-only jar that depends on `labelstestmodule`. Its name
+  holds the same characters.
 
 `cypress/fixtures/groovy/removeFixtureModules.groovy` uninstalls every version of these modules
 before and after each spec, including what a failed run left behind.
