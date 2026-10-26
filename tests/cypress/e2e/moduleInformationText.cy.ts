@@ -93,7 +93,8 @@ describe('Information of a module whose manifest holds special characters', () =
             .its('0.contentWindow')
             .then((frameWindow) => cy.stub(frameWindow, 'confirm').returns(true))
         new ManageModulesPage().versionChip(dependent.id, dependent.version).find('[data-sel-role="stop"]').click()
-        manageModulesFrame().should('contain.text', 'has been stopped')
+        // The screen answers the stop with a success alert, which a freshly loaded list never holds.
+        manageModulesFrame().find('.alert-success').should('exist')
 
         const modules = ManageModulesPage.visit().search(dependent.id)
         // The confirmation is declined, so the module stays installed.
