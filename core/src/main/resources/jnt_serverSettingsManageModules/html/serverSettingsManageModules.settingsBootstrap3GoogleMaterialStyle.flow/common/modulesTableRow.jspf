@@ -2,7 +2,7 @@
 <c:if test="${not isStudio or not empty currentModule.sourcesFolder}">
     <tr data-sel-role="module-row-${entry.key}">
         <td>
-            <span><b>${currentModule != null ? currentModule.name : defaultVersion.name}</b> &nbsp;(${entry.key})</span>
+            <span><b>${fn:escapeXml(currentModule != null ? currentModule.name : defaultVersion.name)}</b> &nbsp;(${entry.key})</span>
             <c:if test="${not empty optionalDependenciesForAvailableModules[entry.key]}">
                 <c:set var="isUnstarted" value="false"/>
                 <c:forEach items="${optionalDependenciesForAvailableModules[entry.key]}" var="optDep">
@@ -50,7 +50,7 @@
                     </c:if>
                     <c:if test="${isStudio and isActiveVersion}">
                         <div class="active-version">
-                                ${version.key}
+                                ${fn:escapeXml(version.key)}
                         </div>
                     </c:if>
                     <c:if test="${not empty version.value.sourcesFolder}">
@@ -90,11 +90,11 @@
             <c:if test="${not empty currentModule}">
                 <td data-sel-role="status-${fn:toLowerCase(currentModule.state.state)}">
                     <c:if test="${currentModule.state =='Started'}">
-                            <span class="started-label text-success">&nbsp;${currentModule.version}
+                            <span class="started-label text-success">&nbsp;${fn:escapeXml(currentModule.version)}
                             (<fmt:message key="serverSettings.manageModules.module.state.${fn:toLowerCase(currentModule.state.state)}"/>)</span>
                     </c:if>
                     <c:if test="${currentModule.state !='Started'}">
-                            <span class="inactive-label">&nbsp;${currentModule.version}
+                            <span class="inactive-label">&nbsp;${fn:escapeXml(currentModule.version)}
                             (<fmt:message key="serverSettings.manageModules.module.state.${fn:toLowerCase(currentModule.state.state)}"/>)</span>
                     </c:if>
                 </td>

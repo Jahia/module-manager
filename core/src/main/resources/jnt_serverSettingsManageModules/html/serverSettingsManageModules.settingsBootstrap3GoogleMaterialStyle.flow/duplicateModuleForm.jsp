@@ -65,7 +65,7 @@
 <div class="page-header">
     <h2>
         <fmt:message key='serverSettings.manageModules.duplicateModule.title'>
-            <fmt:param value="${moduleName}"/>
+            <fmt:param value="${fn:escapeXml(moduleName)}"/>
         </fmt:message>
     </h2>
 </div>
@@ -94,7 +94,7 @@
                                 <c:when test="${not empty branchTagInfos}">
                                     <div class="form-group label-floating">
                                         <label class="control-label" for="newScmUri"><fmt:message key="serverSettings.manageModules.downloadSources.scm.${fn:endsWith(version,'-SNAPSHOT') ? 'branch' : 'tag'}" /></label>
-                                        <input type="hidden" id="branchOrTag" name="branchOrTag" value="${not empty branchOrTag ? branchOrTag : ''}"/>
+                                        <input type="hidden" id="branchOrTag" name="branchOrTag" value="${fn:escapeXml(branchOrTag)}"/>
                                         <select name="newScmUri" id="newScmUri">
                                             <c:forEach var="branchTagInfo" items="${branchTagInfos}">
                                                 <option value="${branchTagInfo.value}" ${branchTagInfo.key eq branchOrTag ? 'selected' : ''}>${branchTagInfo.key}</option>
@@ -105,23 +105,23 @@
                                 <c:when test="${hasError}">
                                     <div class="form-group label-floating">
                                         <label class="control-label" for="newScmUriText"><fmt:message key="serverSettings.manageModules.downloadSources.scmUri" /></label>
-                                        <input class="form-control" type="text" id="newScmUriText" name="newScmUri" value="${not empty newScmUri ? newScmUri : scmUri}"/>
+                                        <input class="form-control" type="text" id="newScmUriText" name="newScmUri" value="${fn:escapeXml(not empty newScmUri ? newScmUri : scmUri)}"/>
                                     </div>
                                     <div class="form-group label-floating">
                                         <label class="control-label" for="branchOrTagText"><fmt:message key="serverSettings.manageModules.downloadSources.branchOrTag" /></label>
-                                        <input class="form-control" type="text" id="branchOrTagText" name="branchOrTag" value="${not empty branchOrTag ? branchOrTag : ''}"/>
+                                        <input class="form-control" type="text" id="branchOrTagText" name="branchOrTag" value="${fn:escapeXml(branchOrTag)}"/>
                                     </div>
                                 </c:when>
                                 <c:when test="${not empty newScmUri}">
                                     <input type="hidden" name="newScmUri" value="${newScmUri}"/>
-                                    <input type="hidden" name="branchOrTag" value="${not empty branchOrTag ? branchOrTag : ''}"/>
+                                    <input type="hidden" name="branchOrTag" value="${fn:escapeXml(branchOrTag)}"/>
                                 </c:when>
                             </c:choose>
                         </c:when>
                         <c:otherwise>
                             <input type="hidden" name="srcPath" value="${srcPath}"/>
-                            <input type="hidden" name="newScmUri" value="${scmUri}"/>
-                            <input type="hidden" name="branchOrTag" value="${not empty branchOrTag ? branchOrTag : ''}"/>
+                            <input type="hidden" name="newScmUri" value="${fn:escapeXml(scmUri)}"/>
+                            <input type="hidden" name="branchOrTag" value="${fn:escapeXml(branchOrTag)}"/>
                         </c:otherwise>
                     </c:choose>
 
@@ -132,7 +132,7 @@
                                     <fmt:param value="${moduleName}"/>
                                 </fmt:message>
                             </label>
-                            <input class="form-control" type="text" id="newModuleName" name="newModuleName" value="${not empty newModuleName ? newModuleName : moduleNameCopy}" required />
+                            <input class="form-control" type="text" id="newModuleName" name="newModuleName" value="${fn:escapeXml(not empty newModuleName ? newModuleName : moduleNameCopy)}" required />
                         </div>
                     </div>
 
@@ -147,7 +147,7 @@
                     <div class="form-group label-floating">
                         <div class="input-group">
                             <label for="newGroupId"><fmt:message key='label.groupId'/></label>
-                            <input class="form-control" type="text" id="newGroupId" name="newGroupId" placeholder="org.jahia.modules" value="${newGroupId ? newGroupId : groupId}" />
+                            <input class="form-control" type="text" id="newGroupId" name="newGroupId" placeholder="org.jahia.modules" value="${fn:escapeXml(newGroupId ? newGroupId : groupId)}" />
                         </div>
                     </div>
 
@@ -172,7 +172,7 @@
                             <input type="hidden" name="areSourcesTemporary" value="true" />
                         </c:if>
                         <input type="hidden" name="moduleId" value="${moduleId}" />
-                        <input type="hidden" name="version" value="${version}" />
+                        <input type="hidden" name="version" value="${fn:escapeXml(version)}" />
                         <button class="btn btn-primary btn-raised pull-right" type="submit">
                             <fmt:message key='label.next'/>
                         </button>

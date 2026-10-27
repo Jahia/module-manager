@@ -2,7 +2,7 @@
 <c:if test="${not isStudio or not empty currentModule.sourcesFolder}">
     <tr>
         <td>
-            <strong>${currentModule != null ? currentModule.name : defaultVersion.name}</strong>
+            <strong>${fn:escapeXml(currentModule != null ? currentModule.name : defaultVersion.name)}</strong>
             <c:if test="${isMandatoryDependency}">
                 <span class="text-error" title="${i18nMandatoryDependency}"><a href="#mandatory-dependency" class="text-error"><strong>*</strong></a></span>
             </c:if>
@@ -11,7 +11,7 @@
             </c:if>
         </td>
         <td>${entry.key}</td>
-        <td>${currentModule.groupId}</td>
+        <td>${fn:escapeXml(currentModule.groupId)}</td>
         <td>
             <c:if test="${isStudio}">
                 <c:url var="urlDetails" value="${url.base}/modules/${currentModule.id}.html"/>
@@ -40,7 +40,7 @@
                 </c:if>
                 <c:if test="${isStudio and isActiveVersion}">
                     <div class="active-version">
-                            ${version.key}
+                            ${fn:escapeXml(version.key)}
                     </div>
                 </c:if>
                 <c:if test="${not empty version.value.sourcesFolder}">
@@ -78,11 +78,11 @@
             <c:if test="${not empty currentModule}">
                 <td>
                     <c:if test="${currentModule.state =='Started'}">
-                    <span class="label label-success">&nbsp;${currentModule.version}
+                    <span class="label label-success">&nbsp;${fn:escapeXml(currentModule.version)}
                     (<fmt:message key="serverSettings.manageModules.module.state.${fn:toLowerCase(currentModule.state.state)}"/>)</span>
                     </c:if>
                     <c:if test="${currentModule.state !='Started'}">
-                    <span class="label label-warning">&nbsp;${currentModule.version}
+                    <span class="label label-warning">&nbsp;${fn:escapeXml(currentModule.version)}
                     (<fmt:message key="serverSettings.manageModules.module.state.${fn:toLowerCase(currentModule.state.state)}"/>)</span>
                     </c:if>
                 </td>
@@ -100,7 +100,7 @@
                     </c:when>
                     <c:when test="${not empty sourcesFound}">
                         <fmt:message key='serverSettings.manageModules.module.source.notAvailable' >
-                            <fmt:param value="${sourcesFound}" />
+                            <fmt:param value="${fn:escapeXml(sourcesFound)}" />
                         </fmt:message>
                     </c:when>
                     <c:when test="${not sourcesDownloadable}">
@@ -110,9 +110,9 @@
                         <c:if test="${functions:contains(sourceControls, fn:substringBefore(fn:substringAfter(currentModule.scmURI, ':'),':'))}">
                             <form style="margin: 0;" action="${flowExecutionUrl}" method="POST" onsubmit="workInProgress('${i18nWaiting}');">
                                 <input type="hidden" name="module" value="${entry.key}"/>
-                                <input type="hidden" name="scmUri" value="${currentModule.scmURI}"/>
-                                <input type="hidden" name="version" value="${currentModule.version}"/>
-                                <input type="hidden" name="branchOrTag" value="${currentModule.scmTag}"/>
+                                <input type="hidden" name="scmUri" value="${fn:escapeXml(currentModule.scmURI)}"/>
+                                <input type="hidden" name="version" value="${fn:escapeXml(currentModule.version)}"/>
+                                <input type="hidden" name="branchOrTag" value="${fn:escapeXml(currentModule.scmTag)}"/>
                                 <button class="btn btn-block button-download" type="submit" name="_eventId_downloadSources" onclick="">
                                     <i class="icon-download"></i>
                                     &nbsp;${i18nDownloadSources}
@@ -125,9 +125,9 @@
                             <c:when test="${functions:contains(sourceControls, fn:substringBefore(fn:substringAfter(defaultVersion.scmURI, ':'),':')) and fn:length(entry.value) eq 1}">
                                 <form style="margin: 0;" action="${flowExecutionUrl}" method="POST">
                                     <input type="hidden" name="module" value="${entry.key}"/>
-                                    <input type="hidden" name="scmUri" value="${defaultVersion.scmURI}"/>
-                                    <input type="hidden" name="version" value="${defaultVersion.version}"/>
-                                    <input type="hidden" name="branchOrTag" value="${defaultVersion.scmTag}"/>
+                                    <input type="hidden" name="scmUri" value="${fn:escapeXml(defaultVersion.scmURI)}"/>
+                                    <input type="hidden" name="version" value="${fn:escapeXml(defaultVersion.version)}"/>
+                                    <input type="hidden" name="branchOrTag" value="${fn:escapeXml(defaultVersion.scmTag)}"/>
                                     <button class="btn btn-block button-download" type="submit" name="_eventId_downloadSources" onclick="">
                                         <i class="icon-download"></i>
                                         &nbsp;${i18nDownloadSources}
@@ -161,10 +161,10 @@
                     </c:when>
                     <c:when test="${not empty currentModule.sourcesFolder and not isMandatoryDependency}">
                         <form style="margin: 0;" action="${flowExecutionUrl}" method="POST" onsubmit="workInProgress('${i18nWaiting}');">
-                            <input type="hidden" name="moduleName" value="${currentModule.name}"/>
+                            <input type="hidden" name="moduleName" value="${fn:escapeXml(currentModule.name)}"/>
                             <input type="hidden" name="moduleId" value="${currentModule.id}"/>
-                            <input type="hidden" name="groupId" value="${currentModule.groupId}"/>
-                            <input type="hidden" name="version" value="${currentModule.version}"/>
+                            <input type="hidden" name="groupId" value="${fn:escapeXml(currentModule.groupId)}"/>
+                            <input type="hidden" name="version" value="${fn:escapeXml(currentModule.version)}"/>
                             <input type="hidden" name="srcPath" value="${currentModule.sourcesFolder.path}"/>
                             <button class="btn btn-block button-download" type="submit" name="_eventId_duplicateModuleForm">
                                 <i class="icon-share"></i>
@@ -174,10 +174,10 @@
                     </c:when>
                     <c:when test="${not empty defaultVersion.sourcesFolder and not isMandatoryDependency}">
                         <form style="margin: 0;" action="${flowExecutionUrl}" method="POST" onsubmit="workInProgress('${i18nWaiting}');">
-                            <input type="hidden" name="moduleName" value="${defaultVersion.name}"/>
+                            <input type="hidden" name="moduleName" value="${fn:escapeXml(defaultVersion.name)}"/>
                             <input type="hidden" name="moduleId" value="${defaultVersion.id}"/>
-                            <input type="hidden" name="groupId" value="${defaultVersion.groupId}"/>
-                            <input type="hidden" name="version" value="${defaultVersion.version}"/>
+                            <input type="hidden" name="groupId" value="${fn:escapeXml(defaultVersion.groupId)}"/>
+                            <input type="hidden" name="version" value="${fn:escapeXml(defaultVersion.version)}"/>
                             <input type="hidden" name="srcPath" value="${defaultVersion.sourcesFolder.path}"/>
                             <button class="btn btn-block button-download" type="submit" name="_eventId_duplicateModuleForm">
                                 <i class="icon-share"></i>
@@ -188,12 +188,12 @@
                     <c:when test="${not empty currentModule.scmURI and sourcesDownloadable}">
                         <c:if test="${functions:contains(sourceControls, fn:substringBefore(fn:substringAfter(currentModule.scmURI, ':'),':'))}">
                             <form style="margin: 0;" action="${flowExecutionUrl}" method="POST" onsubmit="workInProgress('${i18nWaiting}');">
-                                <input type="hidden" name="moduleName" value="${currentModule.name}"/>
+                                <input type="hidden" name="moduleName" value="${fn:escapeXml(currentModule.name)}"/>
                                 <input type="hidden" name="moduleId" value="${currentModule.id}"/>
-                                <input type="hidden" name="groupId" value="${currentModule.groupId}"/>
-                                <input type="hidden" name="version" value="${currentModule.version}"/>
-                                <input type="hidden" name="scmUri" value="${currentModule.scmURI}"/>
-                                <input type="hidden" name="branchOrTag" value="${currentModule.scmTag}"/>
+                                <input type="hidden" name="groupId" value="${fn:escapeXml(currentModule.groupId)}"/>
+                                <input type="hidden" name="version" value="${fn:escapeXml(currentModule.version)}"/>
+                                <input type="hidden" name="scmUri" value="${fn:escapeXml(currentModule.scmURI)}"/>
+                                <input type="hidden" name="branchOrTag" value="${fn:escapeXml(currentModule.scmTag)}"/>
                                 <button class="btn btn-block button-download" type="submit" name="_eventId_downloadTempSources">
                                     <i class="icon-share"></i>
                                     &nbsp;${i18nDuplicateModule}
@@ -204,12 +204,12 @@
                     <c:when test="${not empty defaultVersion.scmURI and sourcesDownloadable}">
                         <c:if test="${functions:contains(sourceControls, fn:substringBefore(fn:substringAfter(defaultVersion.scmURI, ':'),':')) and fn:length(entry.value) eq 1}">
                             <form style="margin: 0;" action="${flowExecutionUrl}" method="POST">
-                                <input type="hidden" name="moduleName" value="${defaultVersion.name}"/>
+                                <input type="hidden" name="moduleName" value="${fn:escapeXml(defaultVersion.name)}"/>
                                 <input type="hidden" name="moduleId" value="${defaultVersion.id}"/>
-                                <input type="hidden" name="groupId" value="${defaultVersion.groupId}"/>
-                                <input type="hidden" name="version" value="${defaultVersion.version}"/>
-                                <input type="hidden" name="scmUri" value="${defaultVersion.scmURI}"/>
-                                <input type="hidden" name="branchOrTag" value="${defaultVersion.scmTag}"/>
+                                <input type="hidden" name="groupId" value="${fn:escapeXml(defaultVersion.groupId)}"/>
+                                <input type="hidden" name="version" value="${fn:escapeXml(defaultVersion.version)}"/>
+                                <input type="hidden" name="scmUri" value="${fn:escapeXml(defaultVersion.scmURI)}"/>
+                                <input type="hidden" name="branchOrTag" value="${fn:escapeXml(defaultVersion.scmTag)}"/>
                                 <button class="btn btn-block button-download" type="submit" name="_eventId_downloadTempSources">
                                     <i class="icon-share"></i>
                                     &nbsp;${i18nDuplicateModule}

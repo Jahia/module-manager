@@ -1,7 +1,13 @@
 import { jfaker } from '@jahia/cypress'
 
 /** The modules under cypress/fixtures/assets/moduleManagement, by id. */
-const FIXTURE_MODULE_IDS = ['dummy1', 'qa-module-with-dependency', 'versioningtestmodule']
+const FIXTURE_MODULE_IDS = [
+    'dummy1',
+    'labelsdependentmodule',
+    'labelstestmodule',
+    'qa-module-with-dependency',
+    'versioningtestmodule',
+]
 
 /** The jar of a fixture module, as `selectFile` takes it. */
 export const fixtureJar = (fileName: string) => `cypress/fixtures/assets/moduleManagement/${fileName}`

@@ -114,7 +114,7 @@
                 onclick="$('#viewInstalledModulesForm').submit()">
             <i class="material-icons">arrow_back</i>
         </button>
-        ${activeVersion.name}</h2>
+        ${fn:escapeXml(activeVersion.name)}</h2>
 </div>
 
 <c:if test="${not empty otherVersions}">
@@ -155,11 +155,11 @@
             <div class="col-md-12 card moduleInfoCard">
                 <div class="infoItem">
                     <h6><fmt:message key="serverSettings.manageModules.moduleId"/></h6>
-                    <div>${activeVersion.id}</div>
+                    <div>${fn:escapeXml(activeVersion.id)}</div>
                 </div>
                 <div class="infoItem">
                     <h6><fmt:message key="serverSettings.manageModules.groupId"/></h6>
-                    <div>${activeVersion.groupId}</div>
+                    <div>${fn:escapeXml(activeVersion.groupId)}</div>
                 </div>
                 <div class="infoItem">
                     <h6><fmt:message key="serverSettings.manageModules.module.state"/></h6>
@@ -167,7 +167,7 @@
                 </div>
                 <div class="infoItem">
                     <h6><fmt:message key="serverSettings.manageModules.module.type"/></h6>
-                    <div>${activeVersion.moduleType}</div>
+                    <div>${fn:escapeXml(activeVersion.moduleType)}</div>
                 </div>
                 <div class="infoItem">
                     <h6><fmt:message key="serverSettings.manageModules.module.author"/></h6>
@@ -204,7 +204,7 @@
                                     </c:when>
                                     <c:when test="${not empty sourcesFound}">
                                         <fmt:message key='serverSettings.manageModules.module.source.notAvailable'>
-                                            <fmt:param value="${sourcesFound}"/>
+                                            <fmt:param value="${fn:escapeXml(sourcesFound)}"/>
                                         </fmt:message>
                                     </c:when>
                                     <c:when test="${not sourcesDownloadable}">
@@ -216,9 +216,9 @@
                                                 <c:when test="${hasStartedVersion}">
                                                     <form action="${flowExecutionUrl}" method="POST">
                                                         <input type="hidden" name="module" value="${activeVersion.id}"/>
-                                                        <input type="hidden" name="scmUri" value="${activeVersion.scmURI}"/>
-                                                        <input type="hidden" name="version" value="${activeVersion.version}"/>
-                                                        <input type="hidden" name="branchOrTag" value="${activeVersion.scmTag}"/>
+                                                        <input type="hidden" name="scmUri" value="${fn:escapeXml(activeVersion.scmURI)}"/>
+                                                        <input type="hidden" name="version" value="${fn:escapeXml(activeVersion.version)}"/>
+                                                        <input type="hidden" name="branchOrTag" value="${fn:escapeXml(activeVersion.scmTag)}"/>
                                                         <button class="btn btn-default btn-raised button-download" type="submit"
                                                                 name="_eventId_downloadSources" onclick="">
                                                             <i class="icon-download"></i>
@@ -258,10 +258,10 @@
                                 <span>
                                     <form style="margin: 0;" action="${flowExecutionUrl}" method="POST"
                                           onsubmit="workInProgress('${i18nWaiting}');">
-                                        <input type="hidden" name="moduleName" value="${activeVersion.name}"/>
+                                        <input type="hidden" name="moduleName" value="${fn:escapeXml(activeVersion.name)}"/>
                                         <input type="hidden" name="moduleId" value="${activeVersion.id}"/>
-                                        <input type="hidden" name="groupId" value="${activeVersion.groupId}"/>
-                                        <input type="hidden" name="version" value="${activeVersion.version}"/>
+                                        <input type="hidden" name="groupId" value="${fn:escapeXml(activeVersion.groupId)}"/>
+                                        <input type="hidden" name="version" value="${fn:escapeXml(activeVersion.version)}"/>
                                         <input type="hidden" name="srcPath" value="${activeVersion.sourcesFolder.path}"/>
                                         <button class="btn btn-default btn-raised button-download" type="submit" name="_eventId_duplicateModuleForm">
                                             <i class="icon-share"></i>
@@ -274,12 +274,12 @@
                                     <c:if test="${functions:contains(sourceControls, fn:substringBefore(fn:substringAfter(activeVersion.scmURI, ':'),':')) and hasStartedVersion}">
                                     <span>
                                         <form style="margin: 0;" action="${flowExecutionUrl}" method="POST">
-                                            <input type="hidden" name="moduleName" value="${activeVersion.name}"/>
+                                            <input type="hidden" name="moduleName" value="${fn:escapeXml(activeVersion.name)}"/>
                                             <input type="hidden" name="moduleId" value="${activeVersion.id}"/>
-                                            <input type="hidden" name="groupId" value="${activeVersion.groupId}"/>
-                                            <input type="hidden" name="version" value="${activeVersion.version}"/>
-                                            <input type="hidden" name="scmUri" value="${activeVersion.scmURI}"/>
-                                            <input type="hidden" name="branchOrTag" value="${activeVersion.scmTag}"/>
+                                            <input type="hidden" name="groupId" value="${fn:escapeXml(activeVersion.groupId)}"/>
+                                            <input type="hidden" name="version" value="${fn:escapeXml(activeVersion.version)}"/>
+                                            <input type="hidden" name="scmUri" value="${fn:escapeXml(activeVersion.scmURI)}"/>
+                                            <input type="hidden" name="branchOrTag" value="${fn:escapeXml(activeVersion.scmTag)}"/>
                                             <button class="btn btn-default btn-raised button-download" type="submit" name="_eventId_downloadTempSources">
                                                 <i class="icon-share"></i>
                                                 &nbsp;<fmt:message key='serverSettings.manageModules.duplicateModule'/>
@@ -314,7 +314,7 @@
                         <tbody>
                         <c:forEach items="${otherVersions}" var="version">
                             <tr>
-                                <td>${version.key}</td>
+                                <td>${fn:escapeXml(version.key)}</td>
                                 <td>
                                     <fmt:message
                                             key="serverSettings.manageModules.module.state.${fn:toLowerCase(version.value.state.state)}"/>
@@ -366,7 +366,7 @@
                 <c:forEach items="${sites}" var="site" varStatus="status">
                     <c:if test="${site eq 'systemsite' or activeVersion.moduleType ne 'system'}">
                         <tr>
-                            <td>${site}</td>
+                            <td>${fn:escapeXml(site)}</td>
                             <td>
                                 <c:choose>
                                     <c:when test="${not empty sitesDirect[activeVersion.id] and functions:contains(sitesDirect[activeVersion.id],site)}">
@@ -416,7 +416,7 @@
                                         <c:otherwise>
                                             <form style="margin: 0;" action="${flowExecutionUrl}" method="POST" id="f1-${site}">
                                                 <input type="hidden" name="module" value="${activeVersion.id}"/>
-                                                <input type="hidden" name="version" value="${activeVersion.version}"/>
+                                                <input type="hidden" name="version" value="${fn:escapeXml(activeVersion.version)}"/>
                                                 <input type="hidden" name="enableOn" value="/sites/${site}"/>
                                                 <c:if test="${site ne 'systemsite' or not moduleStates[activeVersion.id][activeVersion.version].systemDependency}">
 
@@ -453,14 +453,14 @@
                         <c:if test="${isStudio and not empty dependency.sourcesFolder}">
                             <c:set var="urlDependencyDetails" value="${url.base}/modules/${dependency.id}.html"/>
                             <button class="moduleChip" onclick='window.location.assign("${urlDependencyDetails}")'>
-                                <span>${dependency.name}</span>
+                                <span>${fn:escapeXml(dependency.name)}</span>
                             </button>
                         </c:if>
                         <c:if test="${not isStudio}">
                             <form style="margin: 0;" action="${flowExecutionUrl}" method="POST">
                                 <input type="hidden" name="selectedModule" value="${dependency.id}"/>
                                 <button class="moduleChip" type="submit" name="_eventId_viewDetails" onclick="">
-                                    <span>${dependency.name}</span>
+                                    <span>${fn:escapeXml(dependency.name)}</span>
                                 </button>
                             </form>
                         </c:if>
@@ -484,11 +484,11 @@
                                 <tr>
                                     <c:choose>
                                         <c:when test="${not empty optDep.jahiaTemplatesPackage}">
-                                            <td>${optDep.jahiaTemplatesPackage.name}</td>
+                                            <td>${fn:escapeXml(optDep.jahiaTemplatesPackage.name)}</td>
                                             <td>${optDep.jahiaTemplatesPackage.state}</td>
                                         </c:when>
                                         <c:otherwise>
-                                            <td>${optDep.moduleId}</td>
+                                            <td>${fn:escapeXml(optDep.moduleId)}</td>
                                             <td><fmt:message key="serverSettings.manageModules.module.notinstalled"/></td>
                                         </c:otherwise>
                                     </c:choose>
@@ -510,7 +510,7 @@
                                         <c:url var="urlDependencyDetails" value="${url.base}/modules/${dependency.id}.html"/>
                                         <button class="moduleChip" type="button"
                                                 onclick='window.location.assign("${urlDependencyDetails}")'>
-                                            <span>${dependency.name}</span>
+                                            <span>${fn:escapeXml(dependency.name)}</span>
                                         </button>
                                     </c:when>
                                     <c:otherwise>&nbsp;</c:otherwise>
@@ -520,7 +520,7 @@
                                 <form style="margin: 0;" action="${flowExecutionUrl}" method="POST">
                                     <input type="hidden" name="selectedModule" value="${dependency.id}"/>
                                     <button class="moduleChip" type="submit" name="_eventId_viewDetails" onclick="">
-                                        <span>${dependency.name}</span>
+                                        <span>${fn:escapeXml(dependency.name)}</span>
                                     </button>
                                 </form>
                             </c:if>
