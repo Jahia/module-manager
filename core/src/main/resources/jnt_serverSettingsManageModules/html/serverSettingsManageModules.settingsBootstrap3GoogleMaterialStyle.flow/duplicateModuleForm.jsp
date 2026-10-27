@@ -94,7 +94,7 @@
                                 <c:when test="${not empty branchTagInfos}">
                                     <div class="form-group label-floating">
                                         <label class="control-label" for="newScmUri"><fmt:message key="serverSettings.manageModules.downloadSources.scm.${fn:endsWith(version,'-SNAPSHOT') ? 'branch' : 'tag'}" /></label>
-                                        <input type="hidden" id="branchOrTag" name="branchOrTag" value="${not empty branchOrTag ? branchOrTag : ''}"/>
+                                        <input type="hidden" id="branchOrTag" name="branchOrTag" value="${fn:escapeXml(branchOrTag)}"/>
                                         <select name="newScmUri" id="newScmUri">
                                             <c:forEach var="branchTagInfo" items="${branchTagInfos}">
                                                 <option value="${branchTagInfo.value}" ${branchTagInfo.key eq branchOrTag ? 'selected' : ''}>${branchTagInfo.key}</option>
@@ -109,19 +109,19 @@
                                     </div>
                                     <div class="form-group label-floating">
                                         <label class="control-label" for="branchOrTagText"><fmt:message key="serverSettings.manageModules.downloadSources.branchOrTag" /></label>
-                                        <input class="form-control" type="text" id="branchOrTagText" name="branchOrTag" value="${not empty branchOrTag ? branchOrTag : ''}"/>
+                                        <input class="form-control" type="text" id="branchOrTagText" name="branchOrTag" value="${fn:escapeXml(branchOrTag)}"/>
                                     </div>
                                 </c:when>
                                 <c:when test="${not empty newScmUri}">
                                     <input type="hidden" name="newScmUri" value="${newScmUri}"/>
-                                    <input type="hidden" name="branchOrTag" value="${not empty branchOrTag ? branchOrTag : ''}"/>
+                                    <input type="hidden" name="branchOrTag" value="${fn:escapeXml(branchOrTag)}"/>
                                 </c:when>
                             </c:choose>
                         </c:when>
                         <c:otherwise>
                             <input type="hidden" name="srcPath" value="${srcPath}"/>
                             <input type="hidden" name="newScmUri" value="${fn:escapeXml(scmUri)}"/>
-                            <input type="hidden" name="branchOrTag" value="${not empty branchOrTag ? branchOrTag : ''}"/>
+                            <input type="hidden" name="branchOrTag" value="${fn:escapeXml(branchOrTag)}"/>
                         </c:otherwise>
                     </c:choose>
 
