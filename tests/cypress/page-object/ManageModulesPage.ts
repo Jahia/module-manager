@@ -93,6 +93,32 @@ export class ManageModulesPage extends BasePage {
     }
 }
 
+/** The Available modules tab, which lists the modules of the app stores. */
+export class AvailableModulesPage extends BasePage {
+    static visit() {
+        ManageModulesPage.visit()
+        manageModulesFrame().find('#available-modules-tab').click()
+        // Only the rows of the Available modules tab hold the page of a module in a hidden field.
+        manageModulesFrame().find('input[name="remoteUrl"]').should('exist')
+        return new AvailableModulesPage()
+    }
+
+    /** The search box filters the DataTable, which keeps only the rows of the current page in the DOM. */
+    search(text: string) {
+        manageModulesFrame().find('input[aria-controls*="module_table"]').clear().type(text)
+        return this
+    }
+
+    moduleRow(text: string) {
+        return manageModulesFrame().find('tbody').contains('tr', text)
+    }
+
+    /** The frame of the details dialog, which shows the page of a module on its app store. */
+    detailsFrame() {
+        return manageModulesFrame().find('#modalframe')
+    }
+}
+
 export class ModuleDetailsPage extends BasePage {
     title() {
         return manageModulesFrame().find('.page-header h2')

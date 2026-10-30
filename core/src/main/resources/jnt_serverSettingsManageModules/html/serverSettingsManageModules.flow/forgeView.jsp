@@ -136,13 +136,14 @@
         <tbody>
         <c:forEach items="${requestScope.modules}" var="module">
             <tr>
-                <td ><c:if test="${not empty module.icon}"><img style="width:32px; height:32px;padding-right:5px;"  src="${module.icon}"/></c:if>${module.name}</td>
-                <td> ${module.id}</td>
-                <td> ${module.groupId}</td>
-                <td> ${module.version}</td>
+                <td ><c:if test="${not empty module.icon}"><img style="width:32px; height:32px;padding-right:5px;"  src="${fn:escapeXml(module.icon)}"/></c:if>${fn:escapeXml(module.name)}</td>
+                <td> ${fn:escapeXml(module.id)}</td>
+                <td> ${fn:escapeXml(module.groupId)}</td>
+                <td> ${fn:escapeXml(module.version)}</td>
                 <c:url value="${module.remoteUrl}" context="/" var="remoteUrl"/>
+                <c:if test="${not functions:matches('(?i)(https?:)?/.*', remoteUrl)}"><c:set var="remoteUrl" value=""/></c:if>
                 <td>
-                    <a data-toggle="modal" role="button" class="btn btn-info" type="button" data-target="#moduleDetailsModal" onclick="$('#modalframe').attr('src', '${remoteUrl}')">
+                    <a data-toggle="modal" role="button" class="btn btn-info" type="button" data-target="#moduleDetailsModal" onclick="$('#modalframe').attr('src', '${fn:escapeXml(functions:escapeJavaScript(remoteUrl))}')">
                         <i class="icon-zoom-in icon-white"></i>
                         &nbsp;${i18nModuleDetails}
                     </a>
@@ -169,7 +170,7 @@
                             <c:otherwise>
                                 <form style="margin: 0;" action="${flowExecutionUrl}" method="POST" onsubmit="this.elements.namedItem('moduleAutoStart').value=document.getElementById('globalModuleAutoStart').checked; workInProgress('${i18nWaiting}');">
                                     <input type="hidden" name="forgeId" value="${module.forgeId}"/>
-                                    <input type="hidden" name="moduleUrl" value="${module.downloadUrl}"/>
+                                    <input type="hidden" name="moduleUrl" value="${fn:escapeXml(module.downloadUrl)}"/>
                                     <input type="hidden" name="moduleAutoStart" value="${developmentMode}"/>
                                     <button class="btn btn-block button-download" type="submit" name="_eventId_installForgeModule">
                                         <i class="icon-download"></i>
