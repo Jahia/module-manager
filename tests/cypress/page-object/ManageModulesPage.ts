@@ -13,6 +13,10 @@ export const MANAGE_MODULES_IFRAME = 'iframe[src*="manageModules.html"]'
  */
 export const manageModulesFrame = () => cy.get(MANAGE_MODULES_IFRAME, { timeout: 30000 }).its('0.contentDocument.body')
 
+/** The search box filters the DataTable, which keeps only the rows of the current page in the DOM. */
+const searchModuleTable = (text: string) =>
+    manageModulesFrame().find('input[aria-controls*="module_table"]').clear().type(text)
+
 export type UploadOptions = {
     /** The "Start the module after upload" box, which the screen checks in development mode only */
     autoStart: boolean
@@ -59,9 +63,8 @@ export class ManageModulesPage extends BasePage {
         return this
     }
 
-    /** The search box filters the DataTable, which keeps only the rows of the current page in the DOM. */
     search(moduleId: string) {
-        manageModulesFrame().find('input[aria-controls*="module_table"]').clear().type(moduleId)
+        searchModuleTable(moduleId)
         return this
     }
 
@@ -90,6 +93,31 @@ export class ManageModulesPage extends BasePage {
         this.search(moduleId)
         this.moduleRow(moduleId).find('td').first().click()
         return new ModuleDetailsPage()
+    }
+}
+
+/** The Available modules tab, which lists the modules of the app stores. */
+export class AvailableModulesPage extends BasePage {
+    static visit() {
+        ManageModulesPage.visit()
+        manageModulesFrame().find('#available-modules-tab').click()
+        // Only the rows of the Available modules tab hold the page of a module in a hidden field.
+        manageModulesFrame().find('input[name="remoteUrl"]').should('exist')
+        return new AvailableModulesPage()
+    }
+
+    search(text: string) {
+        searchModuleTable(text)
+        return this
+    }
+
+    moduleRow(text: string) {
+        return manageModulesFrame().find('tbody').contains('tr', text)
+    }
+
+    /** The frame of the details dialog, which shows the page of a module on its app store. */
+    detailsFrame() {
+        return manageModulesFrame().find('#modalframe')
     }
 }
 

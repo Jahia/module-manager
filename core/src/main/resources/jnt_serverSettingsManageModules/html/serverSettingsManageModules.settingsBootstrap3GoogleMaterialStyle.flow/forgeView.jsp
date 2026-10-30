@@ -199,19 +199,20 @@
             <tbody>
             <c:forEach items="${requestScope.modules}" var="module">
                 <c:url value="${module.remoteUrl}" context="/" var="remoteUrl"/>
+                <c:if test="${not functions:matches('(?i)(https?:)?/.*', remoteUrl)}"><c:set var="remoteUrl" value=""/></c:if>
                 <tr>
                     <td>
-                            <input type="hidden" name="remoteUrl" value="${remoteUrl}"/>
+                            <input type="hidden" name="remoteUrl" value="${fn:escapeXml(remoteUrl)}"/>
                             <c:if test="${not empty module.icon}">
-                                <img style="width:32px; height:32px;margin-right: 5px" src="${module.icon}"/>
+                                <img style="width:32px; height:32px;margin-right: 5px" src="${fn:escapeXml(module.icon)}"/>
                             </c:if>
                             <span>
-                                <b>${module.name}</b>&nbsp;(${module.id})
+                                <b>${fn:escapeXml(module.name)}</b>&nbsp;(${fn:escapeXml(module.id)})
                             </span>
-                        <input type="hidden" name="remoteUrl" value="${remoteUrl}"/>
+                        <input type="hidden" name="remoteUrl" value="${fn:escapeXml(remoteUrl)}"/>
                     </td>
 
-                    <td> ${module.version}</td>
+                    <td> ${fn:escapeXml(module.version)}</td>
 
                     <td>
                         <c:choose>
@@ -237,7 +238,7 @@
                                         <form style="margin: 0;" action="${flowExecutionUrl}" method="POST"
                                               onsubmit="this.elements.namedItem('moduleAutoStart').value=document.getElementById('globalModuleAutoStart').checked; workInProgress('${i18nWaiting}');">
                                             <input type="hidden" name="forgeId" value="${module.forgeId}"/>
-                                            <input type="hidden" name="moduleUrl" value="${module.downloadUrl}"/>
+                                            <input type="hidden" name="moduleUrl" value="${fn:escapeXml(module.downloadUrl)}"/>
                                             <input type="hidden" name="moduleAutoStart" value="${developmentMode}"/>
                                             <button data-toggle="tooltip" data-placement="bottom" title="${downloadLabel}"
                                                     onclick="event.stopPropagation()"
