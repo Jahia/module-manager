@@ -44,7 +44,15 @@ describe('Available module whose app store entry holds special characters', () =
 
     it('keeps the page and the download of the module as its entry states them', () => {
         const modules = AvailableModulesPage.visit().search(token)
-        modules.moduleRow(token).find('input[name="remoteUrl"]').first().should('have.value', entry.remoteUrl)
+        modules
+            .moduleRow(token)
+            .find('input[name="remoteUrl"]')
+            .should(($inputs) => {
+                expect($inputs).to.have.length.greaterThan(0)
+                expect(Cypress._.map($inputs, (input) => (input as HTMLInputElement).value)).to.deep.eq(
+                    Cypress._.times($inputs.length, () => entry.remoteUrl),
+                )
+            })
         modules.moduleRow(token).find('input[name="moduleUrl"]').should('have.value', entry.downloadUrl)
     })
 

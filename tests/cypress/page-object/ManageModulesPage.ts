@@ -13,6 +13,10 @@ export const MANAGE_MODULES_IFRAME = 'iframe[src*="manageModules.html"]'
  */
 export const manageModulesFrame = () => cy.get(MANAGE_MODULES_IFRAME, { timeout: 30000 }).its('0.contentDocument.body')
 
+/** The search box filters the DataTable, which keeps only the rows of the current page in the DOM. */
+const searchModuleTable = (text: string) =>
+    manageModulesFrame().find('input[aria-controls*="module_table"]').clear().type(text)
+
 export type UploadOptions = {
     /** The "Start the module after upload" box, which the screen checks in development mode only */
     autoStart: boolean
@@ -59,9 +63,8 @@ export class ManageModulesPage extends BasePage {
         return this
     }
 
-    /** The search box filters the DataTable, which keeps only the rows of the current page in the DOM. */
     search(moduleId: string) {
-        manageModulesFrame().find('input[aria-controls*="module_table"]').clear().type(moduleId)
+        searchModuleTable(moduleId)
         return this
     }
 
@@ -103,9 +106,8 @@ export class AvailableModulesPage extends BasePage {
         return new AvailableModulesPage()
     }
 
-    /** The search box filters the DataTable, which keeps only the rows of the current page in the DOM. */
     search(text: string) {
-        manageModulesFrame().find('input[aria-controls*="module_table"]').clear().type(text)
+        searchModuleTable(text)
         return this
     }
 
