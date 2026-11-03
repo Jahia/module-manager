@@ -2,6 +2,7 @@ import { jfaker } from '@jahia/cypress'
 
 /** The modules under cypress/fixtures/assets/moduleManagement, by id. */
 const FIXTURE_MODULE_IDS = [
+    'definitionstextmodule',
     'dummy1',
     'labelsdependentmodule',
     'labelstestmodule',

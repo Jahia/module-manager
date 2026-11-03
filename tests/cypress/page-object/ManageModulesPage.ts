@@ -72,6 +72,11 @@ export class ManageModulesPage extends BasePage {
         return manageModulesFrame().find(`tr[data-sel-role="module-row-${moduleId}"]`)
     }
 
+    /** The warning that the definitions of a module may not match its started version. */
+    definitionsWarning(moduleId: string) {
+        return manageModulesFrame().find(`.panel-body .alert-warning:contains("${moduleId}")`)
+    }
+
     /** The name of a module, as the first cell of its row shows it. */
     moduleName(moduleId: string) {
         return this.moduleRow(moduleId).find('td').first().find('b')
