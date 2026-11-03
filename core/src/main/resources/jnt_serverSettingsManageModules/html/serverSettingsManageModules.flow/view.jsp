@@ -112,7 +112,7 @@
             <c:if test="${message.severity eq 'ERROR'}">
                 <div class="alert alert-error">
                     <button type="button" class="close" data-dismiss="alert">&times;</button>
-                        ${message.text}
+                        ${fn:escapeXml(message.text)}
                 </div>
             </c:if>
             <c:if test="${message.source eq 'moduleExists'}">
