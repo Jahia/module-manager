@@ -195,7 +195,7 @@
                 <c:if test="${message.source eq 'moduleDefinitions'}">
                     <div class="alert alert-warning">
                         <button type="button" class="close" data-dismiss="alert">&times;</button>
-                        ${message.text}
+                        ${fn:escapeXml(message.text)}
                     </div>
                 </c:if>
             </c:forEach>
