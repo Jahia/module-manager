@@ -94,6 +94,22 @@ export class ManageModulesPage extends BasePage {
         return this
     }
 
+    /**
+     * Sends the stop action of a started module under another module name, which no module has, so
+     * nothing stops and the screen answers with an error. The button asks for a confirmation in the
+     * iframe, which Cypress does not answer, so the click skips it. The click still stops at the
+     * button, because a click on the row opens the details of the module.
+     */
+    stopUnderName(moduleId: string, moduleName: string) {
+        const stopForm = () => this.moduleRow(moduleId).find('form:has([data-sel-role="stop"])')
+        stopForm().find('input[name="module"]').invoke('val', moduleName)
+        stopForm()
+            .find('[data-sel-role="stop"]')
+            .invoke('attr', 'onclick', 'event.stopPropagation(); return true')
+            .click()
+        return this
+    }
+
     openDetails(moduleId: string) {
         this.search(moduleId)
         this.moduleRow(moduleId).find('td').first().click()
