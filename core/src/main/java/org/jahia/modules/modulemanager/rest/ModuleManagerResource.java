@@ -171,7 +171,6 @@ public class ModuleManagerResource {
             for (ServiceReference<ArtifactUrlTransformer> serviceReference : serviceReferences) {
                 ArtifactUrlTransformer transformer = bundleContext.getService(serviceReference);
                 if (transformer.canHandle(bundleResource.getFile())) {
-                    // a file URL built by string concatenation is invalid on Windows (file:C:\...), where the drive letter is parsed as a URI scheme
                     URL transformedURL = transformer.transform(bundleResource.getFile().toURI().toURL());
                     bundleResource = new UrlResource(transformedURL);
                 }
