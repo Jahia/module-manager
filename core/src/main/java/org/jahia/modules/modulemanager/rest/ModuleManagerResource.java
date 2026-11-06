@@ -171,7 +171,7 @@ public class ModuleManagerResource {
             for (ServiceReference<ArtifactUrlTransformer> serviceReference : serviceReferences) {
                 ArtifactUrlTransformer transformer = bundleContext.getService(serviceReference);
                 if (transformer.canHandle(bundleResource.getFile())) {
-                    URL transformedURL = transformer.transform(new URL("file:"+bundleResource.getFile().getPath()));
+                    URL transformedURL = transformer.transform(bundleResource.getFile().toURI().toURL());
                     bundleResource = new UrlResource(transformedURL);
                 }
 
