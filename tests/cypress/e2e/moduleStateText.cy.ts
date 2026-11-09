@@ -15,7 +15,7 @@ describe('Error and state of a module whose details hold special characters', ()
             .executeGroovy('groovy/useModuleOnSite.groovy', {
                 MODULE_ID: moduleId,
                 SITE_KEY: 'systemsite',
-                USE: String(use),
+                USE_ON_SITE: String(use),
             })
             .then((result) => expect(String(result)).not.to.contain('.failed'))
 
@@ -30,8 +30,9 @@ describe('Error and state of a module whose details hold special characters', ()
     })
 
     after(() => {
-        useOnSite(false)
+        // The module is uninstalled first, so a failed update of the site still leaves no module behind.
         removeFixtureModules()
+        useOnSite(false)
     })
 
     beforeEach(() => {

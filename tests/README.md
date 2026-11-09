@@ -35,7 +35,8 @@ The specs upload the jars under `cypress/fixtures/assets/moduleManagement/`:
 - `statetextmodule` 1.0.0, a jar that holds a manifest and a `META-INF/rules.drl` that does not
   compile. The compile error repeats a line of the rules that holds `&`, `<`, `>` and double quotes.
   The spec lists the module on `systemsite` in the live workspace, so the screen shows the state of
-  the version with that error in place of its actions.
+  the version with that error in place of its actions. The spec removes that entry of `systemsite`
+  itself after it runs, because `removeFixtureModules.groovy` does not.
 
 `cypress/fixtures/groovy/removeFixtureModules.groovy` uninstalls every version of these modules
 before and after each spec, including what a failed run left behind.
