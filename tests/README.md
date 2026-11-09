@@ -32,6 +32,10 @@ The specs upload the jars under `cypress/fixtures/assets/moduleManagement/`:
   written.
 - `labelsdependentmodule` 1.0.0, a manifest-only jar that depends on `labelstestmodule`. Its name
   holds the same characters.
+- `statetextmodule` 1.0.0, a jar that holds a manifest and a `META-INF/rules.drl` that does not
+  compile. The compile error repeats a line of the rules that holds `&`, `<`, `>` and double quotes.
+  The spec lists the module on `systemsite` in the live workspace, so the screen shows the state of
+  the version with that error in place of its actions.
 
 `cypress/fixtures/groovy/removeFixtureModules.groovy` uninstalls every version of these modules
 before and after each spec, including what a failed run left behind.

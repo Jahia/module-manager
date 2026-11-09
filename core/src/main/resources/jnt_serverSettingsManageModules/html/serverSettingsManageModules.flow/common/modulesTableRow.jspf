@@ -7,7 +7,7 @@
                 <span class="text-error" title="${i18nMandatoryDependency}"><a href="#mandatory-dependency" class="text-error"><strong>*</strong></a></span>
             </c:if>
             <c:if test="${not empty errors[entry.key]}">
-                <div class="alert alert-error"><strong>${fn:replace(errors[entry.key],newLineChar,'<br/>')}</strong></div>
+                <div class="alert alert-error"><strong>${fn:replace(fn:escapeXml(errors[entry.key]),newLineChar,'<br/>')}</strong></div>
             </c:if>
         </td>
         <td>${entry.key}</td>

@@ -107,8 +107,8 @@
     </form>
     <c:if test="${displayVersionAndState && !actionsAllowed}">
         <small>
-        <c:if test="${not empty currentModule.state.details}">&nbsp;(${currentModule.state.details})</c:if>
-        <c:if test="${not empty defaultVersion.state.details}">&nbsp;(${defaultVersion.state.details})</small></c:if>
+        <c:if test="${not empty currentModule.state.details}">&nbsp;(${fn:escapeXml(currentModule.state.details)})</c:if>
+        <c:if test="${not empty defaultVersion.state.details}">&nbsp;(${fn:escapeXml(defaultVersion.state.details)})</small></c:if>
     </c:if>
 </div>
 

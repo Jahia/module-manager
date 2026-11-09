@@ -7,6 +7,7 @@ const FIXTURE_MODULE_IDS = [
     'labelsdependentmodule',
     'labelstestmodule',
     'qa-module-with-dependency',
+    'statetextmodule',
     'versioningtestmodule',
 ]
 
