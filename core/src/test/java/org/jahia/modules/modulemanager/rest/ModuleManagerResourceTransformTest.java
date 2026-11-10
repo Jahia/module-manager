@@ -83,6 +83,18 @@ public class ModuleManagerResourceTransformTest {
 
         boolean noTransformerClaimed = ModuleManagerResource.transformUploadedFile(bundleContext, uploadedFile) == null;
 
+        assertFalse(ModuleManagerResource.needsJavascriptEngine("tgz-upload-test-1.0.0.tgz", noTransformerClaimed));
+    }
+
+    @Test
+    public void anUpperCaseTgzNobodyClaimedDoesNot() throws Exception {
+        deploy();
+        File uploadedFile = File.createTempFile("TGZ-UPLOAD-TEST-1.0.0-", ".TGZ");
+        uploadedFile.deleteOnExit();
+
+        boolean noTransformerClaimed = ModuleManagerResource.transformUploadedFile(bundleContext, uploadedFile) == null;
+
+        // The engine only claims ".tgz": an upper-case extension keeps the generic error, not the engine message.
         assertFalse(ModuleManagerResource.needsJavascriptEngine("TGZ-UPLOAD-TEST-1.0.0.TGZ", noTransformerClaimed));
     }
 

@@ -157,9 +157,8 @@ public class ModuleManagerResource {
 
         File tempFile;
         try {
-            // Lower case: javascript-modules-engine only claims a name ending in ".tgz", so "x.TGZ" would reach no transformer.
             tempFile = File.createTempFile(FilenameUtils.getBaseName(filename) + "-",
-                                           "." + StringUtils.lowerCase(FilenameUtils.getExtension(filename)), FileUtils.getTempDirectory());
+                                           "." + FilenameUtils.getExtension(filename), FileUtils.getTempDirectory());
             FileUtils.copyInputStreamToFile(inputStream, tempFile);
         } catch (IOException e) {
             log.error("Error copy uploaded stream to local temp file for " + filename, e);
@@ -195,7 +194,8 @@ public class ModuleManagerResource {
      * @return true when the upload should be rejected with {@link #MISSING_JAVASCRIPT_ENGINE}
      */
     static boolean needsJavascriptEngine(String filename, boolean noTransformerClaimed) {
-        return noTransformerClaimed && "tgz".equalsIgnoreCase(FilenameUtils.getExtension(filename));
+        // Case-sensitive, as the engine's transformer is: an "x.TGZ" that nobody claimed is not blamed on the engine.
+        return noTransformerClaimed && "tgz".equals(FilenameUtils.getExtension(filename));
     }
 
     /**
