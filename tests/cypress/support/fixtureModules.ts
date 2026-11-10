@@ -8,6 +8,7 @@ const FIXTURE_MODULE_IDS = [
     'labelstestmodule',
     'qa-module-with-dependency',
     'statetextmodule',
+    'tgz-upload-test',
     'versioningtestmodule',
 ]
 
