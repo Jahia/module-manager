@@ -4,9 +4,6 @@ import org.apache.felix.fileinstall.ArtifactUrlTransformer;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 
 import java.io.File;
 import java.net.URL;
@@ -14,6 +11,7 @@ import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -50,14 +48,14 @@ public class ModuleManagerResourceTransformTest {
     }
 
     @Test
-    public void keepsTheFileWhenNoTransformerCanHandleIt() throws Exception {
+    public void returnsNullWhenNoTransformerCanHandleTheFile() throws Exception {
         ArtifactUrlTransformer javascript = mock(ArtifactUrlTransformer.class);
         deploy(javascript);
 
         File uploadedFile = File.createTempFile("a-module-", ".jar");
         when(javascript.canHandle(uploadedFile)).thenReturn(false);
 
-        assertEquals(uploadedFile, ModuleManagerResource.transformUploadedFile(bundleContext, uploadedFile).getFile());
+        assertNull(ModuleManagerResource.transformUploadedFile(bundleContext, uploadedFile));
     }
 
     // --- a .tgz that no transformer claimed needs the JavaScript engine ---------------------------
@@ -68,21 +66,31 @@ public class ModuleManagerResourceTransformTest {
         File uploadedFile = File.createTempFile("tgz-upload-test-1.0.0-", ".tgz");
         uploadedFile.deleteOnExit();
 
-        Resource result = ModuleManagerResource.transformUploadedFile(bundleContext, uploadedFile);
+        boolean noTransformerClaimed = ModuleManagerResource.transformUploadedFile(bundleContext, uploadedFile) == null;
 
-        assertTrue(ModuleManagerResource.needsJavascriptEngine("tgz-upload-test-1.0.0.tgz", result));
-        assertTrue(ModuleManagerResource.needsJavascriptEngine("TGZ-UPLOAD-TEST-1.0.0.TGZ", result));
+        assertTrue(ModuleManagerResource.needsJavascriptEngine("tgz-upload-test-1.0.0.tgz", noTransformerClaimed));
     }
 
     @Test
-    public void aTransformedTgzAJarAndAFailedTransformDoNot() throws Exception {
-        File file = File.createTempFile("a-module-", ".jar");
-        file.deleteOnExit();
+    public void aTgzTheEngineClaimedDoesNot() throws Exception {
+        ArtifactUrlTransformer javascript = mock(ArtifactUrlTransformer.class);
+        deploy(javascript);
+        File uploadedFile = File.createTempFile("tgz-upload-test-1.0.0-", ".tgz");
+        uploadedFile.deleteOnExit();
+        when(javascript.canHandle(uploadedFile)).thenReturn(true);
+        when(javascript.transform(uploadedFile.toURI().toURL()))
+                .thenReturn(new URL("file:/transformed/tgz-upload-test-1.0.0.jar"));
 
-        // The transformed resource is a UrlResource; a js: URL needs the engine's protocol handler, so a file: one stands in.
-        assertFalse(ModuleManagerResource.needsJavascriptEngine("a.tgz", new UrlResource("file:/transformed/a-1.0.0.jar")));
-        assertFalse(ModuleManagerResource.needsJavascriptEngine("a-module-1.0.0.jar", new FileSystemResource(file)));
-        assertFalse(ModuleManagerResource.needsJavascriptEngine("a.tgz", null));
+        boolean noTransformerClaimed = ModuleManagerResource.transformUploadedFile(bundleContext, uploadedFile) == null;
+
+        assertFalse(ModuleManagerResource.needsJavascriptEngine("TGZ-UPLOAD-TEST-1.0.0.TGZ", noTransformerClaimed));
+    }
+
+    @Test
+    public void aJarOrAFailedTransformDoesNot() {
+        assertFalse(ModuleManagerResource.needsJavascriptEngine("a-module-1.0.0.jar", true));
+        // A transformer that threw: the caller passes false, as some transformer did claim the file.
+        assertFalse(ModuleManagerResource.needsJavascriptEngine("a.tgz", false));
     }
 
     // --- the deployed transformers, in the order the framework returns them -----------------------

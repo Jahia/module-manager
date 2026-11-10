@@ -157,28 +157,28 @@ public class ModuleManagerResource {
 
         File tempFile;
         try {
+            // Lower case: javascript-modules-engine only claims a name ending in ".tgz", so "x.TGZ" would reach no transformer.
             tempFile = File.createTempFile(FilenameUtils.getBaseName(filename) + "-",
-                                           "." + FilenameUtils.getExtension(filename), FileUtils.getTempDirectory());
+                                           "." + StringUtils.lowerCase(FilenameUtils.getExtension(filename)), FileUtils.getTempDirectory());
             FileUtils.copyInputStreamToFile(inputStream, tempFile);
         } catch (IOException e) {
             log.error("Error copy uploaded stream to local temp file for " + filename, e);
             throw new InternalServerErrorException("Error while deploying bundle " + filename, e);
         }
-        Resource bundleResource = new FileSystemResource(tempFile);
         Resource transformed = null;
+        boolean transformFailed = false;
         try {
             transformed = transformUploadedFile(FrameworkService.getBundleContext(), tempFile);
         } catch (Exception e) {
+            transformFailed = true;
             log.warn("Could not transform the uploaded file {}", e.getMessage());
         }
         // Outside the try: the catch above would turn the rejection into a warning.
-        if (needsJavascriptEngine(filename, transformed)) {
+        if (needsJavascriptEngine(filename, !transformFailed && transformed == null)) {
             FileUtils.deleteQuietly(tempFile);
             throw new ModuleManagementInvalidArgumentException(MISSING_JAVASCRIPT_ENGINE);
         }
-        if (transformed != null) {
-            bundleResource = transformed;
-        }
+        Resource bundleResource = transformed != null ? transformed : new FileSystemResource(tempFile);
         return new UploadedBundle(bundleResource, tempFile);
     }
 
@@ -186,15 +186,16 @@ public class ModuleManagerResource {
             "JavaScript module packages (.tgz) need the Javascript Modules Engine. Install and start it first.";
 
     /**
-     * A .tgz package that no transformer claimed: javascript-modules-engine, the only transformer of .tgz files,
-     * is missing or stopped. A transformer that failed ({@code transformed} is null) is not this case.
+     * A .tgz package that no transformer claimed: on a standard Jahia, javascript-modules-engine is the only
+     * transformer of .tgz files, so it is missing or stopped. A transformer that claimed the file and then failed
+     * is not this case.
      *
-     * @param filename    the name of the uploaded file, as the client sent it
-     * @param transformed the result of {@link #transformUploadedFile}, or null when it threw
+     * @param filename             the name of the uploaded file, as the client sent it
+     * @param noTransformerClaimed true when {@link #transformUploadedFile} returned null without throwing
      * @return true when the upload should be rejected with {@link #MISSING_JAVASCRIPT_ENGINE}
      */
-    static boolean needsJavascriptEngine(String filename, Resource transformed) {
-        return transformed instanceof FileSystemResource && "tgz".equalsIgnoreCase(FilenameUtils.getExtension(filename));
+    static boolean needsJavascriptEngine(String filename, boolean noTransformerClaimed) {
+        return noTransformerClaimed && "tgz".equalsIgnoreCase(FilenameUtils.getExtension(filename));
     }
 
     /**
@@ -204,7 +205,7 @@ public class ModuleManagerResource {
      *
      * @param bundleContext the OSGi bundle context to look the transformers up in
      * @param uploadedFile  the uploaded file, as it was received
-     * @return the resource of the transformed URL, or the file itself when no transformer can handle it
+     * @return the resource of the transformed URL, or null when no transformer can handle the file
      */
     static Resource transformUploadedFile(BundleContext bundleContext, File uploadedFile) throws Exception {
         Collection<ServiceReference<ArtifactUrlTransformer>> serviceReferences =
@@ -216,7 +217,7 @@ public class ModuleManagerResource {
                 return new UrlResource(transformedURL);
             }
         }
-        return new FileSystemResource(uploadedFile);
+        return null;
     }
 
     /**
