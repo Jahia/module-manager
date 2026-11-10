@@ -11,27 +11,40 @@ describe('Upload of modules through the REST API', () => {
     const ENGINE = 'org.jahia.modules/javascript-modules-engine'
     const API = '/modules/api/bundles'
 
-    type Part = { fileName: string; content?: string }
     type UploadResult = { status: number; body: { bundleInfos?: { key: string }[]; message?: string; cause?: string } }
 
     const auth = () => ({ user: 'root', pass: Cypress.env('SUPER_USER_PASSWORD'), sendImmediately: true })
 
-    /** A multipart body comes back as an ArrayBuffer, so the response is decoded before it is read. */
-    const upload = (parts: Part[]): Cypress.Chainable<UploadResult> => {
+    /**
+     * A multipart body comes back as an ArrayBuffer, so the response is decoded before it is read. A refusal of the
+     * security filter is plain text, which becomes the message.
+     */
+    const upload = (fileNames: string[], { authenticated = true } = {}): Cypress.Chainable<UploadResult> => {
         const formData = new FormData()
         formData.append('start', 'true')
-        parts.forEach(({ fileName, content }) => {
-            if (content !== undefined) {
-                formData.append('bundle', Cypress.Blob.binaryStringToBlob(content), fileName)
-            } else {
-                cy.fixture(`assets/moduleManagement/${fileName}`, 'binary').then((fixture) =>
-                    formData.append('bundle', Cypress.Blob.binaryStringToBlob(fixture), fileName),
-                )
-            }
-        })
+        fileNames.forEach((fileName) =>
+            cy
+                .fixture(`assets/moduleManagement/${fileName}`, 'binary')
+                .then((fixture) => formData.append('bundle', Cypress.Blob.binaryStringToBlob(fixture), fileName)),
+        )
         return cy
-            .then(() => cy.request({ method: 'POST', url: API, auth: auth(), body: formData, failOnStatusCode: false }))
-            .then((res) => ({ status: res.status, body: JSON.parse(new TextDecoder().decode(res.body)) }))
+            .then(() =>
+                cy.request({
+                    method: 'POST',
+                    url: API,
+                    ...(authenticated ? { auth: auth() } : {}),
+                    body: formData,
+                    failOnStatusCode: false,
+                }),
+            )
+            .then((res) => {
+                const text = new TextDecoder().decode(res.body)
+                try {
+                    return { status: res.status, body: JSON.parse(text) }
+                } catch (e) {
+                    return { status: res.status, body: { message: text } }
+                }
+            })
     }
 
     /** The module state of every installed version of a bucket, by version. */
@@ -44,8 +57,8 @@ describe('Upload of modules through the REST API', () => {
         })
 
     /**
-     * Polls the states until they match: the REST call returns once the bundle is started, but a Spring module
-     * then goes through SPRING_STARTING before its module state reads STARTED.
+     * Polls the states until they match: the REST call returns once the bundle is started or stopped, but a Spring
+     * module then goes through SPRING_STARTING before its module state reads STARTED.
      */
     const expectStates = (bucket: string, expected: Record<string, string>, attempts = 20) =>
         states(bucket).then((actual) => {
@@ -64,18 +77,21 @@ describe('Upload of modules through the REST API', () => {
 
     const keys = (result: UploadResult) => result.body.bundleInfos.map((info) => info.key)
 
-    afterEach(() => {
+    /** No fixture module, and the engine started: the last test stops it, and an aborted run may leave either. */
+    const resetState = () => {
         removeFixtureModules()
-        // The last test stops the engine: start it again, even when that test failed halfway.
         states(ENGINE).then((engine) =>
             Object.keys(engine)
                 .filter((version) => engine[version] !== 'STARTED')
                 .forEach((version) => operate(`${ENGINE}/${version}`, '_start')),
         )
-    })
+    }
+
+    before(resetState)
+    afterEach(resetState)
 
     it('installs and starts a JavaScript module package', () => {
-        upload([{ fileName: 'tgz-upload-test-1.0.0.tgz' }]).then((result) => {
+        upload(['tgz-upload-test-1.0.0.tgz']).then((result) => {
             expect(result.status).to.eq(200)
             expect(keys(result)).to.deep.eq([`${TGZ}/1.0.0`])
         })
@@ -83,12 +99,10 @@ describe('Upload of modules through the REST API', () => {
     })
 
     it('upgrades a JavaScript module package', () => {
-        upload([{ fileName: 'tgz-upload-test-1.0.0.tgz' }])
-            .its('status')
-            .should('eq', 200)
+        upload(['tgz-upload-test-1.0.0.tgz']).its('status').should('eq', 200)
         expectStates(TGZ, { '1.0.0': 'STARTED' })
 
-        upload([{ fileName: 'tgz-upload-test-1.1.0.tgz' }]).then((result) => {
+        upload(['tgz-upload-test-1.1.0.tgz']).then((result) => {
             expect(result.status).to.eq(200)
             expect(keys(result)).to.deep.eq([`${TGZ}/1.1.0`])
         })
@@ -96,12 +110,10 @@ describe('Upload of modules through the REST API', () => {
     })
 
     it('updates a JavaScript module package uploaded again with the same version', () => {
-        upload([{ fileName: 'tgz-upload-test-1.1.0.tgz' }])
-            .its('status')
-            .should('eq', 200)
+        upload(['tgz-upload-test-1.1.0.tgz']).its('status').should('eq', 200)
         expectStates(TGZ, { '1.1.0': 'STARTED' })
 
-        upload([{ fileName: 'tgz-upload-test-1.1.0.tgz' }]).then((result) => {
+        upload(['tgz-upload-test-1.1.0.tgz']).then((result) => {
             expect(result.status).to.eq(200)
             expect(keys(result)).to.deep.eq([`${TGZ}/1.1.0`])
         })
@@ -109,7 +121,7 @@ describe('Upload of modules through the REST API', () => {
     })
 
     it('installs and starts a jar', () => {
-        upload([{ fileName: 'dummy1-1.0.0.jar' }]).then((result) => {
+        upload(['dummy1-1.0.0.jar']).then((result) => {
             expect(result.status).to.eq(200)
             expect(keys(result)).to.deep.eq([`${JAR}/1.0.0`])
         })
@@ -117,7 +129,7 @@ describe('Upload of modules through the REST API', () => {
     })
 
     it('installs a jar and a JavaScript module package uploaded in one request', () => {
-        upload([{ fileName: 'dummy1-1.0.0.jar' }, { fileName: 'tgz-upload-test-1.1.0.tgz' }]).then((result) => {
+        upload(['dummy1-1.0.0.jar', 'tgz-upload-test-1.1.0.tgz']).then((result) => {
             expect(result.status).to.eq(200)
             expect(keys(result)).to.have.members([`${JAR}/1.0.0`, `${TGZ}/1.1.0`])
         })
@@ -126,10 +138,18 @@ describe('Upload of modules through the REST API', () => {
     })
 
     it('rejects a .tgz that is not a gzip archive with its cause', () => {
-        upload([{ fileName: 'tgz-broken-1.0.0.tgz', content: 'not a gzip archive' }]).then((result) => {
+        upload(['tgz-broken-1.0.0.tgz']).then((result) => {
             expect(result.status).to.eq(500)
             expect(result.body.cause).to.contain('Not in GZIP format')
         })
+    })
+
+    it('refuses an upload without credentials', () => {
+        upload(['tgz-upload-test-1.1.0.tgz'], { authenticated: false }).then((result) => {
+            expect(result.status).to.eq(401)
+            expect(result.body.message).to.contain('not allowed to access resource /modules/api/bundles')
+        })
+        expectStates(TGZ, {})
     })
 
     // This asserts the current answer, the generic "not a valid bundle" error, which does not say that the engine is
@@ -141,10 +161,13 @@ describe('Upload of modules through the REST API', () => {
             Object.keys(engine).forEach((version) => operate(`${ENGINE}/${version}`, '_stop')),
         )
         states(ENGINE).then((engine) =>
-            expect(Object.keys(engine).map((version) => engine[version])).to.deep.eq(['RESOLVED']),
+            expectStates(
+                ENGINE,
+                Cypress._.mapValues(engine, () => 'RESOLVED'),
+            ),
         )
 
-        upload([{ fileName: 'tgz-upload-test-1.1.0.tgz' }]).then((result) => {
+        upload(['tgz-upload-test-1.1.0.tgz']).then((result) => {
             expect(result.status).to.eq(400)
             // The wording comes from Jahia core and changed between versions (8.2.2: "not a valid OSGi bundle",
             // later: "not a valid Jahia module").

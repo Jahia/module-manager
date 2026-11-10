@@ -19,7 +19,8 @@ the container that `Dockerfile` describes.
 
 ## Fixture modules
 
-The specs upload the jars under `cypress/fixtures/assets/moduleManagement/`:
+The specs upload the jars and the JavaScript module packages under
+`cypress/fixtures/assets/moduleManagement/`:
 
 - `qa-module-with-dependency` 3.1.0-SNAPSHOT, which depends on `dummy1` version 2, and `dummy1` in
   versions 1.0.0 and 2.0.0.
@@ -37,6 +38,11 @@ The specs upload the jars under `cypress/fixtures/assets/moduleManagement/`:
   The spec lists the module on `systemsite` in the live workspace, so the screen shows the state of
   the version with that error in place of its actions. The spec removes that entry of `systemsite`
   itself after it runs, because `removeFixtureModules.groovy` does not.
+- `tgz-upload-test` in versions 1.0.0 and 1.1.0, a JavaScript module package (`.tgz`: a
+  `package.json` and an empty `dist/server/index.js`). It installs only while
+  `javascript-modules-engine` is started, which both provisioning manifests install.
+- `tgz-broken-1.0.0.tgz`, which holds the text `not a gzip archive` and is not a gzip archive on
+  purpose.
 
 `cypress/fixtures/groovy/removeFixtureModules.groovy` uninstalls every version of these modules
 before and after each spec, including what a failed run left behind.
