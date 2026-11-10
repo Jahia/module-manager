@@ -4,12 +4,17 @@ import org.apache.felix.fileinstall.ArtifactUrlTransformer;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 
 import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -53,6 +58,31 @@ public class ModuleManagerResourceTransformTest {
         when(javascript.canHandle(uploadedFile)).thenReturn(false);
 
         assertEquals(uploadedFile, ModuleManagerResource.transformUploadedFile(bundleContext, uploadedFile).getFile());
+    }
+
+    // --- a .tgz that no transformer claimed needs the JavaScript engine ---------------------------
+
+    @Test
+    public void aTgzNoTransformerClaimedNeedsTheJavascriptEngine() throws Exception {
+        deploy();
+        File uploadedFile = File.createTempFile("tgz-upload-test-1.0.0-", ".tgz");
+        uploadedFile.deleteOnExit();
+
+        Resource result = ModuleManagerResource.transformUploadedFile(bundleContext, uploadedFile);
+
+        assertTrue(ModuleManagerResource.needsJavascriptEngine("tgz-upload-test-1.0.0.tgz", result));
+        assertTrue(ModuleManagerResource.needsJavascriptEngine("TGZ-UPLOAD-TEST-1.0.0.TGZ", result));
+    }
+
+    @Test
+    public void aTransformedTgzAJarAndAFailedTransformDoNot() throws Exception {
+        File file = File.createTempFile("a-module-", ".jar");
+        file.deleteOnExit();
+
+        // The transformed resource is a UrlResource; a js: URL needs the engine's protocol handler, so a file: one stands in.
+        assertFalse(ModuleManagerResource.needsJavascriptEngine("a.tgz", new UrlResource("file:/transformed/a-1.0.0.jar")));
+        assertFalse(ModuleManagerResource.needsJavascriptEngine("a-module-1.0.0.jar", new FileSystemResource(file)));
+        assertFalse(ModuleManagerResource.needsJavascriptEngine("a.tgz", null));
     }
 
     // --- the deployed transformers, in the order the framework returns them -----------------------

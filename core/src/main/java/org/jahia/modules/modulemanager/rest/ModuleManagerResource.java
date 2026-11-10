@@ -165,12 +165,36 @@ public class ModuleManagerResource {
             throw new InternalServerErrorException("Error while deploying bundle " + filename, e);
         }
         Resource bundleResource = new FileSystemResource(tempFile);
+        Resource transformed = null;
         try {
-            bundleResource = transformUploadedFile(FrameworkService.getBundleContext(), tempFile);
+            transformed = transformUploadedFile(FrameworkService.getBundleContext(), tempFile);
         } catch (Exception e) {
             log.warn("Could not transform the uploaded file {}", e.getMessage());
         }
+        // Outside the try: the catch above would turn the rejection into a warning.
+        if (needsJavascriptEngine(filename, transformed)) {
+            FileUtils.deleteQuietly(tempFile);
+            throw new ModuleManagementInvalidArgumentException(MISSING_JAVASCRIPT_ENGINE);
+        }
+        if (transformed != null) {
+            bundleResource = transformed;
+        }
         return new UploadedBundle(bundleResource, tempFile);
+    }
+
+    static final String MISSING_JAVASCRIPT_ENGINE =
+            "JavaScript module packages (.tgz) need the Javascript Modules Engine. Install and start it first.";
+
+    /**
+     * A .tgz package that no transformer claimed: javascript-modules-engine, the only transformer of .tgz files,
+     * is missing or stopped. A transformer that failed ({@code transformed} is null) is not this case.
+     *
+     * @param filename    the name of the uploaded file, as the client sent it
+     * @param transformed the result of {@link #transformUploadedFile}, or null when it threw
+     * @return true when the upload should be rejected with {@link #MISSING_JAVASCRIPT_ENGINE}
+     */
+    static boolean needsJavascriptEngine(String filename, Resource transformed) {
+        return transformed instanceof FileSystemResource && "tgz".equalsIgnoreCase(FilenameUtils.getExtension(filename));
     }
 
     /**
