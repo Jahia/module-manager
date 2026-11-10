@@ -164,22 +164,35 @@ public class ModuleManagerResource {
             log.error("Error copy uploaded stream to local temp file for " + filename, e);
             throw new InternalServerErrorException("Error while deploying bundle " + filename, e);
         }
-        BundleContext bundleContext = FrameworkService.getBundleContext();
         Resource bundleResource = new FileSystemResource(tempFile);
         try {
-            Collection<ServiceReference<ArtifactUrlTransformer>> serviceReferences = bundleContext.getServiceReferences(ArtifactUrlTransformer.class, null);
-            for (ServiceReference<ArtifactUrlTransformer> serviceReference : serviceReferences) {
-                ArtifactUrlTransformer transformer = bundleContext.getService(serviceReference);
-                if (transformer.canHandle(bundleResource.getFile())) {
-                    URL transformedURL = transformer.transform(bundleResource.getFile().toURI().toURL());
-                    bundleResource = new UrlResource(transformedURL);
-                }
-
-            }
+            bundleResource = transformUploadedFile(FrameworkService.getBundleContext(), tempFile);
         } catch (Exception e) {
             log.warn("Could not transform the uploaded file {}", e.getMessage());
         }
         return new UploadedBundle(bundleResource, tempFile);
+    }
+
+    /**
+     * Transforms the uploaded file with the first deployed transformer that can handle it, as the provisioning
+     * API does. The transformers are asked about the original file only: once one of them has transformed the
+     * file, the resource is a {@code js:} URL, which no transformer can resolve back to a file.
+     *
+     * @param bundleContext the OSGi bundle context to look the transformers up in
+     * @param uploadedFile  the uploaded file, as it was received
+     * @return the resource of the transformed URL, or the file itself when no transformer can handle it
+     */
+    static Resource transformUploadedFile(BundleContext bundleContext, File uploadedFile) throws Exception {
+        Collection<ServiceReference<ArtifactUrlTransformer>> serviceReferences =
+                bundleContext.getServiceReferences(ArtifactUrlTransformer.class, null);
+        for (ServiceReference<ArtifactUrlTransformer> serviceReference : serviceReferences) {
+            ArtifactUrlTransformer transformer = bundleContext.getService(serviceReference);
+            if (transformer.canHandle(uploadedFile)) {
+                URL transformedURL = transformer.transform(uploadedFile.toURI().toURL());
+                return new UrlResource(transformedURL);
+            }
+        }
+        return new FileSystemResource(uploadedFile);
     }
 
     /**
