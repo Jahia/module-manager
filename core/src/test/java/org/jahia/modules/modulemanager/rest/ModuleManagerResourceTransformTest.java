@@ -9,6 +9,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 
@@ -90,6 +91,22 @@ public class ModuleManagerResourceTransformTest {
 
         assertEquals(ModuleManagerResource.MISSING_JAVASCRIPT_ENGINE, rejection.getMessage());
         assertFalse(uploadedFile.exists());
+    }
+
+    @Test
+    public void aTgzWhoseTransformFailsIsNotBlamedOnTheEngine() throws Exception {
+        ArtifactUrlTransformer javascript = mock(ArtifactUrlTransformer.class);
+        deploy(javascript);
+        File uploadedFile = File.createTempFile("tgz-upload-test-1.0.0-", ".tgz");
+        uploadedFile.deleteOnExit();
+        when(javascript.canHandle(uploadedFile)).thenReturn(true);
+        when(javascript.transform(uploadedFile.toURI().toURL())).thenThrow(new IOException("Not in GZIP format"));
+
+        Resource resource = ModuleManagerResource.resolveUploadedFile(bundleContext, uploadedFile, "tgz-upload-test-1.0.0.tgz");
+
+        // The engine claimed the file and failed: the upload falls through to the file itself, whose install reports
+        // the real cause, instead of asking to install an engine that is running.
+        assertEquals(uploadedFile, resource.getFile());
     }
 
     @Test
