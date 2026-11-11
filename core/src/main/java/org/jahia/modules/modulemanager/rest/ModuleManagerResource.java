@@ -164,10 +164,18 @@ public class ModuleManagerResource {
             log.error("Error copy uploaded stream to local temp file for " + filename, e);
             throw new InternalServerErrorException("Error while deploying bundle " + filename, e);
         }
+        return new UploadedBundle(resolveUploadedFile(FrameworkService.getBundleContext(), tempFile, filename), tempFile);
+    }
+
+    /**
+     * The resource to install for an uploaded file: what a transformer made of it, or the file itself when none
+     * claimed it. A .tgz that no transformer claimed is rejected, and its temp file deleted.
+     */
+    static Resource resolveUploadedFile(BundleContext bundleContext, File tempFile, String filename) {
         Resource transformed = null;
         boolean transformFailed = false;
         try {
-            transformed = transformUploadedFile(FrameworkService.getBundleContext(), tempFile);
+            transformed = transformUploadedFile(bundleContext, tempFile);
         } catch (Exception e) {
             transformFailed = true;
             log.warn("Could not transform the uploaded file {}", e.getMessage());
@@ -177,8 +185,7 @@ public class ModuleManagerResource {
             FileUtils.deleteQuietly(tempFile);
             throw new ModuleManagementInvalidArgumentException(MISSING_JAVASCRIPT_ENGINE);
         }
-        Resource bundleResource = transformed != null ? transformed : new FileSystemResource(tempFile);
-        return new UploadedBundle(bundleResource, tempFile);
+        return transformed != null ? transformed : new FileSystemResource(tempFile);
     }
 
     static final String MISSING_JAVASCRIPT_ENGINE =
