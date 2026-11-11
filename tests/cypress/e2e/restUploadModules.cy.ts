@@ -149,6 +149,13 @@ describe('Upload of modules through the REST API', () => {
         })
     })
 
+    it('rejects a request without a bundle', () => {
+        upload([]).then((result) => {
+            expect(result.status).to.eq(400)
+            expect(result.body.message).to.eq('At least one bundle file is required')
+        })
+    })
+
     it('refuses an upload without credentials', () => {
         upload(['tgz-upload-test-1.1.0.tgz'], { authenticated: false }).then((result) => {
             expect(result.status).to.eq(401)
