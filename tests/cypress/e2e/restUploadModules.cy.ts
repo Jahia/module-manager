@@ -155,6 +155,7 @@ describe('Upload of modules through the REST API', () => {
             expect(result.status).to.eq(500)
             expect(result.body.cause).to.contain('Not in GZIP format')
         })
+        expectStates(TGZ, {})
     })
 
     it('rejects a request without a bundle', () => {
