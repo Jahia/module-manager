@@ -11,7 +11,10 @@ describe('Upload of modules through the REST API', () => {
     const ENGINE = 'org.jahia.modules/javascript-modules-engine'
     const API = '/modules/api/bundles'
 
-    type UploadResult = { status: number; body: { bundleInfos?: { key: string }[]; message?: string; cause?: string } }
+    type UploadResult = {
+        status: number
+        body: { bundleInfos?: { key: string }[]; message?: string; cause?: string; parseError?: boolean }
+    }
 
     const auth = () => ({ user: 'root', pass: Cypress.env('SUPER_USER_PASSWORD'), sendImmediately: true })
 
@@ -42,7 +45,8 @@ describe('Upload of modules through the REST API', () => {
                 try {
                     return { status: res.status, body: JSON.parse(text) }
                 } catch (e) {
-                    return { status: res.status, body: { message: text } }
+                    // Only the security filter's refusal is plain text; any other non-JSON body is a failure to name.
+                    return { status: res.status, body: { message: text, parseError: true } }
                 }
             })
     }
@@ -75,7 +79,10 @@ describe('Upload of modules through the REST API', () => {
     const operate = (key: string, operation: '_start' | '_stop') =>
         cy.request({ method: 'POST', url: `${API}/${key}/${operation}`, auth: auth(), form: true, body: {} })
 
-    const keys = (result: UploadResult) => result.body.bundleInfos.map((info) => info.key)
+    const keys = (result: UploadResult) => {
+        expect(result.body.parseError, `a JSON body, got: ${result.body.message}`).to.be.undefined
+        return result.body.bundleInfos.map((info) => info.key)
+    }
 
     /** No fixture module, and the engine started: the last test stops it, and an aborted run may leave either. */
     const resetState = () => {
@@ -160,6 +167,7 @@ describe('Upload of modules through the REST API', () => {
     it('refuses an upload without credentials', () => {
         upload(['tgz-upload-test-1.1.0.tgz'], { authenticated: false }).then((result) => {
             expect(result.status).to.eq(401)
+            expect(result.body.parseError, 'the refusal is plain text').to.be.true
             // The URI the server echoes carries the context path of the Jahia under test.
             expect(result.body.message).to.match(/not allowed to access resource .*\/modules\/api\/bundles$/)
         })
