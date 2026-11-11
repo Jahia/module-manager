@@ -80,11 +80,16 @@ describe('Upload of modules through the REST API', () => {
     /** No fixture module, and the engine started: the last test stops it, and an aborted run may leave either. */
     const resetState = () => {
         removeFixtureModules()
-        states(ENGINE).then((engine) =>
+        states(ENGINE).then((engine) => {
             Object.keys(engine)
                 .filter((version) => engine[version] !== 'STARTED')
-                .forEach((version) => operate(`${ENGINE}/${version}`, '_start')),
-        )
+                .forEach((version) => operate(`${ENGINE}/${version}`, '_start'))
+            // The start answers before the module state reads STARTED, and a .tgz upload needs the engine running.
+            expectStates(
+                ENGINE,
+                Cypress._.mapValues(engine, () => 'STARTED'),
+            )
+        })
     }
 
     before(resetState)
@@ -147,7 +152,8 @@ describe('Upload of modules through the REST API', () => {
     it('refuses an upload without credentials', () => {
         upload(['tgz-upload-test-1.1.0.tgz'], { authenticated: false }).then((result) => {
             expect(result.status).to.eq(401)
-            expect(result.body.message).to.contain('not allowed to access resource /modules/api/bundles')
+            // The URI the server echoes carries the context path of the Jahia under test.
+            expect(result.body.message).to.match(/not allowed to access resource .*\/modules\/api\/bundles$/)
         })
         expectStates(TGZ, {})
     })
@@ -157,15 +163,13 @@ describe('Upload of modules through the REST API', () => {
     // whether the REST API should do the same is an open question on Jahia/module-manager#220. Update the expected
     // message if the API gets one.
     it('rejects a JavaScript module package while javascript-modules-engine is stopped', () => {
-        states(ENGINE).then((engine) =>
-            Object.keys(engine).forEach((version) => operate(`${ENGINE}/${version}`, '_stop')),
-        )
-        states(ENGINE).then((engine) =>
+        states(ENGINE).then((engine) => {
+            Object.keys(engine).forEach((version) => operate(`${ENGINE}/${version}`, '_stop'))
             expectStates(
                 ENGINE,
                 Cypress._.mapValues(engine, () => 'RESOLVED'),
-            ),
-        )
+            )
+        })
 
         upload(['tgz-upload-test-1.1.0.tgz']).then((result) => {
             expect(result.status).to.eq(400)
