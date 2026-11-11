@@ -81,6 +81,7 @@ describe('Upload of modules through the REST API', () => {
     const resetState = () => {
         removeFixtureModules()
         states(ENGINE).then((engine) => {
+            expect(Object.keys(engine), 'javascript-modules-engine installed by the manifest').to.not.be.empty
             Object.keys(engine)
                 .filter((version) => engine[version] !== 'STARTED')
                 .forEach((version) => operate(`${ENGINE}/${version}`, '_start'))
