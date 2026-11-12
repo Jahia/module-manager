@@ -208,7 +208,8 @@ public class ModuleManagerResource {
     /**
      * Transforms the uploaded file with the first deployed transformer that can handle it, as the provisioning
      * API does. The transformers are asked about the original file only: once one of them has transformed the
-     * file, the resource is a {@code js:} URL, which no transformer can resolve back to a file.
+     * file, the resource is a {@code js:} URL, which no transformer can resolve back to a file. Each transformer
+     * is released once asked, whatever its answer.
      *
      * @param bundleContext the OSGi bundle context to look the transformers up in
      * @param uploadedFile  the uploaded file, as it was received
@@ -219,9 +220,17 @@ public class ModuleManagerResource {
                 bundleContext.getServiceReferences(ArtifactUrlTransformer.class, null);
         for (ServiceReference<ArtifactUrlTransformer> serviceReference : serviceReferences) {
             ArtifactUrlTransformer transformer = bundleContext.getService(serviceReference);
-            if (transformer.canHandle(uploadedFile)) {
-                URL transformedURL = transformer.transform(uploadedFile.toURI().toURL());
-                return new UrlResource(transformedURL);
+            if (transformer == null) {
+                // Unregistered since the lookup.
+                continue;
+            }
+            try {
+                if (transformer.canHandle(uploadedFile)) {
+                    URL transformedURL = transformer.transform(uploadedFile.toURI().toURL());
+                    return new UrlResource(transformedURL);
+                }
+            } finally {
+                bundleContext.ungetService(serviceReference);
             }
         }
         return null;

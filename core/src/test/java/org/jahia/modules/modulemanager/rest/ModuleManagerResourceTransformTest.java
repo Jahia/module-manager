@@ -174,15 +174,79 @@ public class ModuleManagerResourceTransformTest {
         assertFalse(ModuleManagerResource.needsJavascriptEngine("a.tgz", false));
     }
 
+    // --- every transformer asked is released ------------------------------------------------------
+
+    @Test
+    public void theTransformerThatClaimedTheFileIsReleasedAndNoLaterOneIsLookedUp() throws Exception {
+        ArtifactUrlTransformer javascript = mock(ArtifactUrlTransformer.class);
+        ArtifactUrlTransformer other = mock(ArtifactUrlTransformer.class);
+        ServiceReference<ArtifactUrlTransformer>[] references = deploy(javascript, other);
+        File uploadedFile = File.createTempFile("tgz-upload-test-1.0.0-", ".tgz");
+        uploadedFile.deleteOnExit();
+        when(javascript.canHandle(uploadedFile)).thenReturn(true);
+        when(javascript.transform(uploadedFile.toURI().toURL()))
+                .thenReturn(new URL("file:/transformed/tgz-upload-test-1.0.0.jar"));
+
+        ModuleManagerResource.transformUploadedFile(bundleContext, uploadedFile);
+
+        verify(bundleContext).ungetService(references[0]);
+        verify(bundleContext, never()).getService(references[1]);
+    }
+
+    @Test
+    public void everyTransformerIsReleasedWhenNoneClaimsTheFile() throws Exception {
+        ServiceReference<ArtifactUrlTransformer>[] references =
+                deploy(mock(ArtifactUrlTransformer.class), mock(ArtifactUrlTransformer.class));
+        File uploadedFile = File.createTempFile("a-module-", ".jar");
+        uploadedFile.deleteOnExit();
+
+        assertNull(ModuleManagerResource.transformUploadedFile(bundleContext, uploadedFile));
+
+        verify(bundleContext).ungetService(references[0]);
+        verify(bundleContext).ungetService(references[1]);
+    }
+
+    @Test
+    public void aTransformerWhoseTransformThrowsIsReleased() throws Exception {
+        ArtifactUrlTransformer javascript = mock(ArtifactUrlTransformer.class);
+        ServiceReference<ArtifactUrlTransformer>[] references = deploy(javascript);
+        File uploadedFile = File.createTempFile("tgz-upload-test-1.0.0-", ".tgz");
+        uploadedFile.deleteOnExit();
+        when(javascript.canHandle(uploadedFile)).thenReturn(true);
+        when(javascript.transform(uploadedFile.toURI().toURL())).thenThrow(new IOException("Not in GZIP format"));
+
+        assertThrows(IOException.class, () -> ModuleManagerResource.transformUploadedFile(bundleContext, uploadedFile));
+
+        verify(bundleContext).ungetService(references[0]);
+    }
+
+    @Test
+    public void aTransformerUnregisteredSinceTheLookupIsSkipped() throws Exception {
+        ArtifactUrlTransformer javascript = mock(ArtifactUrlTransformer.class);
+        // getService returns null for a service unregistered between the lookup and the call.
+        ServiceReference<ArtifactUrlTransformer>[] references = deploy(null, javascript);
+        File uploadedFile = File.createTempFile("tgz-upload-test-1.0.0-", ".tgz");
+        uploadedFile.deleteOnExit();
+        URL transformedURL = new URL("file:/transformed/tgz-upload-test-1.0.0.jar");
+        when(javascript.canHandle(uploadedFile)).thenReturn(true);
+        when(javascript.transform(uploadedFile.toURI().toURL())).thenReturn(transformedURL);
+
+        assertEquals(transformedURL, ModuleManagerResource.transformUploadedFile(bundleContext, uploadedFile).getURL());
+
+        verify(bundleContext, never()).ungetService(references[0]);
+        verify(bundleContext).ungetService(references[1]);
+    }
+
     // --- the deployed transformers, in the order the framework returns them -----------------------
 
     @SuppressWarnings("unchecked")
-    private void deploy(ArtifactUrlTransformer... transformers) throws Exception {
+    private ServiceReference<ArtifactUrlTransformer>[] deploy(ArtifactUrlTransformer... transformers) throws Exception {
         ServiceReference<ArtifactUrlTransformer>[] references = new ServiceReference[transformers.length];
         for (int i = 0; i < transformers.length; i++) {
             references[i] = mock(ServiceReference.class);
             when(bundleContext.getService(references[i])).thenReturn(transformers[i]);
         }
         when(bundleContext.getServiceReferences(ArtifactUrlTransformer.class, null)).thenReturn(Arrays.asList(references));
+        return references;
     }
 }
