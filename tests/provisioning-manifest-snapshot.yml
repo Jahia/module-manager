@@ -1,6 +1,11 @@
 - addMavenRepository: 'https://devtools.jahia.com/nexus/content/groups/internal/@id=jahia-internal@snapshots'
   username: ${env:NEXUS_USERNAME}
   password: ${env:NEXUS_PASSWORD}
+# The REST upload spec installs a JavaScript module package (.tgz), which needs the engine.
+- installBundle:
+    - 'mvn:org.jahia.modules/javascript-modules-engine/1.3.1'
+  autoStart: true
+  uninstallPreviousVersion: true
 - installBundle:
     - 'mvn:org.jahia.modules/module-manager'
   autoStart: true

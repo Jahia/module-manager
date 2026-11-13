@@ -1,0 +1,199 @@
+import { removeFixtureModules } from '../support/fixtureModules'
+
+/**
+ * Upload of modules through the REST API (POST /modules/api/bundles). A JavaScript module package (.tgz) goes
+ * through the url transformer of javascript-modules-engine, and a jar does not (Jahia/module-manager#220).
+ * Each test starts from a Jahia without the fixture modules, with the engine started.
+ */
+describe('Upload of modules through the REST API', () => {
+    const TGZ = 'org.jahia.modules.javascript/tgz-upload-test'
+    const JAR = 'org.jahia.modules/dummy1'
+    const ENGINE = 'org.jahia.modules/javascript-modules-engine'
+    const API = '/modules/api/bundles'
+
+    type UploadResult = {
+        status: number
+        body: { bundleInfos?: { key: string }[]; message?: string; cause?: string; parseError?: boolean }
+    }
+
+    const auth = () => ({ user: 'root', pass: Cypress.env('SUPER_USER_PASSWORD'), sendImmediately: true })
+
+    /**
+     * A multipart body comes back as an ArrayBuffer, so the response is decoded before it is read. A refusal of the
+     * security filter is plain text, which becomes the message.
+     */
+    const upload = (fileNames: string[], { authenticated = true } = {}): Cypress.Chainable<UploadResult> => {
+        const formData = new FormData()
+        formData.append('start', 'true')
+        fileNames.forEach((fileName) =>
+            cy
+                .fixture(`assets/moduleManagement/${fileName}`, 'binary')
+                .then((fixture) => formData.append('bundle', Cypress.Blob.binaryStringToBlob(fixture), fileName)),
+        )
+        return cy
+            .then(() =>
+                cy.request({
+                    method: 'POST',
+                    url: API,
+                    ...(authenticated ? { auth: auth() } : {}),
+                    body: formData,
+                    failOnStatusCode: false,
+                }),
+            )
+            .then((res) => {
+                const text = new TextDecoder().decode(res.body)
+                try {
+                    return { status: res.status, body: JSON.parse(text) }
+                } catch (e) {
+                    // Only the security filter's refusal is plain text; any other non-JSON body is a failure to name.
+                    return { status: res.status, body: { message: text, parseError: true } }
+                }
+            })
+    }
+
+    /** The module state of every installed version of a bucket, by version. */
+    const states = (bucket: string): Cypress.Chainable<Record<string, string>> =>
+        cy.request({ url: `${API}/${bucket}/*/_localInfo`, auth: auth() }).then((res) => {
+            const infos = res.body as Record<string, { moduleState: string }>
+            const byVersion: Record<string, string> = {}
+            Object.keys(infos).forEach((key) => (byVersion[key.split('/').pop()] = infos[key].moduleState))
+            return byVersion
+        })
+
+    /**
+     * Polls the states until they match: the REST call returns once the bundle is started or stopped, but a Spring
+     * module then goes through SPRING_STARTING before its module state reads STARTED.
+     */
+    const expectStates = (bucket: string, expected: Record<string, string>, attempts = 20) =>
+        states(bucket).then((actual) => {
+            if (attempts <= 1 || Cypress._.isEqual(actual, expected)) {
+                expect(actual).to.deep.eq(expected)
+            } else {
+                // The interval of the poll, not a guess at how long the start takes (repeatUntil only polls the DOM).
+                // eslint-disable-next-line cypress/no-unnecessary-waiting
+                cy.wait(500)
+                expectStates(bucket, expected, attempts - 1)
+            }
+        })
+
+    const operate = (key: string, operation: '_start' | '_stop') =>
+        cy.request({ method: 'POST', url: `${API}/${key}/${operation}`, auth: auth(), form: true, body: {} })
+
+    const keys = (result: UploadResult) => {
+        expect(result.body.parseError, `a JSON body, got: ${result.body.message}`).to.be.undefined
+        return result.body.bundleInfos.map((info) => info.key)
+    }
+
+    /** No fixture module, and the engine started: the last test stops it, and an aborted run may leave either. */
+    const resetState = () => {
+        removeFixtureModules()
+        states(ENGINE).then((engine) => {
+            expect(Object.keys(engine), 'javascript-modules-engine installed by the manifest').to.not.be.empty
+            Object.keys(engine)
+                .filter((version) => engine[version] !== 'STARTED')
+                .forEach((version) => operate(`${ENGINE}/${version}`, '_start'))
+            // The start answers before the module state reads STARTED, and a .tgz upload needs the engine running.
+            expectStates(
+                ENGINE,
+                Cypress._.mapValues(engine, () => 'STARTED'),
+            )
+        })
+    }
+
+    before(resetState)
+    afterEach(resetState)
+
+    it('installs and starts a JavaScript module package', () => {
+        upload(['tgz-upload-test-1.0.0.tgz']).then((result) => {
+            expect(result.status).to.eq(200)
+            expect(keys(result)).to.deep.eq([`${TGZ}/1.0.0`])
+        })
+        expectStates(TGZ, { '1.0.0': 'STARTED' })
+    })
+
+    it('upgrades a JavaScript module package', () => {
+        upload(['tgz-upload-test-1.0.0.tgz']).its('status').should('eq', 200)
+        expectStates(TGZ, { '1.0.0': 'STARTED' })
+
+        upload(['tgz-upload-test-1.1.0.tgz']).then((result) => {
+            expect(result.status).to.eq(200)
+            expect(keys(result)).to.deep.eq([`${TGZ}/1.1.0`])
+        })
+        expectStates(TGZ, { '1.0.0': 'INSTALLED', '1.1.0': 'STARTED' })
+    })
+
+    it('updates a JavaScript module package uploaded again with the same version', () => {
+        upload(['tgz-upload-test-1.1.0.tgz']).its('status').should('eq', 200)
+        expectStates(TGZ, { '1.1.0': 'STARTED' })
+
+        upload(['tgz-upload-test-1.1.0.tgz']).then((result) => {
+            expect(result.status).to.eq(200)
+            expect(keys(result)).to.deep.eq([`${TGZ}/1.1.0`])
+        })
+        expectStates(TGZ, { '1.1.0': 'STARTED' })
+    })
+
+    it('installs and starts a jar', () => {
+        upload(['dummy1-1.0.0.jar']).then((result) => {
+            expect(result.status).to.eq(200)
+            expect(keys(result)).to.deep.eq([`${JAR}/1.0.0`])
+        })
+        expectStates(JAR, { '1.0.0': 'STARTED' })
+    })
+
+    it('installs a jar and a JavaScript module package uploaded in one request', () => {
+        upload(['dummy1-1.0.0.jar', 'tgz-upload-test-1.1.0.tgz']).then((result) => {
+            expect(result.status).to.eq(200)
+            expect(keys(result)).to.have.members([`${JAR}/1.0.0`, `${TGZ}/1.1.0`])
+        })
+        expectStates(JAR, { '1.0.0': 'STARTED' })
+        expectStates(TGZ, { '1.1.0': 'STARTED' })
+    })
+
+    it('rejects a .tgz that is not a gzip archive with its cause', () => {
+        upload(['tgz-broken-1.0.0.tgz']).then((result) => {
+            expect(result.status).to.eq(500)
+            expect(result.body.cause).to.contain('Not in GZIP format')
+        })
+        expectStates(TGZ, {})
+    })
+
+    it('rejects a request without a bundle', () => {
+        upload([]).then((result) => {
+            expect(result.status).to.eq(400)
+            expect(result.body.message).to.eq('At least one bundle file is required')
+        })
+    })
+
+    it('refuses an upload without credentials', () => {
+        upload(['tgz-upload-test-1.1.0.tgz'], { authenticated: false }).then((result) => {
+            expect(result.status).to.eq(401)
+            expect(result.body.parseError, 'the refusal is plain text').to.be.true
+            // The URI the server echoes carries the context path of the Jahia under test.
+            expect(result.body.message).to.match(/not allowed to access resource .*\/modules\/api\/bundles$/)
+        })
+        expectStates(TGZ, {})
+    })
+
+    // This asserts the current answer, the generic "not a valid bundle" error, which does not say that the engine is
+    // missing. The module-manager UI shows a dedicated "missing Javascript engine" message for the same upload;
+    // whether the REST API should do the same is an open question on Jahia/module-manager#220. Update the expected
+    // message if the API gets one.
+    it('rejects a JavaScript module package while javascript-modules-engine is stopped', () => {
+        states(ENGINE).then((engine) => {
+            Object.keys(engine).forEach((version) => operate(`${ENGINE}/${version}`, '_stop'))
+            expectStates(
+                ENGINE,
+                Cypress._.mapValues(engine, () => 'RESOLVED'),
+            )
+        })
+
+        upload(['tgz-upload-test-1.1.0.tgz']).then((result) => {
+            expect(result.status).to.eq(400)
+            // The wording comes from Jahia core and changed between versions (8.2.2: "not a valid OSGi bundle",
+            // later: "not a valid Jahia module").
+            expect(result.body.message).to.match(/not a valid (OSGi bundle|Jahia module)/)
+        })
+        expectStates(TGZ, {})
+    })
+})
