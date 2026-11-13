@@ -1,0 +1,106 @@
+# This workflow can be triggered manually from the GitHub Actions UI or with `gh workflow run`.
+# It runs the integration tests on a chosen list of Jahia versions with a chosen provisioning manifest.
+# Each value of the comma-separated jahia_versions input resolves to a Jahia image:
+#   - a value with a "/" is a full image reference, used as is: ghcr.io/jahia/jahia-ee-dev:8.2.3.7
+#   - a value ending in -SNAPSHOT uses the dev registry: 8.2.4-SNAPSHOT -> ghcr.io/jahia/jahia-ee-dev:8.2.4-SNAPSHOT
+#   - any other value uses the public image: 8.2.3 -> jahia/jahia-ee:8.2.3
+# Example: gh workflow run manual-run.yml --ref main -f jahia_versions='8.2.3, 8.2.4-SNAPSHOT'
+name: Manual Tests Run
+run-name: Manual Tests of ${{ github.ref_name }} on ${{ inputs.jahia_versions }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      jahia_versions:
+        description: 'Comma-separated Jahia versions. A SNAPSHOT tag (8.2.4-SNAPSHOT) uses ghcr.io/jahia/jahia-ee-dev, another tag (8.2.3) uses jahia/jahia-ee, and a full image (ghcr.io/jahia/jahia-ee-dev:8.2.3.7) is used as is'
+        required: true
+        default: '8.2.2, 8.2.3, 8.2.4-SNAPSHOT'
+      provisioning_manifest:
+        description: 'Provisioning manifest. Can be a file in the tests folder or a publicly accessible link'
+        required: true
+        default: 'provisioning-manifest-build.yml'
+      build_module:
+        description: 'Build the module from the selected branch and deploy it after the manifest, which needs a file of the tests folder whose name contains "build". Uncheck to test the version the manifest installs, or the one Jahia ships'
+        type: boolean
+        default: true
+
+jobs:
+  versions:
+    name: Resolve Jahia images
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - id: matrix
+        env:
+          JAHIA_VERSIONS: ${{ inputs.jahia_versions }}
+          BUILD_MODULE: ${{ inputs.build_module }}
+          MANIFEST: ${{ inputs.provisioning_manifest }}
+        run: |
+          # tests/env.run.sh deploys the built module only with a manifest whose name contains "build".
+          # A URL is downloaded as curl-manifest, so only a file of the tests folder keeps its name.
+          if [[ "$BUILD_MODULE" == "true" && ( "$MANIFEST" == */* || "$MANIFEST" != *build* ) ]]; then
+            echo "::error::build_module is on, but the built module is deployed only with a manifest of the tests folder whose name contains \"build\" (got $MANIFEST). Uncheck build_module, or use provisioning-manifest-build.yml."
+            exit 1
+          fi
+          matrix=$(echo "$JAHIA_VERSIONS" | tr ',' '\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | jq -R -s -c '
+            split("\n") | map(select(length > 0)) | map({
+              image: (if test("/") then . elif endswith("-SNAPSHOT") then "ghcr.io/jahia/jahia-ee-dev:" + . else "jahia/jahia-ee:" + . end),
+              label: (gsub("[^A-Za-z0-9._-]"; "_"))
+            })')
+          if [[ "$matrix" == "[]" ]]; then
+            echo "::error::No Jahia version given"
+            exit 1
+          fi
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          echo "$matrix" | jq .
+
+  update-signature:
+    name: Update module signature
+    if: inputs.build_module
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jahia/jahia-modules-action/update-signature@v2
+        with:
+          nexus_username: ${{ secrets.NEXUS_USERNAME }}
+          nexus_password: ${{ secrets.NEXUS_PASSWORD }}
+
+  build:
+    name: Build Module
+    if: inputs.build_module
+    needs: update-signature
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/jahia/jahia-docker-mvn-cache:11-jdk-noble-mvn-loaded
+      credentials:
+        username: ${{ secrets.GH_PACKAGES_USERNAME }}
+        password: ${{ secrets.GH_PACKAGES_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jahia/jahia-modules-action/build@v2
+        with:
+          nexus_username: ${{ secrets.NEXUS_USERNAME }}
+          nexus_password: ${{ secrets.NEXUS_PASSWORD }}
+
+  # A skipped build would skip this job too, so the condition states when the build is needed.
+  integration-tests:
+    name: Integration Tests (${{ matrix.jahia.image }})
+    needs: [versions, build]
+    if: ${{ !cancelled() && needs.versions.result == 'success' && (!inputs.build_module || needs.build.result == 'success') }}
+    uses: Jahia/jahia-modules-action/.github/workflows/reusable-integration-tests.yml@v2
+    secrets: inherit
+    strategy:
+      fail-fast: false
+      matrix:
+        jahia: ${{ fromJSON(needs.versions.outputs.matrix) }}
+    with:
+      jahia_image: ${{ matrix.jahia.image }}
+      module_id: module-manager
+      module_branch: ${{ github.ref }}
+      provisioning_manifest: ${{ inputs.provisioning_manifest }}
+      artifact_prefix: module-manager-manual-${{ matrix.jahia.label }}
+      test_report_name: Tests Report (${{ matrix.jahia.image }})
+      should_skip_testrail: true
+      skip_notifications: true
+      timeout_job: 45

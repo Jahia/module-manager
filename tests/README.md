@@ -16,6 +16,9 @@ yarn e2e:debug     # the interactive runner
 `JAHIA_URL` and `SUPER_USER_PASSWORD` point the run at another instance. In CI, the pull-request
 workflow builds the module, installs it with `provisioning-manifest-build.yml`, and runs the suite in
 the container that `Dockerfile` describes.
+`nightly.yml` runs the suite every night with the latest module SNAPSHOT from Nexus
+(`provisioning-manifest-snapshot.yml`) on Jahia 8.2.2, 8.2.3 and 8.2.4-SNAPSHOT, and
+`manual-run.yml` runs it on demand on the Jahia versions and the manifest you choose.
 
 ## Fixture modules
 

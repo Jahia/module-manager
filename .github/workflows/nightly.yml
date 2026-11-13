@@ -1,0 +1,34 @@
+name: Nightly Test run
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron:  '0 0 * * *'
+
+jobs:
+  # Runs the Cypress suite with the module SNAPSHOT that on-merge publishes to Nexus
+  # (provisioning-manifest-snapshot.yml installs it without a version, so the latest one)
+  # against the latest releases of the maintained 8.2 lines and the next line's SNAPSHOT.
+  # jahia/jahia-ee:8.2.2 and :8.2.3 follow the latest patch of their line.
+  # The parent POM is jahia-modules 8.2.0.0, so no 8.1 line.
+  integration-tests:
+    name: Integration Tests (${{ matrix.jahia.image }})
+    uses: Jahia/jahia-modules-action/.github/workflows/reusable-integration-tests.yml@v2
+    secrets: inherit
+    strategy:
+      fail-fast: false
+      matrix:
+        jahia:
+          - { image: 'jahia/jahia-ee:8.2.2', label: '8.2.2' }
+          - { image: 'jahia/jahia-ee:8.2.3', label: '8.2.3' }
+          - { image: 'ghcr.io/jahia/jahia-ee-dev:8.2.4-SNAPSHOT', label: '8.2.4-SNAPSHOT' }
+    with:
+      jahia_image: ${{ matrix.jahia.image }}
+      module_id: module-manager
+      module_branch: ${{ github.ref }}
+      provisioning_manifest: provisioning-manifest-snapshot.yml
+      testrail_project: Module Manager
+      incident_service: module-manager-${{ matrix.jahia.label }}
+      test_report_name: Tests Report (${{ matrix.jahia.image }})
+      artifact_prefix: module-manager-nightly-${{ matrix.jahia.label }}
+      docker_build_cache_enabled: true
