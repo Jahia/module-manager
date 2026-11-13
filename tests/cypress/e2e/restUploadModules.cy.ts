@@ -175,10 +175,6 @@ describe('Upload of modules through the REST API', () => {
         expectStates(TGZ, {})
     })
 
-    // This asserts the current answer, the generic "not a valid bundle" error, which does not say that the engine is
-    // missing. The module-manager UI shows a dedicated "missing Javascript engine" message for the same upload;
-    // whether the REST API should do the same is an open question on Jahia/module-manager#220. Update the expected
-    // message if the API gets one.
     it('rejects a JavaScript module package while javascript-modules-engine is stopped', () => {
         states(ENGINE).then((engine) => {
             Object.keys(engine).forEach((version) => operate(`${ENGINE}/${version}`, '_stop'))
@@ -190,9 +186,9 @@ describe('Upload of modules through the REST API', () => {
 
         upload(['tgz-upload-test-1.1.0.tgz']).then((result) => {
             expect(result.status).to.eq(400)
-            // The wording comes from Jahia core and changed between versions (8.2.2: "not a valid OSGi bundle",
-            // later: "not a valid Jahia module").
-            expect(result.body.message).to.match(/not a valid (OSGi bundle|Jahia module)/)
+            expect(result.body.message).to.contain(
+                'JavaScript module packages (.tgz) need the Javascript Modules Engine. Install and start it first.',
+            )
         })
         expectStates(TGZ, {})
     })
