@@ -20,7 +20,7 @@ on:
         required: true
         default: 'provisioning-manifest-build.yml'
       build_module:
-        description: 'Build the module from the selected branch and deploy it after the manifest, which needs a manifest whose name contains "build". Uncheck to test the version the manifest installs'
+        description: 'Build the module from the selected branch and deploy it after the manifest, which needs a file of the tests folder whose name contains "build". Uncheck to test the version the manifest installs, or the one Jahia ships'
         type: boolean
         default: true
 
@@ -38,8 +38,9 @@ jobs:
           MANIFEST: ${{ inputs.provisioning_manifest }}
         run: |
           # tests/env.run.sh deploys the built module only with a manifest whose name contains "build".
-          if [[ "$BUILD_MODULE" == "true" && "$MANIFEST" != *build* ]]; then
-            echo "::error::build_module is on, but the built module is deployed only with a manifest whose name contains \"build\" (got $MANIFEST). Uncheck build_module, or use provisioning-manifest-build.yml."
+          # A URL is downloaded as curl-manifest, so only a file of the tests folder keeps its name.
+          if [[ "$BUILD_MODULE" == "true" && ( "$MANIFEST" == */* || "$MANIFEST" != *build* ) ]]; then
+            echo "::error::build_module is on, but the built module is deployed only with a manifest of the tests folder whose name contains \"build\" (got $MANIFEST). Uncheck build_module, or use provisioning-manifest-build.yml."
             exit 1
           fi
           matrix=$(echo "$JAHIA_VERSIONS" | tr ',' '\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | jq -R -s -c '
