@@ -1,15 +1,23 @@
 package org.jahia.modules.modulemanager.rest;
 
 import org.apache.felix.fileinstall.ArtifactUrlTransformer;
+import org.jahia.services.modulemanager.ModuleManagementInvalidArgumentException;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -45,25 +53,200 @@ public class ModuleManagerResourceTransformTest {
     }
 
     @Test
-    public void keepsTheFileWhenNoTransformerCanHandleIt() throws Exception {
+    public void returnsNullWhenNoTransformerCanHandleTheFile() throws Exception {
         ArtifactUrlTransformer javascript = mock(ArtifactUrlTransformer.class);
         deploy(javascript);
 
         File uploadedFile = File.createTempFile("a-module-", ".jar");
+        uploadedFile.deleteOnExit();
         when(javascript.canHandle(uploadedFile)).thenReturn(false);
 
-        assertEquals(uploadedFile, ModuleManagerResource.transformUploadedFile(bundleContext, uploadedFile).getFile());
+        assertNull(ModuleManagerResource.transformUploadedFile(bundleContext, uploadedFile));
+    }
+
+    // --- the resource installed for an uploaded file ---------------------------------------------
+
+    @Test
+    public void aJarNoTransformerClaimedIsInstalledAsItIs() throws Exception {
+        ArtifactUrlTransformer javascript = mock(ArtifactUrlTransformer.class);
+        deploy(javascript);
+        File uploadedFile = File.createTempFile("a-module-", ".jar");
+        uploadedFile.deleteOnExit();
+        when(javascript.canHandle(uploadedFile)).thenReturn(false);
+
+        Resource resource = ModuleManagerResource.resolveUploadedFile(bundleContext, uploadedFile, "a-module-1.0.0.jar");
+
+        assertTrue(resource instanceof FileSystemResource);
+        assertEquals(uploadedFile, resource.getFile());
+    }
+
+    @Test
+    public void aTgzNoTransformerClaimedIsRejectedAndItsFileDeleted() throws Exception {
+        deploy();
+        File uploadedFile = File.createTempFile("tgz-upload-test-1.0.0-", ".tgz");
+        uploadedFile.deleteOnExit();
+
+        ModuleManagementInvalidArgumentException rejection = assertThrows(ModuleManagementInvalidArgumentException.class,
+                () -> ModuleManagerResource.resolveUploadedFile(bundleContext, uploadedFile, "tgz-upload-test-1.0.0.tgz"));
+
+        assertEquals(ModuleManagerResource.MISSING_JAVASCRIPT_ENGINE, rejection.getMessage());
+        assertFalse(uploadedFile.exists());
+    }
+
+    @Test
+    public void aTgzWhoseTransformFailsIsNotBlamedOnTheEngine() throws Exception {
+        ArtifactUrlTransformer javascript = mock(ArtifactUrlTransformer.class);
+        deploy(javascript);
+        File uploadedFile = File.createTempFile("tgz-upload-test-1.0.0-", ".tgz");
+        uploadedFile.deleteOnExit();
+        when(javascript.canHandle(uploadedFile)).thenReturn(true);
+        when(javascript.transform(uploadedFile.toURI().toURL())).thenThrow(new IOException("Not in GZIP format"));
+
+        Resource resource = ModuleManagerResource.resolveUploadedFile(bundleContext, uploadedFile, "tgz-upload-test-1.0.0.tgz");
+
+        // The engine claimed the file and failed: the upload falls through to the file itself, whose install reports
+        // the real cause, instead of asking to install an engine that is running.
+        assertEquals(uploadedFile, resource.getFile());
+    }
+
+    @Test
+    public void aTgzTheEngineClaimedIsInstalledTransformed() throws Exception {
+        ArtifactUrlTransformer javascript = mock(ArtifactUrlTransformer.class);
+        deploy(javascript);
+        File uploadedFile = File.createTempFile("tgz-upload-test-1.0.0-", ".tgz");
+        uploadedFile.deleteOnExit();
+        URL transformedURL = new URL("file:/transformed/tgz-upload-test-1.0.0.jar");
+        when(javascript.canHandle(uploadedFile)).thenReturn(true);
+        when(javascript.transform(uploadedFile.toURI().toURL())).thenReturn(transformedURL);
+
+        Resource resource = ModuleManagerResource.resolveUploadedFile(bundleContext, uploadedFile, "tgz-upload-test-1.0.0.tgz");
+
+        assertEquals(transformedURL, resource.getURL());
+    }
+
+    // --- a .tgz that no transformer claimed needs the JavaScript engine ---------------------------
+
+    @Test
+    public void aTgzNoTransformerClaimedNeedsTheJavascriptEngine() throws Exception {
+        deploy();
+        File uploadedFile = File.createTempFile("tgz-upload-test-1.0.0-", ".tgz");
+        uploadedFile.deleteOnExit();
+
+        boolean noTransformerClaimed = ModuleManagerResource.transformUploadedFile(bundleContext, uploadedFile) == null;
+
+        assertTrue(noTransformerClaimed);
+        assertTrue(ModuleManagerResource.needsJavascriptEngine("tgz-upload-test-1.0.0.tgz", noTransformerClaimed));
+    }
+
+    @Test
+    public void aTgzTheEngineClaimedDoesNot() throws Exception {
+        ArtifactUrlTransformer javascript = mock(ArtifactUrlTransformer.class);
+        deploy(javascript);
+        File uploadedFile = File.createTempFile("tgz-upload-test-1.0.0-", ".tgz");
+        uploadedFile.deleteOnExit();
+        when(javascript.canHandle(uploadedFile)).thenReturn(true);
+        when(javascript.transform(uploadedFile.toURI().toURL()))
+                .thenReturn(new URL("file:/transformed/tgz-upload-test-1.0.0.jar"));
+
+        boolean noTransformerClaimed = ModuleManagerResource.transformUploadedFile(bundleContext, uploadedFile) == null;
+
+        assertFalse(noTransformerClaimed);
+        assertFalse(ModuleManagerResource.needsJavascriptEngine("tgz-upload-test-1.0.0.tgz", noTransformerClaimed));
+    }
+
+    @Test
+    public void anUpperCaseTgzNobodyClaimedDoesNot() throws Exception {
+        deploy();
+        File uploadedFile = File.createTempFile("TGZ-UPLOAD-TEST-1.0.0-", ".TGZ");
+        uploadedFile.deleteOnExit();
+
+        boolean noTransformerClaimed = ModuleManagerResource.transformUploadedFile(bundleContext, uploadedFile) == null;
+
+        assertTrue(noTransformerClaimed);
+        // The engine only claims ".tgz": an upper-case extension keeps the generic error, not the engine message.
+        assertFalse(ModuleManagerResource.needsJavascriptEngine("TGZ-UPLOAD-TEST-1.0.0.TGZ", noTransformerClaimed));
+    }
+
+    @Test
+    public void aJarOrAFailedTransformDoesNot() {
+        assertFalse(ModuleManagerResource.needsJavascriptEngine("a-module-1.0.0.jar", true));
+        // A transformer that threw: the caller passes false, as some transformer did claim the file.
+        assertFalse(ModuleManagerResource.needsJavascriptEngine("a.tgz", false));
+    }
+
+    // --- every transformer asked is released ------------------------------------------------------
+
+    @Test
+    public void theTransformerThatClaimedTheFileIsReleasedAndNoLaterOneIsLookedUp() throws Exception {
+        ArtifactUrlTransformer javascript = mock(ArtifactUrlTransformer.class);
+        ArtifactUrlTransformer other = mock(ArtifactUrlTransformer.class);
+        ServiceReference<ArtifactUrlTransformer>[] references = deploy(javascript, other);
+        File uploadedFile = File.createTempFile("tgz-upload-test-1.0.0-", ".tgz");
+        uploadedFile.deleteOnExit();
+        when(javascript.canHandle(uploadedFile)).thenReturn(true);
+        when(javascript.transform(uploadedFile.toURI().toURL()))
+                .thenReturn(new URL("file:/transformed/tgz-upload-test-1.0.0.jar"));
+
+        ModuleManagerResource.transformUploadedFile(bundleContext, uploadedFile);
+
+        verify(bundleContext).ungetService(references[0]);
+        verify(bundleContext, never()).getService(references[1]);
+    }
+
+    @Test
+    public void everyTransformerIsReleasedWhenNoneClaimsTheFile() throws Exception {
+        ServiceReference<ArtifactUrlTransformer>[] references =
+                deploy(mock(ArtifactUrlTransformer.class), mock(ArtifactUrlTransformer.class));
+        File uploadedFile = File.createTempFile("a-module-", ".jar");
+        uploadedFile.deleteOnExit();
+
+        assertNull(ModuleManagerResource.transformUploadedFile(bundleContext, uploadedFile));
+
+        verify(bundleContext).ungetService(references[0]);
+        verify(bundleContext).ungetService(references[1]);
+    }
+
+    @Test
+    public void aTransformerWhoseTransformThrowsIsReleased() throws Exception {
+        ArtifactUrlTransformer javascript = mock(ArtifactUrlTransformer.class);
+        ServiceReference<ArtifactUrlTransformer>[] references = deploy(javascript);
+        File uploadedFile = File.createTempFile("tgz-upload-test-1.0.0-", ".tgz");
+        uploadedFile.deleteOnExit();
+        when(javascript.canHandle(uploadedFile)).thenReturn(true);
+        when(javascript.transform(uploadedFile.toURI().toURL())).thenThrow(new IOException("Not in GZIP format"));
+
+        assertThrows(IOException.class, () -> ModuleManagerResource.transformUploadedFile(bundleContext, uploadedFile));
+
+        verify(bundleContext).ungetService(references[0]);
+    }
+
+    @Test
+    public void aTransformerUnregisteredSinceTheLookupIsSkipped() throws Exception {
+        ArtifactUrlTransformer javascript = mock(ArtifactUrlTransformer.class);
+        // getService returns null for a service unregistered between the lookup and the call.
+        ServiceReference<ArtifactUrlTransformer>[] references = deploy(null, javascript);
+        File uploadedFile = File.createTempFile("tgz-upload-test-1.0.0-", ".tgz");
+        uploadedFile.deleteOnExit();
+        URL transformedURL = new URL("file:/transformed/tgz-upload-test-1.0.0.jar");
+        when(javascript.canHandle(uploadedFile)).thenReturn(true);
+        when(javascript.transform(uploadedFile.toURI().toURL())).thenReturn(transformedURL);
+
+        assertEquals(transformedURL, ModuleManagerResource.transformUploadedFile(bundleContext, uploadedFile).getURL());
+
+        verify(bundleContext, never()).ungetService(references[0]);
+        verify(bundleContext).ungetService(references[1]);
     }
 
     // --- the deployed transformers, in the order the framework returns them -----------------------
 
     @SuppressWarnings("unchecked")
-    private void deploy(ArtifactUrlTransformer... transformers) throws Exception {
+    private ServiceReference<ArtifactUrlTransformer>[] deploy(ArtifactUrlTransformer... transformers) throws Exception {
         ServiceReference<ArtifactUrlTransformer>[] references = new ServiceReference[transformers.length];
         for (int i = 0; i < transformers.length; i++) {
             references[i] = mock(ServiceReference.class);
             when(bundleContext.getService(references[i])).thenReturn(transformers[i]);
         }
         when(bundleContext.getServiceReferences(ArtifactUrlTransformer.class, null)).thenReturn(Arrays.asList(references));
+        return references;
     }
 }

@@ -164,35 +164,76 @@ public class ModuleManagerResource {
             log.error("Error copy uploaded stream to local temp file for " + filename, e);
             throw new InternalServerErrorException("Error while deploying bundle " + filename, e);
         }
-        Resource bundleResource = new FileSystemResource(tempFile);
+        return new UploadedBundle(resolveUploadedFile(FrameworkService.getBundleContext(), tempFile, filename), tempFile);
+    }
+
+    /**
+     * The resource to install for an uploaded file: what a transformer made of it, or the file itself when none
+     * claimed it. A .tgz that no transformer claimed is rejected, and its temp file deleted.
+     */
+    static Resource resolveUploadedFile(BundleContext bundleContext, File tempFile, String filename) {
+        Resource transformed = null;
+        boolean transformFailed = false;
         try {
-            bundleResource = transformUploadedFile(FrameworkService.getBundleContext(), tempFile);
+            transformed = transformUploadedFile(bundleContext, tempFile);
         } catch (Exception e) {
+            transformFailed = true;
             log.warn("Could not transform the uploaded file {}", e.getMessage());
         }
-        return new UploadedBundle(bundleResource, tempFile);
+        // Outside the try: the catch above would turn the rejection into a warning.
+        if (needsJavascriptEngine(filename, !transformFailed && transformed == null)) {
+            FileUtils.deleteQuietly(tempFile);
+            throw new ModuleManagementInvalidArgumentException(MISSING_JAVASCRIPT_ENGINE);
+        }
+        return transformed != null ? transformed : new FileSystemResource(tempFile);
+    }
+
+    static final String MISSING_JAVASCRIPT_ENGINE =
+            "JavaScript module packages (.tgz) need the Javascript Modules Engine. Install and start it first.";
+
+    /**
+     * A .tgz package that no transformer claimed: on a standard Jahia, javascript-modules-engine is the only
+     * transformer of .tgz files, so it is missing or stopped. A transformer that claimed the file and then failed
+     * is not this case.
+     *
+     * @param filename             the name of the uploaded file, as the client sent it
+     * @param noTransformerClaimed true when {@link #transformUploadedFile} returned null without throwing
+     * @return true when the upload should be rejected with {@link #MISSING_JAVASCRIPT_ENGINE}
+     */
+    static boolean needsJavascriptEngine(String filename, boolean noTransformerClaimed) {
+        // Case-sensitive, as the engine's transformer is: an "x.TGZ" that nobody claimed is not blamed on the engine.
+        return noTransformerClaimed && "tgz".equals(FilenameUtils.getExtension(filename));
     }
 
     /**
      * Transforms the uploaded file with the first deployed transformer that can handle it, as the provisioning
      * API does. The transformers are asked about the original file only: once one of them has transformed the
-     * file, the resource is a {@code js:} URL, which no transformer can resolve back to a file.
+     * file, the resource is a {@code js:} URL, which no transformer can resolve back to a file. Each transformer
+     * is released once asked, whatever its answer.
      *
      * @param bundleContext the OSGi bundle context to look the transformers up in
      * @param uploadedFile  the uploaded file, as it was received
-     * @return the resource of the transformed URL, or the file itself when no transformer can handle it
+     * @return the resource of the transformed URL, or null when no transformer can handle the file
      */
     static Resource transformUploadedFile(BundleContext bundleContext, File uploadedFile) throws Exception {
         Collection<ServiceReference<ArtifactUrlTransformer>> serviceReferences =
                 bundleContext.getServiceReferences(ArtifactUrlTransformer.class, null);
         for (ServiceReference<ArtifactUrlTransformer> serviceReference : serviceReferences) {
             ArtifactUrlTransformer transformer = bundleContext.getService(serviceReference);
-            if (transformer.canHandle(uploadedFile)) {
-                URL transformedURL = transformer.transform(uploadedFile.toURI().toURL());
-                return new UrlResource(transformedURL);
+            if (transformer == null) {
+                // Unregistered since the lookup.
+                continue;
+            }
+            try {
+                if (transformer.canHandle(uploadedFile)) {
+                    URL transformedURL = transformer.transform(uploadedFile.toURI().toURL());
+                    return new UrlResource(transformedURL);
+                }
+            } finally {
+                bundleContext.ungetService(serviceReference);
             }
         }
-        return new FileSystemResource(uploadedFile);
+        return null;
     }
 
     /**
