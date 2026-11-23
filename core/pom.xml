@@ -145,7 +145,7 @@
             <!-- A render resource reads its helpers from Guava, which the container provides at runtime. -->
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>33.4.8-jre</version>
+            <version>33.8.0-jre</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
