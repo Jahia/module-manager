@@ -13,3 +13,8 @@ updates:
       interval: "daily"
     allow:
       - dependency-type: "production"
+    ignore:
+      # The Jahia parent and the Jahia test module set the minimum Jahia version of the module.
+      - dependency-name: "org.jahia.modules:jahia-modules"
+      - dependency-name: "org.jahia.server:*"
+      - dependency-name: "org.jahia.test:jahia-test-module"
